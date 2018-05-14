@@ -89,10 +89,10 @@ node ('macos1'){
       withCredentials([[
         $class: 'UsernamePasswordMultiBinding',
         credentialsId: 'jenkins-status-im',
-        usernameVariable: 'GIT_USERNAME',
-        passwordVariable: 'GIT_PASSWORD'
+        usernameVariable: 'GIT_USER',
+        passwordVariable: 'GIT_PASS'
       ]]) {
-        sh ('git push --tags https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/status-im/status-react --tags')
+        sh ('git push --tags https://${GIT_USER}:${GIT_PASS}@github.com/status-im/status-react --tags')
       }
     }
   } catch (e) {
