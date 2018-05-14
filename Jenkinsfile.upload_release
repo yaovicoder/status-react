@@ -71,6 +71,7 @@ node ('macos1'){
       }
     }
 
+    /*
     stage('Deploy (Android)') {
       sh ('bundle exec fastlane android release || exit 0')
     }
@@ -78,6 +79,7 @@ node ('macos1'){
     stage('Deploy (iOS)') {
       sh ('bundle exec fastlane ios release || exit 0')
     }
+    */
 
     stage('Push build tag') {
       sh ('git push --tags')
