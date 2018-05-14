@@ -30,10 +30,6 @@ node ('macos1'){
     stage('Git & Dependencies') {
       slackSend color: 'good', message: BRANCH_NAME + ' build started. ' + env.BUILD_URL
 
-      if (!BRANCH_NAME.startsWith("release/")){
-        error "Wrong branch name format: " + BRANCH_NAME + ", but it should be `release/version`"
-      }
-
       version = BRANCH_NAME.substring(8)
       sh 'echo "' + version + '" > .version'
 
