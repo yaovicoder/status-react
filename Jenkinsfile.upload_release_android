@@ -63,25 +63,9 @@ timeout(90) {
           sh 'cd android && ./gradlew assembleRelease -PreleaseVersion=' + version
         }
 
-        stage('Build (iOS)') {
-          withCredentials([string(credentialsId: 'jenkins_pass', variable: 'password')]) {
-            def build_no = sh(returnStdout: true, script: './build_no.sh --tag').trim()
-            sh ('plutil -replace CFBundleShortVersionString  -string ' + version + ' ios/StatusIm/Info.plist')
-            sh ('plutil -replace CFBundleVersion  -string ' + build_no + ' ios/StatusIm/Info.plist')
-            sh 'export RCT_NO_LAUNCH_PACKAGER=true && xcodebuild -workspace ios/StatusIm.xcworkspace -scheme StatusIm -configuration release -archivePath status clean archive'
-            sh ('security unlock-keychain -p ' + password + ' login.keychain')
-            sh 'xcodebuild -exportArchive -exportPath status_appstore -archivePath status.xcarchive -exportOptionsPlist ~/archive-release.plist'
-          }
-        }
-
         stage('Deploy (Android)') {
-          sh ('bundle exec fastlane android release || exit 0')
+          sh ('bundle exec fastlane android release')
         }
-
-        stage('Deploy (iOS)') {
-          sh ('bundle exec fastlane ios release || exit 0')
-        }
-
 
         stage('Push build tag') {
           withCredentials([[
@@ -94,12 +78,12 @@ timeout(90) {
           }
         }
       } catch (e) {
-        slackSend color: 'bad', message: 'Release build failed uploading to iTC/Play Market. ' + env.BUILD_URL
+        slackSend color: 'bad', message: 'Release build failed uploading to the Play Market. ' + env.BUILD_URL
         throw e
       }
 
       stage('Slack Notification') {
-        slackSend color: 'good', message: 'Release build ' + version + ' succesfully aploade to iTC/Play Market'
+        slackSend color: 'good', message: 'Release build ' + version + ' succesfully aploade to the Play Market'
       }
     }
 }
