@@ -4,6 +4,7 @@
             [status-im.constants :as constants]
             [status-im.utils.platform :as platform]
             [status-im.utils.dimensions :as dimensions]
+            pluto.registry
             status-im.transport.db
             status-im.ui.screens.accounts.db
             status-im.ui.screens.contacts.db
@@ -56,7 +57,8 @@
              :desktop/desktop                    {:tab-view-id :home}
              :dimensions/window                  (dimensions/window)
              :push-notifications/stored          {}
-             :push-notifications/initial?        false})
+             :push-notifications/initial?        false
+             :registry                           {}})
 
 ;;;;GLOBAL
 
@@ -121,6 +123,8 @@
 
 (spec/def :navigation.screen-params/collectibles-list map?)
 
+(spec/def :navigation.screen-params/show-extension map?)
+
 (spec/def :navigation/screen-params (spec/nilable (allowed-keys :opt-un [:navigation.screen-params/network-details
                                                                          :navigation.screen-params/browser
                                                                          :navigation.screen-params/profile-qr-viewer
@@ -128,7 +132,8 @@
                                                                          :navigation.screen-params/group-contacts
                                                                          :navigation.screen-params/edit-contact-group
                                                                          :navigation.screen-params/dapp-description
-                                                                         :navigation.screen-params/collectibles-list])))
+                                                                         :navigation.screen-params/collectibles-list
+                                                                         :navigation.screen-params/show-extension])))
 
 (spec/def :desktop/desktop (spec/nilable any?))
 (spec/def ::tooltips (spec/nilable any?))
@@ -144,6 +149,9 @@
 
 (spec/def ::collectible (spec/nilable map?))
 (spec/def ::collectibles (spec/nilable map?))
+
+(spec/def ::extension-url (spec/nilable string?))
+(spec/def ::staged-extension (spec/nilable any?))
 
 ;;;;NODE
 
@@ -294,4 +302,7 @@
                  :notifications/notifications
                  ::device-UUID
                  ::collectible
-                 ::collectibles]))
+                 ::collectibles
+                 ::extension-url
+                 ::staged-extension
+                 :registry/registry]))
