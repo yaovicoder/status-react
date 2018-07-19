@@ -66,3 +66,6 @@
   (let [mailservers     (.objects new-realm "mailserver")]
     (dotimes [i (.-length mailservers)]
       (aset (aget mailservers i) "fleet" "eth.beta"))))
+
+(defn v12 [old-realm new-realm]
+  (log/debug "migrating v12 account database"))
