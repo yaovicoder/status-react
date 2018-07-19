@@ -47,7 +47,7 @@
      :accessibility-label :clear-history-button}
     {:label               (i18n/label :t/delete-chat)
      :icon                :icons/arrow-left
-     :action              #(re-frame/dispatch [:group-chat.ui/leave-group-pressed chat-id])
+     :action              #(re-frame/dispatch [:group-chat.ui/remove-chat-pressed chat-id])
      :accessibility-label :delete-chat-button}]))
 
 (defn contact-actions [contact]
