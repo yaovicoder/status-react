@@ -151,23 +151,24 @@
                                                          (not (= constants/system from))
                                                          (not (:outgoing message)))))))
 
-(fx/defn receive
-  [{:keys [now] :as cofx} {:keys [chat-id message-id] :as message}]
-  (fx/merge cofx
-            (chat-model/upsert-chat {:chat-id   chat-id
-                                     ;; We activate a chat again on new messages
-                                     :is-active true
-                                     :timestamp now})
-            (add-received-message false message)))
-
 (fx/defn update-group-messages [cofx chat->message chat-id]
   (fx/merge cofx
             (re-index-message-groups chat-id)
             (chat-loading/group-chat-messages chat-id (get chat->message chat-id))))
 
+(defn valid-chat-id? [cofx {:keys [chat-id from message-type]}]
+  "Validate chat-id and message-type"
+  (case message-type
+    :group-user-message (get-in cofx [:db :chats chat-id :contacts from])
+    :public-group-user-message (get-in cofx [:db :chats chat-id :public?])
+    :user-message (or (= (get-in cofx [:db :current-public-key]) from)
+                      (= chat-id from))
+    false))
+
 (fx/defn receive-many
-  [{:keys [now] :as cofx} messages]
-  (let [chat->message   (group-by :chat-id messages)
+  [{:keys [now] :as cofx} raw-messages]
+  (let [messages        (filter (partial valid-chat-id? cofx) raw-messages)
+        chat->message   (group-by :chat-id messages)
         chat-ids        (keys chat->message)
         chats-fx-fns    (map #(chat-model/upsert-chat {:chat-id   %
                                                        :is-active true
