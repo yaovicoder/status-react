@@ -11,6 +11,7 @@
             [status-im.browser.permissions :as browser.permissions]
             [status-im.data-store.core :as data-store]
             [status-im.fleet.core :as fleet]
+            [status-im.group-chats.core :as group-chats]
             [status-im.hardwallet.core :as hardwallet]
             [status-im.i18n :as i18n]
             [status-im.init.core :as init]
@@ -713,3 +714,22 @@
  :browser.ui/open-modal-chat-button-pressed
  (fn [cofx [_ host]]
    (browser/open-chat-from-browser cofx host)))
+
+;; group-chats module
+
+(handlers/register-handler-fx
+ :group-chats.ui/create-pressed
+ [(re-frame/inject-cofx :random-guid-generator)]
+ (fn [cofx [_ chat-name]]
+   (group-chats/create cofx chat-name)))
+
+(handlers/register-handler-fx
+ :group-chats.callback/sign-success
+ [(re-frame/inject-cofx :random-guid-generator)]
+ (fn [cofx [_ group-update]]
+   (group-chats/handle-sign-success cofx group-update)))
+
+(handlers/register-handler-fx
+ :group-chats.callback/verify-signature-success
+ (fn [cofx [_ group-update sender-signature]]
+   (group-chats/handle-membership-update cofx group-update sender-signature)))

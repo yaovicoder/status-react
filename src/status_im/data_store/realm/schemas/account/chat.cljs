@@ -92,3 +92,10 @@
                                                :default false}
                       :public?                {:type    :bool
                                                :default false}}})
+
+(def v6 (update v5
+                :properties assoc
+                :membership-version   {:type :int
+                                       :optional true}
+                :membership-signature {:type :string
+                                       :optional true}))
