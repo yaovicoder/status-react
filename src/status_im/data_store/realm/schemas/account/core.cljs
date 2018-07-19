@@ -122,37 +122,12 @@
           browser/v8
           dapp-permissions/v9])
 
-;; put schemas ordered by version
-(def schemas [{:schema        v1
-               :schemaVersion 1
-               :migration     migrations/v1}
-              {:schema        v2
-               :schemaVersion 2
-               :migration     migrations/v2}
-              {:schema        v3
-               :schemaVersion 3
-               :migration     migrations/v3}
-              {:schema        v4
-               :schemaVersion 4
-               :migration     migrations/v4}
-              {:schema        v5
-               :schemaVersion 5
-               :migration     migrations/v5}
-              {:schema        v6
-               :schemaVersion 6
-               :migration     migrations/v6}
-              {:schema        v7
-               :schemaVersion 7
-               :migration     migrations/v7}
-              {:schema        v8
-               :schemaVersion 8
-               :migration     migrations/v8}
-              {:schema        v9
-               :schemaVersion 9
-               :migration     migrations/v9}
-              {:schema        v10
-               :schemaVersion 10
-               :migration     migrations/v10}
-              {:schema        v11
-               :schemaVersion 11
-               :migration     migrations/v11}])
+(def v12 [chat/v6
+          transport/v6
+          contact/v1
+          message/v7
+          mailserver/v11
+          user-status/v1
+          local-storage/v1
+          browser/v8
+          dapp-permissions/v9])
