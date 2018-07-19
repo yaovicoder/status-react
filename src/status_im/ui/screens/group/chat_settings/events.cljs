@@ -14,8 +14,7 @@
  (fn [{:keys [db] :as cofx} [_ chat-id]]
    (fx/merge cofx
              {:db (assoc db
-                         :new-chat-name (get-in db [:chats chat-id :name])
-                         :group/group-type :chat-group)}
+                         :new-chat-name (get-in db [:chats chat-id :name]))}
              (navigation/navigate-to-cofx :group-chat-profile nil))))
 
 (handlers/register-handler-fx
@@ -30,9 +29,9 @@
                                    (assoc-in [:chats current-chat-id :contacts] participants)
                                    (assoc :selected-participants #{}))
                 :data-store/tx [(chats-store/add-chat-contacts-tx current-chat-id selected-participants)]}
-               (models.message/receive
-                (models.message/system-message current-chat-id message-id now
-                                               (str "You've added " (apply str (interpose ", " added-participants-names)))))
+               #_(models.message/receive
+                  (models.message/system-message current-chat-id message-id now
+                                                 (str "You've added " (apply str (interpose ", " added-participants-names)))))
                #_(transport/send (protocol/GroupAdminUpdate. nil participants current-chat-id) current-chat-id)))))
 
 (handlers/register-handler-fx
@@ -45,9 +44,9 @@
      (fx/merge cofx
                {:db            (assoc-in db [:chats current-chat-id :contacts] participants)
                 :data-store/tx [(chats-store/remove-chat-contacts-tx current-chat-id removed-participants)]}
-               (models.message/receive
-                (models.message/system-message current-chat-id message-id now
-                                               (str "You've removed " (apply str (interpose ", " removed-participants-names)))))
+               #_(models.message/receive
+                  (models.message/system-message current-chat-id message-id now
+                                                 (str "You've removed " (apply str (interpose ", " removed-participants-names)))))
                #_(transport/send (protocol/GroupAdminUpdate. nil participants current-chat-id) current-chat-id)))))
 
 (handlers/register-handler-fx
