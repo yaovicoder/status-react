@@ -72,7 +72,8 @@
                                                         ""
                                                         (i18n/label :delete-chat-action)
                                                         #(re-frame/dispatch [:remove-chat-and-navigate-home chat-id])))}
-       (i18n/label :t/delete-chat)]]]))
+       (i18n/label :t/delete-chat)]]]
+    [connectivity/error-view {:top 2}]))
 
 (views/defview message-author-name [{:keys [outgoing from] :as message}]
   (views/letsubs [current-account [:get-current-account]
@@ -154,6 +155,8 @@
              [message-with-name-and-avatar text message]
              [text-only-message text message])
            [react/view {:style (message.style/delivery-status outgoing)}
+=======
+           [react/view (message.style/delivery-status outgoing)
             [message/message-delivery-status message]]])}))))
 
 (views/defview messages-view [{:keys [chat-id group-chat]}]
