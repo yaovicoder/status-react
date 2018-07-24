@@ -69,9 +69,11 @@ timeout(90) {
           sh 'lein prod-build'
         }
 
+        /*
         stage('Build (Android)') {
           sh 'cd android && ./gradlew react-native-android:installArchives && ./gradlew assembleRelease'
         }
+        */
 
         stage('Build (iOS)') {
           withCredentials([string(credentialsId: 'jenkins_pass', variable: 'password')]) {
@@ -84,6 +86,7 @@ timeout(90) {
           }
         }
 
+        /*
         stage('Deploy (Android)') {
           def artifact_dir = pwd() + '/android/app/build/outputs/apk/release/'
           println (artifact_dir + 'app-release.apk')
@@ -100,6 +103,7 @@ timeout(90) {
           sh ('bundle exec fastlane android nightly')
           sh ('echo ARTIFACT Android: ' + apkUrl)
         }
+        */
 
         stage('Deploy (iOS)') {
           withCredentials([string(credentialsId: 'diawi-token', variable: 'token')]) {
@@ -108,7 +112,7 @@ timeout(90) {
             def hash = sh(returnStdout: true, script: "curl -vvv 'https://upload.diawi.com/status?token="+token+"&job="+job+"'|jq -r '.hash'").trim()
             ipaUrl = 'https://i.diawi.com/' + hash
 
-            sh ('bundle exec fastlane ios nightly')
+            sh ('bundle exec fastlane --verbose ios nightly')
             sh ('echo ARTIFACT iOS: ' + ipaUrl)
           }
         }
