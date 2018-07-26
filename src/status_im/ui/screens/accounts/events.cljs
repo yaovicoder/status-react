@@ -67,6 +67,15 @@
    (accounts.utils/account-update {:dev-mode? dev-mode} cofx)))
 
 (handlers/register-handler-fx
+ :enable-notifications
+ (fn [{:keys [db] :as cofx} [_ desktop-notifications?]]
+   (let [settings (get-in db [:account/account :settings])]
+     (handlers-macro/merge-fx cofx
+                              (models/update-settings
+                               (assoc settings :desktop-notifications? desktop-notifications?)
+                               [])))))
+
+(handlers/register-handler-fx
  :wallet-set-up-passed
  (fn [cofx [_ modal?]]
    (models/wallet-set-up-passed modal? cofx)))

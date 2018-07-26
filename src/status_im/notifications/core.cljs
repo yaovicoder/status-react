@@ -11,7 +11,10 @@
 ;; Work in progress namespace responsible for push notifications and interacting
 ;; with Firebase Cloud Messaging.
 
-(when-not platform/desktop?
+(handlers/register-handler-fx
+ :request-notifications-granted
+ (fn [_ _]
+   (re-frame/dispatch [:show-mainnet-is-default-alert])))
 
   (def firebase (object/get rn/react-native-firebase "default"))
 
