@@ -155,8 +155,6 @@
              [message-with-name-and-avatar text message]
              [text-only-message text message])
            [react/view {:style (message.style/delivery-status outgoing)}
-=======
-           [react/view (message.style/delivery-status outgoing)
             [message/message-delivery-status message]]])}))))
 
 (views/defview messages-view [{:keys [chat-id group-chat]}]
