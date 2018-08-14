@@ -139,6 +139,10 @@ RCT_EXPORT_METHOD(startNode:(NSString *)configString) {
         [resultingConfigJson setValue:bootnodes forKeyPath:@"ClusterConfig.BootNodes"];
     }
 
+    NSString *fleet = [ReactNativeConfig envFor:@"FLEET"];
+    if([fleet length] > 0) {
+        [resultingConfigJson setValue:fleet forKeyPath:@"ClusterConfig.Fleet"];
+    }
 
     NSString *resultingConfig = [resultingConfigJson bv_jsonStringWithPrettyPrint:NO];
     NSLog(@"node config %@", resultingConfig);
