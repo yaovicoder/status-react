@@ -186,8 +186,6 @@ def desktopMacOSBuild() {
   def dmg_file = ''
 
   stage('Git & Deps') {
-    slackNotify('MacOS build started.')
-    checkout scm
     doGitRebase()
     cleanupAndDeps()
     commit = sh(

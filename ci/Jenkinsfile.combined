@@ -20,12 +20,13 @@ pipeline {
   
   stages {
     /* Necessary to load methods */
-    stage('Load Env') {
+    stage('Prep') {
       steps {
         script {
           checkout scm
           mobile = load 'ci/mobile.groovy'
           desktop = load 'ci/desktop.groovy'
+          mobile.tagBuild()
         }
       }
     }
@@ -36,7 +37,10 @@ pipeline {
           agent { label 'fastlane' }
           steps {
             script {
-              mobile.mobileIOSBuild()
+              mobile.prepDeps()
+              mobile.runTests()
+              mobile.leinBuild()
+              mobile.compileiOS()
             }
           }
         }
@@ -44,12 +48,15 @@ pipeline {
           agent { label 'macos' }
           steps {
             script {
-              mobile.mobileAndroidBuild()
+              mobile.prepDeps()
+              mobile.runTests()
+              mobile.leinBuild()
+              mobile.compileAndroid()
             }
           }
         }
         stage('MacOS') {
-          agent { label 'linux-new'  }
+          agent { label 'macos' }
           steps {
             script {
               def dmg_file = desktop.desktopMacOSBuild()
@@ -57,7 +64,7 @@ pipeline {
           }
         }
         stage('Linux') {
-          agent { label 'macos' }
+          agent { label 'linux-new'  }
           steps {
             script {
               def app_file = desktop.desktopLinuxBuild()
@@ -66,30 +73,37 @@ pipeline {
         }
       }
     }
-  }
   
-  //stage('Slack Notification') {
-  //  slackSend(
-  //    message: (
-  //      "Nightly build (develop)\n" +
-  //      "Tests: ${(testPassed ? ':+1:' : ':-1:')}\n" +
-  //      "Android: ${apkUrl}\n" +
-  //      "iOS: ${ipaUrl}\n" +
-  //      "Android for e2e: ${testApkUrl}"
-  //    ),
-  //    color: 'good'
-  //  )
-  //}
-  //
-  //stage('Update nightly links') {
-  //  build(
-  //    job: 'misc/status-im.github.io-update_env',
-  //    parameters: [
-  //      [$class: 'StringParameterValue', name: 'APK_URL', value: apkUrl],
-  //      [$class: 'StringParameterValue', name: 'IOS_URL', value: ipaUrl],
-  //      [$class: 'StringParameterValue', name: 'DMG_URL', value: dmgUrl],
-  //      [$class: 'StringParameterValue', name: 'NIX_URL', value: appUrl]
-  //    ]
-  //  )
-  //}
+    //stage('Slack Notification') {
+    //  slackSend(
+    //    message: (
+    //      "Nightly build (develop)\n" +
+    //      "Android: ${apkUrl}\n" +
+    //      "iOS: ${ipaUrl}\n" +
+    //      "Android for e2e: ${testApkUrl}"
+    //    ),
+    //    color: 'good'
+    //  )
+    //}
+    //
+    //stage('Run extended e2e tests') {
+    //  build(
+    //    job: 'end-to-end-tests/status-app-nightly',
+    //    parameters: [string(name: 'apk', value: '--apk=' + apk_name)],
+    //    wait: false
+    //  )
+    //}
+    //
+    //stage('Update nightly links') {
+    //  build(
+    //    job: 'misc/status-im.github.io-update_env',
+    //    parameters: [
+    //      [$class: 'StringParameterValue', name: 'APK_URL', value: apkUrl],
+    //      [$class: 'StringParameterValue', name: 'IOS_URL', value: ipaUrl],
+    //      [$class: 'StringParameterValue', name: 'DMG_URL', value: dmgUrl],
+    //      [$class: 'StringParameterValue', name: 'NIX_URL', value: appUrl]
+    //    ]
+    //  )
+    //}
+  }
 }
