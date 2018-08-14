@@ -1,135 +1,95 @@
-properties([
-  buildDiscarder(logRotator(
-    numToKeepStr: '10',
-    daysToKeepStr: '30',
-    artifactNumToKeepStr: '10',
-    artifactDaysToKeepStr: '30'
-  ))
-])
+pipeline {
+  agent { label 'master' }
 
-appUrl = ''
-dmgUrl = ''
-m = ''
-d = ''
-
-env.LANG = 'en_US.UTF-8'
-env.LANGUAGE = 'en_US.UTF-8'
-env.LC_ALL = 'en_US.UTF-8'
-env.FASTLANE_DISABLE_COLORS=1
-env.REALM_DISABLE_ANALYTICS=1
-
-/* Necessary to load methods */
-stage('Load Env') {
-  node('master') {
-    checkout scm
-    m = load 'ci/mobile.groovy'
-    d = load 'ci/desktop.groovy'
-    d.cleanupBuild()
+  options {
+    buildDiscarder(logRotator(
+      numToKeepStr: '10',
+      daysToKeepStr: '30',
+      artifactNumToKeepStr: '10',
+      artifactDaysToKeepStr: '30'
+    ))
   }
-}
-
-timeout(90) {
-parallel(
-  'Mobile (iOS)': {
-    node('fastlane'){
-      try {
-        m.mobileIOSBuild()
-
-        //stage('Deploy (Android)') {
-        //  uploadArtifact()
-        //}
-      } catch (e) {
-        slackSend(
-          message: "Nightly build (develop) failed to build. ${env.BUILD_URL}",
-          color: 'bad'
-        )
-        throw e
+  
+  environment {
+    LANG = 'en_US.UTF-8'
+    LANGUAGE = 'en_US.UTF-8'
+    LC_ALL = 'en_US.UTF-8'
+    FASTLANE_DISABLE_COLORS=1
+    REALM_DISABLE_ANALYTICS=1
+  }
+  
+  stages {
+    /* Necessary to load methods */
+    stage('Load Env') {
+      steps {
+        script {
+          checkout scm
+          mobile = load 'ci/mobile.groovy'
+          desktop = load 'ci/desktop.groovy'
+        }
       }
     }
-  },
-  'Mobile (Android)': {
-    node('macos'){
-      try {
-        m.mobileAndroidBuild()
-
-        //stage('Deploy diawi (iOS)') {
-        //  withCredentials([
-        //      string(credentialsId: 'diawi-token', variable: 'DIAWI_TOKEN'),
-        //      string(credentialsId: 'GIT_HUB_TOKEN', variable: 'GITHUB_TOKEN'),
-        //      string(credentialsId: 'SLACK_JENKINS_WEBHOOK', variable: 'SLACK_URL')
-        //  ]) {
-        //    sh 'fastlane ios upload_diawi'
-        //  }
-        //}
-      } catch (e) {
-        slackSend(
-          message: "Nightly build (develop) failed to build. ${env.BUILD_URL}",
-          color: 'bad'
-        )
-        throw e
-      }
-    }
-  },
-  'Desktop (MacOS)': {
-    node('linux-new') {
-      try {
-        def dmg_file = d.desktopMacOSBuild()
-
-        //stage('Upload Artifacts') {
-        //  dir(packageFolder) {
-        //    dmgUrl = uploadArtifact(dmg_file)
-        //  }
-        //}
-      } catch (e) {
-        d.slackNotify('Failed to build on Linux.', color: 'bad')
-        throw e
-      } finally {
-        d.cleanupBuild()
-      }
-    }
-  },
-  'Desktop (Linux)': {
-    node('macos'){
-      try {
-        def app_file = d.desktopLinuxBuild()
-
-        //stage('Upload Artifacts') {
-        //  dir(packageFolder) {
-        //    appUrl = uploadArtifact(app_file)
-        //  }
-        //}
-      } catch (e) {
-        d.slackNotify('Failed to build on MacOS.', color: 'bad')
-        throw e
-      } finally {
-        d.cleanupBuild()
+    
+    stage('Build') {
+      parallel {
+        stage('iOS') {
+          agent { label 'fastlane' }
+          steps {
+            script {
+              mobile.mobileIOSBuild()
+            }
+          }
+        }
+        stage('Android') {
+          agent { label 'macos' }
+          steps {
+            script {
+              mobile.mobileAndroidBuild()
+            }
+          }
+        }
+        stage('MacOS') {
+          agent { label 'linux-new'  }
+          steps {
+            script {
+              def dmg_file = desktop.desktopMacOSBuild()
+            }
+          }
+        }
+        stage('Linux') {
+          agent { label 'macos' }
+          steps {
+            script {
+              def app_file = desktop.desktopLinuxBuild()
+            }
+          }
+        }
       }
     }
   }
-)
+  
+  //stage('Slack Notification') {
+  //  slackSend(
+  //    message: (
+  //      "Nightly build (develop)\n" +
+  //      "Tests: ${(testPassed ? ':+1:' : ':-1:')}\n" +
+  //      "Android: ${apkUrl}\n" +
+  //      "iOS: ${ipaUrl}\n" +
+  //      "Android for e2e: ${testApkUrl}"
+  //    ),
+  //    color: 'good'
+  //  )
+  //}
+  //
+  //stage('Update nightly links') {
+  //  build(
+  //    job: 'misc/status-im.github.io-update_env',
+  //    parameters: [
+  //      [$class: 'StringParameterValue', name: 'APK_URL', value: apkUrl],
+  //      [$class: 'StringParameterValue', name: 'IOS_URL', value: ipaUrl],
+  //      [$class: 'StringParameterValue', name: 'DMG_URL', value: dmgUrl],
+  //      [$class: 'StringParameterValue', name: 'NIX_URL', value: appUrl]
+  //    ]
+  //  )
+  //}
 }
-
-//stage('Slack Notification') {
-//  slackSend(
-//    message: (
-//      "Nightly build (develop)\n" +
-//      "Tests: ${(testPassed ? ':+1:' : ':-1:')}\n" +
-//      "Android: ${apkUrl}\n" +
-//      "iOS: ${ipaUrl}\n" +
-//      "Android for e2e: ${testApkUrl}"
-//    ),
-//    color: 'good'
-//  )
-//}
-//
-//stage('Update nightly links') {
-//  build(
-//    job: 'misc/status-im.github.io-update_env',
-//    parameters: [
-//      [$class: 'StringParameterValue', name: 'APK_URL', value: apkUrl],
-//      [$class: 'StringParameterValue', name: 'IOS_URL', value: ipaUrl],
-//      [$class: 'StringParameterValue', name: 'DMG_URL', value: dmgUrl],
-//      [$class: 'StringParameterValue', name: 'NIX_URL', value: appUrl]
-//    ]
-//  )
-//}
