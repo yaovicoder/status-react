@@ -115,6 +115,7 @@ RCT_EXPORT_METHOD(startNode:(NSString *)configString
     NSString *upstreamURL = [configJSON valueForKeyPath:@"UpstreamConfig.URL"];
     NSArray *bootnodes = [configJSON valueForKeyPath:@"ClusterConfig.BootNodes"];
     NSString *networkDir = [rootUrl.path stringByAppendingString:dataDir];
+    NSString *noBackupDataDir = [rootUrl.path stringByAppendingString:@"/ethereum"];
     NSString *devCluster = [ReactNativeConfig envFor:@"ETHEREUM_DEV_CLUSTER"];
     NSString *logEnabled = [configJSON objectForKey:@"LogEnabled"];
     NSString *logLevel = [configJSON objectForKey:@"LogLevel"];
@@ -122,6 +123,7 @@ RCT_EXPORT_METHOD(startNode:(NSString *)configString
     NSString *config = [NSString stringWithUTF8String: configChars];
     configData = [config dataUsingEncoding:NSUTF8StringEncoding];
     NSDictionary *resultingConfigJson = [NSJSONSerialization JSONObjectWithData:configData options:NSJSONReadingMutableContainers error:nil];
+    NSURL *noBackupDataDirUrl = [NSURL fileURLWithPath:noBackupDataDir];
     NSURL *networkDirUrl = [NSURL fileURLWithPath:networkDir];
     NSURL *logUrl = [networkDirUrl URLByAppendingPathComponent:@"geth.log"];
     [resultingConfigJson setValue:newKeystoreUrl.path forKey:@"KeyStoreDir"];
