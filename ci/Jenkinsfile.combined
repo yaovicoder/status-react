@@ -45,7 +45,7 @@ pipeline {
           }
         }
         stage('Android') {
-          agent { label 'macos' }
+          agent { label 'linux-new' }
           steps {
             script {
               mobile.prepDeps()
