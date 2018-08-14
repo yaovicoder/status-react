@@ -100,8 +100,6 @@ def desktopLinuxBuild() {
   def qt_bin = '/opt/qt59/bin'
 
   stage('Git & Deps') {
-    slackNotify('Linux build started.')
-    checkout scm
     doGitRebase()
     cleanupAndDeps()
     commit = sh(
