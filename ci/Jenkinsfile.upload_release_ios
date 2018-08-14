@@ -81,11 +81,13 @@ timeout(90) {
                 variable: 'KEYCHAIN_PASSWORD'
               ),
               string(
+                credentialsId: "SLACK_URL",
+                variable: 'SLACK_URL'
+              ),
+              string(
                 credentialsId: 'fastlane-match-password',
                 variable:'MATCH_PASSWORD'
               )]) {
-
-
                 sh "plutil -replace CFBundleShortVersionString  -string ${version} ios/StatusIm/Info.plist"
                 sh "plutil -replace CFBundleVersion  -string ${build_no} ios/StatusIm/Info.plist"
                 sh 'fastlane ios release'
