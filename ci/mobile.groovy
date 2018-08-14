@@ -10,13 +10,6 @@ def installJSDeps() {
     }
 }
 
-def gitPrep() {
-  sh 'git fetch --tags'
-  sh 'rm -rf node_modules'
-  sh 'cp .env.nightly .env'
-  sh 'scripts/prepare-for-platform.sh mobile'
-}
-
 def uploadArtifact() {
   def artifact_dir = pwd() + '/android/app/build/outputs/apk/release/'
   println (artifact_dir + 'app-release.apk')
@@ -35,54 +28,48 @@ def uploadArtifact() {
 }
 
 def prepDeps() {
-  stage('Prep deps') {
-    gitPrep()
-    version = readFile("${env.WORKSPACE}/VERSION").trim()
-    installJSDeps()
-    sh 'mvn -f modules/react-native-status/ios/RCTStatus dependency:unpack'
-    dir('ios') {
-      sh 'pod install'
-    }
+  sh 'git fetch --tags'
+  sh 'rm -rf node_modules'
+  sh 'cp .env.nightly .env'
+  /* prepare environment for specific platform build */
+  sh 'scripts/prepare-for-platform.sh mobile'
+  version = readFile("${env.WORKSPACE}/VERSION").trim()
+  installJSDeps()
+  sh 'mvn -f modules/react-native-status/ios/RCTStatus dependency:unpack'
+  dir('ios') {
+    sh 'pod install'
   }
 }
 
 def compileAndroid() {
-  stage('Compile') {
-    withCredentials([
-      string(credentialsId: "SUPPLY_JSON_KEY_DATA", variable: 'GOOGLE_PLAY_JSON_KEY'),
-      string(credentialsId: "SLACK_URL", variable: 'SLACK_URL')
-    ]) {
-      sh ('bundle exec fastlane android nightly')
-    }
+  withCredentials([
+    string(credentialsId: "SUPPLY_JSON_KEY_DATA", variable: 'GOOGLE_PLAY_JSON_KEY'),
+    string(credentialsId: "SLACK_URL", variable: 'SLACK_URL')
+  ]) {
+    sh ('bundle exec fastlane android nightly')
   }
 }
 
 def tagBuild() {
-  stage('Tag Build') {
-    withCredentials([[
-      $class: 'UsernamePasswordMultiBinding',
-      credentialsId: 'status-im-auto',
-      usernameVariable: 'GIT_USER',
-      passwordVariable: 'GIT_PASS'
-    ]]) {
-      build_no = sh(
-        returnStdout: true,
-        script: './scripts/build_no.sh --increment'
-      ).trim()
-    }
+  withCredentials([[
+    $class: 'UsernamePasswordMultiBinding',
+    credentialsId: 'status-im-auto',
+    usernameVariable: 'GIT_USER',
+    passwordVariable: 'GIT_PASS'
+  ]]) {
+    build_no = sh(
+      returnStdout: true,
+      script: './scripts/build_no.sh --increment'
+    ).trim()
   }
 }
 
 def runTests() {
-  stage('Tests') {
-    sh 'lein test-cljs'
-  }
+  sh 'lein test-cljs'
 }
 
 def leinBuild() {
-  stage('Build') {
-    sh 'lein prod-build'
-  }
+  sh 'lein prod-build'
 }
 
 def buildAndroid() {
@@ -106,18 +93,16 @@ def buildAndroid() {
 }
 
 def compileiOS() {
-  stage('Compile') {
-    withCredentials([
-      string(credentialsId: "SLACK_URL", variable: 'SLACK_URL'),
-      string(credentialsId: "slave-pass-${env.NODE_NAME}", variable: 'KEYCHAIN_PASSWORD'),
-      string(credentialsId: 'FASTLANE_PASSWORD', variable: 'FASTLANE_PASSWORD'),
-      string(credentialsId: 'APPLE_ID', variable: 'APPLE_ID'),
-      string(credentialsId: 'fastlane-match-password', variable:'MATCH_PASSWORD')
-    ]) {
-      sh "plutil -replace CFBundleShortVersionString  -string ${version} ios/StatusIm/Info.plist"
-      sh "plutil -replace CFBundleVersion -string ${build_no} ios/StatusIm/Info.plist"
-      sh 'fastlane ios nightly'
-    }
+  withCredentials([
+    string(credentialsId: "SLACK_URL", variable: 'SLACK_URL'),
+    string(credentialsId: "slave-pass-${env.NODE_NAME}", variable: 'KEYCHAIN_PASSWORD'),
+    string(credentialsId: 'FASTLANE_PASSWORD', variable: 'FASTLANE_PASSWORD'),
+    string(credentialsId: 'APPLE_ID', variable: 'APPLE_ID'),
+    string(credentialsId: 'fastlane-match-password', variable:'MATCH_PASSWORD')
+  ]) {
+    sh "plutil -replace CFBundleShortVersionString  -string ${version} ios/StatusIm/Info.plist"
+    sh "plutil -replace CFBundleVersion -string ${build_no} ios/StatusIm/Info.plist"
+    sh 'fastlane ios nightly'
   }
 }
 
