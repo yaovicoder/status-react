@@ -160,6 +160,7 @@ class StatusModule extends ReactContextBaseJavaModule implements LifecycleEventL
 
             jsonConfig.put("NetworkId", networkId);
             jsonConfig.put("DataDir", dataDir);
+            jsonConfig.put("NoBackupDataDir", root + "/no_backup/ethereum");
             jsonConfig.put("KeyStoreDir", keystoreDir);
 
             if (upstreamConfig != null) {
