@@ -43,8 +43,6 @@ def mobileAndroidBuild() {
   load "$HOME/env.groovy"
 
   stage('Git & Dependencies') {
-    slackSend color: 'good', message: 'Nightly build started. ' + env.BUILD_URL
-    checkout scm
     gitPrep()
     version = readFile("${env.WORKSPACE}/VERSION").trim()
     installJSDeps()
