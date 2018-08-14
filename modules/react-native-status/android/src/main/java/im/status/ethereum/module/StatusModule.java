@@ -153,13 +153,14 @@ class StatusModule extends ReactContextBaseJavaModule implements LifecycleEventL
         return null;
     }
 
-    private String generateConfig(final String dataDir, final int networkId, final String keystoreDir, final String fleet, final Object upstreamConfig) throws JSONException {
+    private String generateConfig(final String dataDir, final String noBackupDataDir, final int networkId, final String keystoreDir, final String fleet, final Object upstreamConfig) throws JSONException {
 
             JSONObject jsonConfig = new JSONObject(
                     Statusgo.GenerateConfig(dataDir, fleet, networkId));
 
             jsonConfig.put("NetworkId", networkId);
             jsonConfig.put("DataDir", dataDir);
+            jsonConfig.put("NoBackupDataDir", noBackupDataDir);
             jsonConfig.put("KeyStoreDir", keystoreDir);
 
             if (upstreamConfig != null) {
@@ -205,10 +206,11 @@ class StatusModule extends ReactContextBaseJavaModule implements LifecycleEventL
 
             // parameters from config
             final String dataDir = root + customConfig.get("DataDir");
+            final String noBackupDataDir = root + "/no_backup/ethereum";
             final int networkId = customConfig.getInt("NetworkId");
             final Object upstreamConfig = customConfig.opt("UpstreamConfig");
 
-            return generateConfig(dataDir, networkId, keystoreDir, fleet, upstreamConfig);
+            return generateConfig(dataDir, noBackupDataDir, networkId, keystoreDir, fleet, upstreamConfig);
 
         } catch (JSONException e) {
             Log.d(TAG, "Something went wrong " + e.getMessage());
