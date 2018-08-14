@@ -34,23 +34,30 @@ def uploadArtifact() {
   return 'http://artifacts.status.im:8081/artifactory/nightlies-local/' + filename
 }
 
-def mobileAndroidBuild() {
-  def ipaUrl = ''
-  def testPassed = true
-  def version
-  def build_no
-
-  load "$HOME/env.groovy"
-
-  stage('Git & Dependencies') {
+def prepDeps() {
+  stage('Prep deps') {
     gitPrep()
     version = readFile("${env.WORKSPACE}/VERSION").trim()
     installJSDeps()
-
     sh 'mvn -f modules/react-native-status/ios/RCTStatus dependency:unpack'
-    sh 'cd ios && pod install && cd ..'
+    dir('ios') {
+      sh 'pod install'
+    }
   }
+}
 
+def compileAndroid() {
+  stage('Compile') {
+    withCredentials([
+      string(credentialsId: "SUPPLY_JSON_KEY_DATA", variable: 'GOOGLE_PLAY_JSON_KEY'),
+      string(credentialsId: "SLACK_URL", variable: 'SLACK_URL')
+    ]) {
+      sh ('bundle exec fastlane android nightly')
+    }
+  }
+}
+
+def tagBuild() {
   stage('Tag Build') {
     withCredentials([[
       $class: 'UsernamePasswordMultiBinding',
@@ -64,49 +71,25 @@ def mobileAndroidBuild() {
       ).trim()
     }
   }
+}
 
+def runTests() {
   stage('Tests') {
     sh 'lein test-cljs'
   }
+}
 
+def leinBuild() {
   stage('Build') {
     sh 'lein prod-build'
   }
+}
 
+def buildAndroid() {
   stage('Build (Android)') {
     dir('android') {
       sh './gradlew react-native-android:installArchives'
       sh './gradlew assembleRelease'
-    }
-  }
-}
-
-def mobileIOSBuild() {
-  sh ('echo ARTIFACT Android: ' + apkUrl)
-  withCredentials([
-      string(
-        credentialsId: "SUPPLY_JSON_KEY_DATA",
-        variable: 'GOOGLE_PLAY_JSON_KEY'
-      ),
-      string(
-        credentialsId: "SLACK_URL",
-        variable: 'SLACK_URL'
-      )
-  ]) {
-      sh ('bundle exec fastlane android nightly')
-  }
-
-  stage('Build & TestFlight (iOS)') {
-    withCredentials([
-      string(credentialsId: "SLACK_URL", variable: 'SLACK_URL'),
-      string(credentialsId: "slave-pass-${env.NODE_NAME}", variable: 'KEYCHAIN_PASSWORD'),
-      string(credentialsId: 'FASTLANE_PASSWORD', variable: 'FASTLANE_PASSWORD'),
-      string(credentialsId: 'APPLE_ID', variable: 'APPLE_ID'),
-      string(credentialsId: 'fastlane-match-password', variable:'MATCH_PASSWORD')
-    ]) {
-      sh "plutil -replace CFBundleShortVersionString  -string ${version} ios/StatusIm/Info.plist"
-      sh "plutil -replace CFBundleVersion -string ${build_no} ios/StatusIm/Info.plist"
-      sh 'fastlane ios nightly'
     }
   }
 
@@ -120,13 +103,21 @@ def mobileIOSBuild() {
       sh './gradlew assembleRelease'
     }
   }
+}
 
-  stage('Run extended e2e tests') {
-    build(
-      job: 'end-to-end-tests/status-app-nightly',
-      parameters: [string(name: 'apk', value: '--apk=' + apk_name)],
-      wait: false
-    )
+def compileiOS() {
+  stage('Compile') {
+    withCredentials([
+      string(credentialsId: "SLACK_URL", variable: 'SLACK_URL'),
+      string(credentialsId: "slave-pass-${env.NODE_NAME}", variable: 'KEYCHAIN_PASSWORD'),
+      string(credentialsId: 'FASTLANE_PASSWORD', variable: 'FASTLANE_PASSWORD'),
+      string(credentialsId: 'APPLE_ID', variable: 'APPLE_ID'),
+      string(credentialsId: 'fastlane-match-password', variable:'MATCH_PASSWORD')
+    ]) {
+      sh "plutil -replace CFBundleShortVersionString  -string ${version} ios/StatusIm/Info.plist"
+      sh "plutil -replace CFBundleVersion -string ${build_no} ios/StatusIm/Info.plist"
+      sh 'fastlane ios nightly'
+    }
   }
 }
 
