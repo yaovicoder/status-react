@@ -93,8 +93,19 @@ timeout(90) {
           def buildInfo = server.upload(uploadSpec)
           apkUrl = 'http://artifacts.status.im:8081/artifactory/nightlies-local/' + filename
 
-          sh ('bundle exec fastlane android nightly')
           sh ('echo ARTIFACT Android: ' + apkUrl)
+          withCredentials([
+              string(
+                credentialsId: "SUPPLY_JSON_KEY_DATA",
+                variable: 'GOOGLE_PLAY_JSON_KEY'
+              ),
+              string(
+                credentialsId: "SLACK_URL",
+                variable: 'SLACK_URL'
+              )
+          ]) {
+              sh ('bundle exec fastlane android nightly')
+          }
         }
 
         stage('Build & TestFlight (iOS)') {
@@ -102,6 +113,10 @@ timeout(90) {
               string(
                 credentialsId: "slave-pass-${env.NODE_NAME}",
                 variable: 'KEYCHAIN_PASSWORD'
+              ),
+              string(
+                credentialsId: "SLACK_URL",
+                variable: 'SLACK_URL'
               ),
               string(
                 credentialsId: 'fastlane-match-password',
