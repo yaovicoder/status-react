@@ -1,3 +1,4 @@
+import time
 import requests
 import pytest
 import re
@@ -128,7 +129,7 @@ def pytest_unconfigure(config):
     if is_master(config):
         if config.getoption('pr_number'):
             from github import Github
-            repo = Github(github_token).get_user('status-im').get_repo('status-react')
+            repo = Github(github_token).get_user('yevh-berdnyk').get_repo('status-react')
             pull = repo.get_pull(int(config.getoption('pr_number')))
             pull.create_issue_comment(github_report.build_html_report())
         if config.getoption('testrail_report'):
@@ -146,14 +147,14 @@ def pytest_runtest_makereport(item, call):
             error = report.longreprtext
             exception = re.findall('E.*:', error)
             if exception:
-                error = error.replace(re.findall('E.*:', report.longreprtext)[0], '')
+                error = error.replace(re.findall('E.*Message:|E.*Error:|E.*Failed:', report.longreprtext)[0], '')
             current_test.testruns[-1].error = error
         if is_sauce_env:
             update_sauce_jobs(current_test.name, current_test.testruns[-1].jobs, report.passed)
 
 
 def update_sauce_jobs(test_name, job_ids, passed):
-    for job_id in job_ids:
+    for job_id in job_ids.keys():
         sauce.jobs.update_job(job_id, name=test_name, passed=passed)
 
 
