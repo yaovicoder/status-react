@@ -54,6 +54,15 @@ timeout(90) {
           sh 'cd ios && pod install && cd ..'
         }
 
+        stage('Test Output') {
+            sh 'fastlane test_env'
+            env.WORKSPACE = pwd()
+            def file = readFile "${env.WORKSPACE}/fastlane/diawi.out"
+            echo 'FILE CONTENT'
+            echo file
+            assert file == "wow!"
+        }
+
         stage('Tag Build') {
           withCredentials([[
             $class: 'UsernamePasswordMultiBinding',

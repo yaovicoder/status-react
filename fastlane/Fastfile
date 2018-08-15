@@ -120,6 +120,13 @@ def upload_to_diawi_and_notify(source)
 end
 
 
+lane :test_env do
+
+    File.write("diawi.out", "wow!")
+
+end
+
+
 platform :ios do
   desc "`fastlane ios adhoc` - ad-hoc lane for iOS."
   desc "This lane is used PRs, Releases, etc."
