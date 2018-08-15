@@ -129,6 +129,7 @@ timeout(90) {
               string(credentialsId: 'SLACK_JENKINS_WEBHOOK', variable: 'SLACK_URL')
           ]) {
               sh 'fastlane ios upload_diawi'
+              ipaUrl = env.DIAWI_RESULT
           }
         }
       } catch (e) {
