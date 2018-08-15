@@ -70,6 +70,8 @@ end
 
 
 def notify_about_new_build(source, url)
+    branch_name = ENV["BRANCH_NAME"]
+    branch_name = "develop" if branch_name.nil?
 
     msg = "Branch: " + ENV["BRANCH_NAME"] + ", "
 
@@ -84,15 +86,21 @@ def notify_about_new_build(source, url)
         slack_url: ENV["SLACK_URL"]
     )
 
-    github_api(
-        server_url: "https://api.github.com",
-        api_token: ENV["GITHUB_TOKEN"],
-        http_method: "POST",
-        path: "/repos/status-im/status-react/issues/" + ENV["CHANGE_ID"] + "/comments",
-        body: {
-           "body": msg
-        }
-    )
+    change_id = ENV["CHANGE_ID"]
+
+    unless change_id.nil?
+
+        github_api(
+            server_url: "https://api.github.com",
+            api_token: ENV["GITHUB_TOKEN"],
+            http_method: "POST",
+            path: "/repos/status-im/status-react/issues/" + change_id + "/comments",
+            body: {
+               "body": msg
+            }
+        )
+
+    end
 
 end
 
@@ -102,6 +110,8 @@ def upload_to_diawi_and_notify(source)
         token: ENV["DIAWI_TOKEN"],
         file: source
     )
+
+    ENV["DIAWI_RESULT"] = lane_context[SharedValues::UPLOADED_FILE_LINK_TO_DIAWI]
 
     notify_about_new_build(
         source,
