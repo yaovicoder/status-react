@@ -115,6 +115,9 @@ timeout(90) {
               string(credentialsId: 'SLACK_JENKINS_WEBHOOK', variable: 'SLACK_URL')
           ]) {
             sh 'fastlane ios upload_diawi'
+
+            env.WORKSPACE = pwd()
+            ipaUrl = readFile "${env.WORKSPACE}/fastlane/diawi.out"
           }
         }
 
@@ -133,6 +136,7 @@ timeout(90) {
       }
 
       stage('Upload apk for e2e tests') {
+          env.CHANGE_ID = shortCommit
           if (env.CHANGE_ID != null) {
               env.SAUCE_LABS_APK = 'im.status.ethereum-e2e-' + env.CHANGE_ID + '.apk'
               withCredentials([
