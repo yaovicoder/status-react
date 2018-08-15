@@ -22,6 +22,15 @@ def unlock_keychain_if_needed
 end
 
 
+def clean_up_realm_core_ios
+    realm_dir ="../node_modules/realm/vendor/realm-ios/" 
+    if Dir.exists?(realm_dir)
+        FileUtils.remove_dir(realm_dir)
+    end
+    FileUtils.mkdir(realm_dir)
+end
+
+
 # uploads `file` to sauce labs (overwrites if there is anoter file from the
 # same commit)
 def upload_to_saucelabs(file)
@@ -58,6 +67,9 @@ def build_ios_adhoc
         readonly: true,
         keychain_name: "login.keychain"
     )
+
+    workaround_realm_core_sync_issues
+
     build_ios_app(
         scheme: "StatusIm",
         workspace: "ios/StatusIm.xcworkspace",
@@ -141,6 +153,9 @@ platform :ios do
         readonly: true,
         keychain_name: "login.keychain"
     )
+
+    workaround_realm_core_sync_issues
+
     build_ios_app(
         scheme: "StatusIm",
         workspace: "ios/StatusIm.xcworkspace",
@@ -171,6 +186,9 @@ platform :ios do
         readonly: true,
         keychain_name: "login.keychain"
     )
+
+    workaround_realm_core_sync_issues
+
     build_ios_app(
         scheme: "StatusIm",
         workspace: "ios/StatusIm.xcworkspace",
@@ -214,6 +232,11 @@ platform :ios do
         "status-adhoc/StatusIm.ipa"
     )
   end
+
+  lane :workaround_realm_core_sync_issues do
+      clean_up_realm_core_ios
+  end
+
 end
 
 
