@@ -28,6 +28,7 @@ def installJSDeps() {
 timeout(90) {
     node ('fastlane'){
       def apkUrl = ''
+      def testApkUrl = ''
       def ipaUrl = ''
       def testPassed = true
       def version
@@ -129,6 +130,9 @@ timeout(90) {
               string(credentialsId: 'SLACK_JENKINS_WEBHOOK', variable: 'SLACK_URL')
           ]) {
               sh 'fastlane ios upload_diawi'
+
+              env.WORKSPACE = pwd()
+              ipaUrl = readFile "${env.WORKSPACE}/fastlane/diawi.out"
           }
         }
       } catch (e) {
@@ -162,6 +166,8 @@ timeout(90) {
               ]) {
                 sh 'fastlane android saucelabs'
                 sh 'fastlane android upload_diawi'
+
+                testApkUrl = readFile "${env.WORKSPACE}/fastlane/diawi.out"
               }
           }
       }

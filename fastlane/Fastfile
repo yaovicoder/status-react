@@ -70,8 +70,10 @@ end
 
 
 def notify_about_new_build(source, url)
+    branch_name = ENV["BRANCH_NAME"]
+    branch_name = "develop" if branch_name.nil?
 
-    msg = "Branch: " + ENV["BRANCH_NAME"] + ", "
+    msg = "Branch: " + branch_name + ", "
 
     if source.end_with? ".ipa"
         msg = msg + "iOS build uploaded to diawi: " + url
@@ -84,15 +86,21 @@ def notify_about_new_build(source, url)
         slack_url: ENV["SLACK_URL"]
     )
 
-    github_api(
-        server_url: "https://api.github.com",
-        api_token: ENV["GITHUB_TOKEN"],
-        http_method: "POST",
-        path: "/repos/status-im/status-react/issues/" + ENV["CHANGE_ID"] + "/comments",
-        body: {
-           "body": msg
-        }
-    )
+    change_id = ENV["CHANGE_ID"]
+
+    unless change_id.nil?
+
+        github_api(
+            server_url: "https://api.github.com",
+            api_token: ENV["GITHUB_TOKEN"],
+            http_method: "POST",
+            path: "/repos/status-im/status-react/issues/" + change_id + "/comments",
+            body: {
+               "body": msg
+            }
+        )
+
+    end
 
 end
 
@@ -103,12 +111,13 @@ def upload_to_diawi_and_notify(source)
         file: source
     )
 
+    File.write("diawi.out", lane_context[SharedValues::UPLOADED_FILE_LINK_TO_DIAWI])
+
     notify_about_new_build(
         source,
         lane_context[SharedValues::UPLOADED_FILE_LINK_TO_DIAWI]
     )
 end
-
 
 platform :ios do
   desc "`fastlane ios adhoc` - ad-hoc lane for iOS."
@@ -198,6 +207,8 @@ platform :ios do
   desc "expects to have a github token as GITHUB_TOKEN env variable"
   desc "expects to have a slack webhook URL as SLACK_URL env variable"
   desc "will fails if file isn't there"
+  desc "---"
+  desc "Output: writes `fastlane/diawi.out` file url of the uploded file"
   lane :upload_diawi do
     upload_to_diawi_and_notify(
         "status-adhoc/StatusIm.ipa"
@@ -242,6 +253,8 @@ platform :android do
   desc "expects to have a github token as GITHUB_TOKEN env variable"
   desc "expects to have a slack webhook URL as SLACK_URL env variable"
   desc "will fails if file isn't there"
+  desc "---"
+  desc "Output: writes `fastlane/diawi.out` file url of the uploded file"
   lane :upload_diawi do
     upload_to_diawi_and_notify(
         "android/app/build/outputs/apk/release/app-release.apk"
