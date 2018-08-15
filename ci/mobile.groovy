@@ -26,7 +26,7 @@ def prepDeps() {
   version = readFile("${env.WORKSPACE}/VERSION").trim()
   common.installJSDeps()
   sh 'mvn -f modules/react-native-status/ios/RCTStatus dependency:unpack'
-  // TODO sh 'cd ios && pod install'
+  // TODO necessary? - sh 'cd ios && pod install'
 }
 
 def compileAndroid() {
@@ -34,7 +34,6 @@ def compileAndroid() {
     string(credentialsId: "SUPPLY_JSON_KEY_DATA", variable: 'GOOGLE_PLAY_JSON_KEY'),
     string(credentialsId: "SLACK_URL", variable: 'SLACK_URL')
   ]) {
-    sh 'env'
     sh 'fastlane android nightly'
   }
 }
@@ -75,7 +74,6 @@ def compileiOS() {
   ]) {
     sh "plutil -replace CFBundleShortVersionString  -string ${version} ios/StatusIm/Info.plist"
     sh "plutil -replace CFBundleVersion -string ${build_no} ios/StatusIm/Info.plist"
-    sh 'env'
     sh 'fastlane ios nightly'
   }
 }
