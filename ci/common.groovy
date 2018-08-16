@@ -1,10 +1,11 @@
-def installJSDeps() {
+def installJSDeps(platform) {
   def attempt = 1
   def maxAttempts = 10
   def installed = false
+  /* prepare environment for specific platform build */
+  sh "scripts/prepare-for-platform.sh ${platform}"
   while (!installed && attempt <= maxAttempts) {
     println "#${attempt} attempt to install npm deps"
-    sh 'scripts/prepare-for-platform.sh desktop'
     sh 'npm install'
     installed = fileExists('node_modules/web3/index.js')
     attemp = attempt + 1

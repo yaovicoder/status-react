@@ -26,7 +26,7 @@ def cleanupAndDeps() {
   cleanupBuild()
   sh 'cp .env.jenkins .env'
   sh 'lein deps'
-  common.installJSDeps()
+  common.installJSDeps('desktop')
 }
 
 def slackNotify(message, color = 'good') {

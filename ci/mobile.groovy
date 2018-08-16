@@ -18,13 +18,9 @@ def uploadArtifact() {
 }
 
 def prepDeps() {
-  sh 'git fetch --tags'
   sh 'rm -rf node_modules'
   sh 'cp .env.nightly .env'
-  /* prepare environment for specific platform build */
-  sh 'scripts/prepare-for-platform.sh mobile'
-  version = readFile("${env.WORKSPACE}/VERSION").trim()
-  common.installJSDeps()
+  common.installJSDeps('mobile')
   sh 'mvn -f modules/react-native-status/ios/RCTStatus dependency:unpack'
   // TODO necessary? - sh 'cd ios && pod install'
   //build_no = common.tagBuild()
@@ -68,6 +64,7 @@ def compileAndroid() {
 }
 
 def compileiOS() {
+  version = readFile("${env.WORKSPACE}/VERSION").trim()
   withCredentials([
     string(credentialsId: "SLACK_URL", variable: 'SLACK_URL'),
     string(credentialsId: "slave-pass-${env.NODE_NAME}", variable: 'KEYCHAIN_PASSWORD'),
