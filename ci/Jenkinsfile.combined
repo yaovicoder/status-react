@@ -12,19 +12,6 @@ pipeline {
   }
   
   stages {
-    /* Necessary to load methods */
-    stage('Prep') {
-      steps {
-        script {
-          checkout scm
-          mobile = load 'ci/mobile.groovy'
-          desktop = load 'ci/desktop.groovy'
-          //build_no = mobile.tagBuild()
-          build_no = 1234
-        }
-      }
-    }
-    
     stage('Build') {
       parallel {
         stage('iOS') {

@@ -20,19 +20,20 @@ pipeline {
   
   stages {
     stage('Prep') {
-      agent { label 'linux-new' }
       steps {
-        script { mobile.prepDeps() }
+        script {
+          /* Necessary to load methods */
+          mobile = load 'ci/mobile.groovy'
+          mobile.prepDeps()
+        }
       }
     }
     stage('Tests') {
-      agent { label 'linux-new' }
       steps {
         script { mobile.runTests() }
       }
     }
     stage('Build') {
-      agent { label 'linux-new' }
       steps {
         script { mobile.leinBuild() }
       }
