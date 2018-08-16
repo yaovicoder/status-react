@@ -27,6 +27,8 @@ def prepDeps() {
   common.installJSDeps()
   sh 'mvn -f modules/react-native-status/ios/RCTStatus dependency:unpack'
   // TODO necessary? - sh 'cd ios && pod install'
+  //build_no = common.tagBuild()
+  build_no = 1234
 }
 
 def compileAndroid() {

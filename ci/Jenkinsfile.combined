@@ -15,16 +15,24 @@ pipeline {
     stage('Build') {
       parallel {
         stage('iOS') {
-          steps { build('status-react/combined/mobile-ios') }
+          steps { script {
+            ipa = build('status-react/combined/mobile-ios')
+          } }
         }
         stage('Android') {
-          steps { build('status-react/combined/mobile-android') }
+          steps { script {
+            apk = build('status-react/combined/mobile-android')
+          } }
         }
         stage('MacOS') {
-          steps { build('status-react/combined/desktop-macos') }
+          steps { script {
+            dmg = build('status-react/combined/desktop-macos')
+          } }
         }
         stage('Linux') {
-          steps { build('status-react/combined/desktop-linux') }
+          steps { script {
+            app = build('status-react/combined/desktop-linux')
+          } }
         }
       }
     }
