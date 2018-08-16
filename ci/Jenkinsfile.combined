@@ -15,25 +15,26 @@ pipeline {
     stage('Build') {
       parallel {
         stage('iOS') {
-          steps { script {
-            ipa = build('status-react/combined/mobile-ios')
-          } }
+          steps { build('status-react/combined/mobile-ios') }
         }
         stage('Android') {
-          steps { script {
-            apk = build('status-react/combined/mobile-android')
-          } }
+          steps { build('status-react/combined/mobile-android') }
         }
         stage('MacOS') {
-          steps { script {
-            dmg = build('status-react/combined/desktop-macos')
-          } }
+          steps { build('status-react/combined/desktop-macos') }
         }
         stage('Linux') {
-          steps { script {
-            app = build('status-react/combined/desktop-linux')
-          } }
+          steps { build('status-react/combined/desktop-linux') }
         }
+      }
+    }
+
+    stage('Archive') {
+      steps {
+        copyArtifacts(projectName: 'status-react/combined/desktop-linux',)
+        copyArtifacts(projectName: 'status-react/combined/mobile-ios')
+        copyArtifacts(projectName: 'status-react/combined/mobile-android')
+        copyArtifacts(projectName: 'status-react/combined/desktop-macos')
       }
     }
   

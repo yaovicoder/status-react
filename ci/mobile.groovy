@@ -31,12 +31,12 @@ def prepDeps() {
   build_no = 1234
 }
 
-def compileAndroid() {
+def bundleAndroid() {
   withCredentials([
     string(credentialsId: "SUPPLY_JSON_KEY_DATA", variable: 'GOOGLE_PLAY_JSON_KEY'),
     string(credentialsId: "SLACK_URL", variable: 'SLACK_URL')
   ]) {
-    sh 'fastlane android nightly'
+    sh 'bundle exec fastlane android nightly'
   }
 }
 
@@ -48,7 +48,7 @@ def leinBuild() {
   sh 'lein prod-build'
 }
 
-def buildAndroid() {
+def compileAndroid() {
   dir('android') {
     sh './gradlew react-native-android:installArchives'
     sh './gradlew assembleRelease'

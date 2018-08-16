@@ -43,6 +43,12 @@ pipeline {
       }
     }
 
+    stage('Bundle') {
+      steps {
+        script { mobile.bundleAndroid() }
+      }
+    }
+
     //stage('Archive') {
     //  steps {
     //    script { archiveArtifacts "StatusImPackage/${dmg_file}" }
