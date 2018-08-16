@@ -154,6 +154,7 @@ timeout(90) {
       }
 
       stage('Upload apk for e2e tests') {
+        if (env.CHANGE_ID != null) {
           env.SAUCE_LABS_APK = 'im.status.ethereum-e2e-' + shortCommit + '.apk'
           withCredentials([
               string(credentialsId: 'SAUCE_ACCESS_KEY', variable: 'SAUCE_ACCESS_KEY'),
@@ -166,6 +167,7 @@ timeout(90) {
             sh 'fastlane android upload_diawi'
             testApkUrl = readFile "${env.WORKSPACE}/fastlane/diawi.out"
           }
+        }
       }
 
       stage('Slack Notification') {
