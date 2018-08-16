@@ -237,6 +237,7 @@ platform :ios do
       )    
   end
 
+  desc "This fastlane step cleans up XCode DerivedData folder"
   lane :cleanup
     clear_derived_data
   end
