@@ -45,14 +45,14 @@ pipeline {
 
     stage('Bundle') {
       steps {
-        script { mobile.bundleAndroid() }
+        script { apk = mobile.bundleAndroid() }
       }
     }
 
-    //stage('Archive') {
-    //  steps {
-    //    script { archiveArtifacts "StatusImPackage/${dmg_file}" }
-    //  }
-    //}
+    stage('Archive') {
+      steps {
+        script { archiveArtifacts apk }
+      }
+    }
   }
 }

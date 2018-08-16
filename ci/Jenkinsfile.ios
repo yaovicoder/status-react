@@ -39,14 +39,14 @@ pipeline {
     }
     stage('Compile') {
       steps {
-        script { dmg_file = mobile.compileiOS() }
+        script { api = mobile.compileiOS() }
       }
     }
 
-    //stage('Archive') {
-    //  steps {
-    //    script { archiveArtifacts "StatusImPackage/${dmg_file}" }
-    //  }
-    //}
+    stage('Archive') {
+      steps {
+        script { archiveArtifacts api }
+      }
+    }
   }
 }

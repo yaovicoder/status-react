@@ -38,6 +38,7 @@ def bundleAndroid() {
   ]) {
     sh 'bundle exec fastlane android nightly'
   }
+  return 'android/app/build/outputs/apk/release/app-release.apk'
 }
 
 def runTests() {
@@ -78,6 +79,7 @@ def compileiOS() {
     sh "plutil -replace CFBundleVersion -string ${build_no} ios/StatusIm/Info.plist"
     sh 'fastlane ios nightly'
   }
+  return "status-adhoc/StatusIm.ipa"
 }
 
 return this
