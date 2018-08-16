@@ -148,7 +148,7 @@ def bundleLinux() {
     sh "mv ../StatusIm-x86_64.AppImage ${appFile}"
   }
 
-  return appFile
+  return "${packageFolder}/${appFile}"
 }
 
 def compileMacOS() {
@@ -183,7 +183,7 @@ def bundleMacOS() {
     dmgFile = "StatusIm-${commit}.dmg"
     sh "mv StatusIm.dmg ${dmgFile}"
   }
-  return dmgFile
+  return "${packageFolder}/${dmgFile}"
 }
 
 return this
