@@ -40,7 +40,6 @@ pipeline {
         script { app = desktop.bundleLinux() }
       }
     }
-
     stage('Archive') {
       steps { archiveArtifacts app }
     }

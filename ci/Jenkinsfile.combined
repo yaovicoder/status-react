@@ -28,7 +28,6 @@ pipeline {
         }
       }
     }
-
     stage('Archive') {
       steps {
         copyArtifacts(projectName: 'status-react/combined/desktop-linux',)
@@ -37,7 +36,6 @@ pipeline {
         copyArtifacts(projectName: 'status-react/combined/desktop-macos')
       }
     }
-  
     stage('Notify') {
       steps {
         slackSend(
@@ -46,11 +44,9 @@ pipeline {
         )
       }
     }
-
     //stage('Upload') {
     //  TODO
     //}
-
     //stage('Publish') {
     //  build(
     //    job: 'misc/status-im.github.io-update_env',

@@ -40,7 +40,6 @@ pipeline {
         script { dmg = desktop.bundleMacOS() }
       }
     }
-
     stage('Archive') {
       steps { archiveArtifacts dmg }
     }

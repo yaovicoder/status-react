@@ -43,13 +43,11 @@ pipeline {
         script { mobile.compileAndroid() }
       }
     }
-
     stage('Bundle') {
       steps {
         script { apk = mobile.bundleAndroid() }
       }
     }
-
     stage('Archive') {
       steps {
         script { archiveArtifacts apk }

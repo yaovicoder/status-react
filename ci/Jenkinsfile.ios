@@ -42,7 +42,6 @@ pipeline {
         script { api = mobile.compileiOS() }
       }
     }
-
     stage('Archive') {
       steps {
         script { archiveArtifacts api }
