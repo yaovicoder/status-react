@@ -16,6 +16,7 @@ pipeline {
     FASTLANE_DISABLE_COLORS = 1
     REALM_DISABLE_ANALYTICS = 1
     ANDROID_HOME = '/usr/lib/android-sdk'
+    ANDROID_NDK = '/usr/lib/android-ndk'
   }
   
   stages {
