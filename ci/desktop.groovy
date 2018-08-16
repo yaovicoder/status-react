@@ -183,7 +183,7 @@ def bundleMacOS() {
     dmgFile = "StatusIm-${commit}.dmg"
     sh "mv StatusIm.dmg ${dmgFile}"
   }
-  return "${packageFolder}/${dmgFile}"
+  return "${packageFolder}/${dmgFile}".drop(2)
 }
 
 return this
