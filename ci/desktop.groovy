@@ -147,8 +147,9 @@ def bundleLinux() {
     appFile = "StatusIm-${commit}.AppImage"
     sh "mv ../StatusIm-x86_64.AppImage ${appFile}"
   }
-
-  return "${packageFolder}/${appFile}".drop(2)
+  print "${packageFolder}/${appFile}"
+  print "${packageFolder}/${appFile}".drop(2)
+  return "StatusImPackage/${appFile}".drop(2)
 }
 
 def compileMacOS() {
