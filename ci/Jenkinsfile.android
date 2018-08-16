@@ -1,0 +1,52 @@
+pipeline {
+  agent { label 'linux-new' }
+
+  options {
+    buildDiscarder(logRotator(
+      numToKeepStr: '10',
+      daysToKeepStr: '30',
+      artifactNumToKeepStr: '10',
+      artifactDaysToKeepStr: '30'
+    ))
+  }
+  
+  environment {
+    LANG = 'en_US.UTF-8'
+    LANGUAGE = 'en_US.UTF-8'
+    LC_ALL = 'en_US.UTF-8'
+    FASTLANE_DISABLE_COLORS=1
+    REALM_DISABLE_ANALYTICS=1
+  }
+  
+  stages {
+    stage('Prep') {
+      agent { label 'linux-new' }
+      steps {
+        script { mobile.prepDeps() }
+      }
+    }
+    stage('Tests') {
+      agent { label 'linux-new' }
+      steps {
+        script { mobile.runTests() }
+      }
+    }
+    stage('Build') {
+      agent { label 'linux-new' }
+      steps {
+        script { mobile.leinBuild() }
+      }
+    }
+    stage('Compile') {
+      steps {
+        script { mobile.compileAndroid() }
+      }
+    }
+
+    //stage('Archive') {
+    //  steps {
+    //    script { archiveArtifacts "StatusImPackage/${dmg_file}" }
+    //  }
+    //}
+  }
+}

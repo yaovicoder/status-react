@@ -11,14 +11,6 @@ pipeline {
     ))
   }
   
-  environment {
-    LANG = 'en_US.UTF-8'
-    LANGUAGE = 'en_US.UTF-8'
-    LC_ALL = 'en_US.UTF-8'
-    FASTLANE_DISABLE_COLORS=1
-    REALM_DISABLE_ANALYTICS=1
-  }
-  
   stages {
     /* Necessary to load methods */
     stage('Prep') {
@@ -36,51 +28,35 @@ pipeline {
     stage('Build') {
       parallel {
         stage('iOS') {
-          agent { label 'fastlane' }
-          steps {
-            script {
-              mobile.prepDeps()
-              mobile.runTests()
-              mobile.leinBuild()
-              mobile.compileiOS()
-            }
-          }
+          steps { build('status-react/combined/mobile-ios') }
         }
         stage('Android') {
-          agent { label 'linux-new' }
-          steps {
-            script {
-              mobile.prepDeps()
-              mobile.runTests()
-              mobile.leinBuild()
-              mobile.compileAndroid()
-            }
-          }
+          steps { build('status-react/combined/mobile-android') }
         }
-        stage('MacOS') {
-          agent { label 'macos' }
-          steps {
-            script {
-              desktop.prepDeps()
-              desktop.buildClojureScript()
-              desktop.compileMacOS()
-              def dmg_file = desktop.bundleMacOS()
-              archiveArtifacts "StatusImPackage/${dmg_file}"
-            }
-          }
-        }
-        stage('Linux') {
-          agent { label 'linux-new'  }
-          steps {
-            script {
-              desktop.prepDeps()
-              desktop.buildClojureScript()
-              desktop.compileLinux()
-              def app_file = desktop.bundleLinux()
-              archiveArtifacts "StatusImPackage/${app_file}"
-            }
-          }
-        }
+        //stage('MacOS') {
+        //  agent { label 'macos' }
+        //  steps {
+        //    script {
+        //      desktop.prepDeps()
+        //      desktop.buildClojureScript()
+        //      desktop.compileMacOS()
+        //      def dmg_file = desktop.bundleMacOS()
+        //      archiveArtifacts "StatusImPackage/${dmg_file}"
+        //    }
+        //  }
+        //}
+        //stage('Linux') {
+        //  agent { label 'linux-new'  }
+        //  steps {
+        //    script {
+        //      desktop.prepDeps()
+        //      desktop.buildClojureScript()
+        //      desktop.compileLinux()
+        //      def app_file = desktop.bundleLinux()
+        //      archiveArtifacts "StatusImPackage/${app_file}"
+        //    }
+        //  }
+        //}
       }
     }
   
@@ -100,7 +76,7 @@ pipeline {
     //    wait: false
     //  )
     //}
-    //
+
     //stage('Update nightly links') {
     //  build(
     //    job: 'misc/status-im.github.io-update_env',
