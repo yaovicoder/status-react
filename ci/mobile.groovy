@@ -26,8 +26,6 @@ def prepDeps() {
   dir('ios') {
     sh 'pod install'
   }
-  //build_no = common.tagBuild()
-  build_no = 1234
 }
 
 def bundleAndroid() {
@@ -60,6 +58,7 @@ def compileAndroid(e2e = false) {
 
 def compileiOS() {
   version = readFile("${env.WORKSPACE}/VERSION").trim()
+  build_no = common.tagBuild()
   withCredentials([
     string(credentialsId: "SLACK_URL", variable: 'SLACK_URL'),
     string(credentialsId: "slave-pass-${env.NODE_NAME}", variable: 'KEYCHAIN_PASSWORD'),
