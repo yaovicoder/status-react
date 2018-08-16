@@ -22,7 +22,10 @@ def prepDeps() {
   sh 'cp .env.nightly .env'
   common.installJSDeps('mobile')
   sh 'mvn -f modules/react-native-status/ios/RCTStatus dependency:unpack'
-  // TODO necessary? - sh 'cd ios && pod install'
+  /* generate ios/StatusIm.xcworkspace */
+  dir('ios') {
+    sh 'pod install'
+  }
   //build_no = common.tagBuild()
   build_no = 1234
 }
@@ -45,22 +48,14 @@ def leinBuild() {
   sh 'lein prod-build'
 }
 
-def compileAndroid() {
+def compileAndroid(e2e = false) {
+  if (e2e) {
+    env.ENVFILE=".env.e2e"
+  }
   dir('android') {
     sh './gradlew react-native-android:installArchives'
     sh './gradlew assembleRelease'
   }
-
-  //stage('Build (Android) for e2e tests') {
-  //  dir('android') {
-  //    sh """
-  //      mv app/build/outputs/apk/release/app-release.apk \\
-  //         app/build/outputs/apk/release/app-release.original.apk
-  //    """
-  //    env.ENVFILE=".env.e2e"
-  //    sh './gradlew assembleRelease'
-  //  }
-  //}
 }
 
 def compileiOS() {
