@@ -20,58 +20,36 @@ pipeline {
         stage('Android') {
           steps { build('status-react/combined/mobile-android') }
         }
-        //stage('MacOS') {
-        //  agent { label 'macos' }
-        //  steps {
-        //    script {
-        //      desktop.prepDeps()
-        //      desktop.buildClojureScript()
-        //      desktop.compileMacOS()
-        //      def dmg_file = desktop.bundleMacOS()
-        //      archiveArtifacts "StatusImPackage/${dmg_file}"
-        //    }
-        //  }
-        //}
-        //stage('Linux') {
-        //  agent { label 'linux-new'  }
-        //  steps {
-        //    script {
-        //      desktop.prepDeps()
-        //      desktop.buildClojureScript()
-        //      desktop.compileLinux()
-        //      def app_file = desktop.bundleLinux()
-        //      archiveArtifacts "StatusImPackage/${app_file}"
-        //    }
-        //  }
-        //}
+        stage('MacOS') {
+          steps { build('status-react/combined/desktop-macos') }
+        }
+        stage('Linux') {
+          steps { build('status-react/combined/desktop-linux') }
+        }
       }
     }
   
     stage('Notify') {
       steps {
         slackSend(
-          message: "Nightly build success! (develop)",
+          message: "Combined Nightly build success! (develop)",
           color: 'good'
         )
       }
     }
 
-    //stage('Run extended e2e tests') {
-    //  build(
-    //    job: 'end-to-end-tests/status-app-nightly',
-    //    parameters: [string(name: 'apk', value: '--apk=' + apk_name)],
-    //    wait: false
-    //  )
+    //stage('Upload') {
+    //  TODO
     //}
 
-    //stage('Update nightly links') {
+    //stage('Publish') {
     //  build(
     //    job: 'misc/status-im.github.io-update_env',
     //    parameters: [
-    //      [$class: 'StringParameterValue', name: 'APK_URL', value: apkUrl],
-    //      [$class: 'StringParameterValue', name: 'IOS_URL', value: ipaUrl],
-    //      [$class: 'StringParameterValue', name: 'DMG_URL', value: dmgUrl],
-    //      [$class: 'StringParameterValue', name: 'NIX_URL', value: appUrl]
+    //      [name: 'APK_URL', value: apkUr, $class: 'StringParameterValue'l],
+    //      [name: 'IOS_URL', value: ipaUr, $class: 'StringParameterValue'l],
+    //      [name: 'DMG_URL', value: dmgUr, $class: 'StringParameterValue'l],
+    //      [name: 'NIX_URL', value: appUr, $class: 'StringParameterValue'l]
     //    ]
     //  )
     //}
