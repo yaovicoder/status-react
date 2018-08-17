@@ -4,6 +4,8 @@
             [status-im.utils.handlers-macro :as handlers-macro]
             [status-im.ui.screens.accounts.models :as accounts.models]
             [status-im.i18n :as i18n]
+            [status-im.models.mailserver :as models.mailserver]
+            [status-im.transport.inbox :as inbox]
             status-im.ui.screens.offline-messaging-settings.edit-mailserver.events
             [status-im.utils.ethereum.core :as ethereum]))
 
@@ -13,8 +15,9 @@
    (let [settings (get-in db [:account/account :settings])]
      (handlers-macro/merge-fx cofx
                               (accounts.models/update-settings
-                               (assoc-in settings [:wnode chain] wnode)
-                               [:logout])))))
+                               (assoc-in settings [:wnode chain] wnode))
+                              (models.mailserver/set-current-mailserver)
+                              (inbox/connect-to-mailserver)))))
 
 (handlers/register-handler-fx
  :connect-wnode
