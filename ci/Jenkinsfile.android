@@ -1,5 +1,5 @@
 pipeline {
-  agent { label 'linux-new' }
+  agent { label 'macos' }
 
   options {
     buildDiscarder(logRotator(
@@ -15,9 +15,9 @@ pipeline {
     LC_ALL = 'en_US.UTF-8'
     FASTLANE_DISABLE_COLORS = 1
     REALM_DISABLE_ANALYTICS = 1
-    ANDROID_HOME = '/usr/lib/android-sdk'
-    ANDROID_NDK = '/usr/lib/android-ndk'
-    JAVA_HOME = '/usr/lib/jvm/java-8-oracle'
+    //ANDROID_HOME = '/usr/lib/android-sdk'
+    //ANDROID_NDK = '/usr/lib/android-ndk'
+    //JAVA_HOME = '/usr/lib/jvm/java-8-oracle'
   }
   
   stages {
