@@ -18,6 +18,10 @@ pipeline {
     //ANDROID_HOME = '/usr/lib/android-sdk'
     //ANDROID_NDK = '/usr/lib/android-ndk'
     //JAVA_HOME = '/usr/lib/jvm/java-8-oracle'
+    ANDROID_HOME = '/usr/local/share/android-sdk'
+    ANDROID_SDK_ROOT = '/usr/local/share/android-sdk'
+    ANDROID_NDK = '/Users/jenkins/android-ndk-r10e'
+    ANDROID_NDK_HOME = '/Users/jenkins/android-ndk-r10e'
   }
   
   stages {
