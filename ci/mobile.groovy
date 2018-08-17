@@ -28,16 +28,6 @@ def prepDeps() {
   }
 }
 
-def bundleAndroid() {
-  withCredentials([
-    string(credentialsId: "SUPPLY_JSON_KEY_DATA", variable: 'GOOGLE_PLAY_JSON_KEY'),
-    string(credentialsId: "SLACK_URL", variable: 'SLACK_URL')
-  ]) {
-    sh 'bundle exec fastlane android nightly'
-  }
-  return 'android/app/build/outputs/apk/release/app-release.apk'
-}
-
 def runTests() {
   sh 'lein test-cljs'
 }
@@ -54,6 +44,16 @@ def compileAndroid(e2e = false) {
     sh './gradlew react-native-android:installArchives'
     sh './gradlew assembleRelease'
   }
+}
+
+def bundleAndroid() {
+  withCredentials([
+    string(credentialsId: "SUPPLY_JSON_KEY_DATA", variable: 'GOOGLE_PLAY_JSON_KEY'),
+    string(credentialsId: "SLACK_URL", variable: 'SLACK_URL')
+  ]) {
+    sh 'bundle exec fastlane android nightly'
+  }
+  return 'android/app/build/outputs/apk/release/app-release.apk'
 }
 
 def compileiOS() {
