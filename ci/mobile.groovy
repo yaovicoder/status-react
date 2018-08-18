@@ -52,7 +52,7 @@ def bundleAndroid() {
     sh 'bundle exec fastlane android nightly'
   }
   def commit = common.getShortCommit()
-  def pkg = "StatusIm-${commit}"
+  def pkg = "StatusIm-${commit}.apk"
   sh "cp android/app/build/outputs/apk/release/app-release.apk ${pkg}"
   return pkg
 }
