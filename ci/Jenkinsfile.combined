@@ -30,6 +30,7 @@ pipeline {
     }
     stage('Archive') {
       steps {
+        sh('rm -f pkg/*')
         copyArtifacts(projectName: 'status-react/combined/mobile-ios', target: 'pkg', flatten: true)
         copyArtifacts(projectName: 'status-react/combined/mobile-android', target: 'pkg', flatten: true)
         copyArtifacts(projectName: 'status-react/combined/desktop-macos', target: 'pkg', flatten: true)
