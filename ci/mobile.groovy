@@ -5,11 +5,8 @@ def uploadArtifact() {
   println (artifact_dir + 'app-release.apk')
   def artifact = (artifact_dir + 'app-release.apk')
   def server = Artifactory.server('artifacts')
-  shortCommit = sh(
-    returnStdout: true,
-    script: 'git rev-parse HEAD'
-  ).trim().take(6)
-  def filename = "im.status.ethereum-${shortCommit}-n-fl.apk"
+  def commit = common.getShortCommit()
+  def filename = "im.status.ethereum-${commit}-n-fl.apk"
   def newArtifact = (artifact_dir + filename)
   sh "cp ${artifact} ${newArtifact}"
   def uploadSpec = '{ "files": [ { "pattern": "*apk/release/' + filename + '", "target": "nightlies-local" }]}'
@@ -54,7 +51,9 @@ def bundleAndroid() {
   ]) {
     sh 'bundle exec fastlane android nightly'
   }
-  return 'android/app/build/outputs/apk/release/app-release.apk'
+  def pkg = "StatusIm-${commit}"
+  sh "cp android/app/build/outputs/apk/release/app-release.apk ${pkg}"
+  return pkg
 }
 
 def compileiOS() {
@@ -71,7 +70,9 @@ def compileiOS() {
     sh "plutil -replace CFBundleVersion -string ${build_no} ios/StatusIm/Info.plist"
     sh 'fastlane ios nightly'
   }
-  return "status-adhoc/StatusIm.ipa"
+  def pkg = "StatusIm-${common.getShortCommit()}.ipa"
+  sh "cp status-adhoc/StatusIm.ipa ${pkg}"
+  return pkg
 }
 
 return this
