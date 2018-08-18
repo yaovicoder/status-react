@@ -51,6 +51,7 @@ def bundleAndroid() {
   ]) {
     sh 'bundle exec fastlane android nightly'
   }
+  def commit = common.getShortCommit()
   def pkg = "StatusIm-${commit}"
   sh "cp android/app/build/outputs/apk/release/app-release.apk ${pkg}"
   return pkg
@@ -70,7 +71,8 @@ def compileiOS() {
     sh "plutil -replace CFBundleVersion -string ${build_no} ios/StatusIm/Info.plist"
     sh 'fastlane ios nightly'
   }
-  def pkg = "StatusIm-${common.getShortCommit()}.ipa"
+  def commit = common.getShortCommit()
+  def pkg = "StatusIm-${commit}.ipa"
   sh "cp status-adhoc/StatusIm.ipa ${pkg}"
   return pkg
 }
