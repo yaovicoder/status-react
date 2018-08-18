@@ -37,6 +37,7 @@ def leinBuild() {
 }
 
 def compileAndroid(e2e = false) {
+  build_no = common.tagBuild()
   if (e2e) {
     env.ENVFILE=".env.e2e"
   }
