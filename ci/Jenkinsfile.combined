@@ -30,10 +30,11 @@ pipeline {
     //}
     stage('Archive') {
       steps {
-        copyArtifacts(projectName: 'status-react/combined/desktop-linux',)
-        copyArtifacts(projectName: 'status-react/combined/mobile-ios')
-        copyArtifacts(projectName: 'status-react/combined/mobile-android')
-        copyArtifacts(projectName: 'status-react/combined/desktop-macos')
+        copyArtifacts(projectName: 'status-react/combined/mobile-ios', target: 'pkg', flatten: true)
+        copyArtifacts(projectName: 'status-react/combined/mobile-android', target: 'pkg', flatten: true)
+        copyArtifacts(projectName: 'status-react/combined/desktop-macos', target: 'pkg', flatten: true)
+        copyArtifacts(projectName: 'status-react/combined/desktop-linux', target: 'pkg', flatten: true)
+        archiveArtifacts('pkg/*')
       }
     }
     stage('Notify') {
