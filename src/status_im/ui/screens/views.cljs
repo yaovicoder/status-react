@@ -80,20 +80,23 @@
 (defn wrap-modal [modal-view component]
   (fn []
     (if platform/android?
-      [view common-styles/modal
-       [modal {:transparent      true
-               :animation-type   :slide
-               :on-request-close (fn []
-                                   (cond
-                                     (#{:wallet-send-transaction-modal
-                                        :wallet-sign-message-modal}
-                                      modal-view)
-                                     (dispatch [:wallet/discard-transaction-navigate-back])
+      (let [signing? (re-frame/subscribe [:wallet.send/show-password-input?])]
+        [view common-styles/modal
+         [modal {:transparent      (not @signing?)
+                 :animation-type   :slide
+                 :on-request-close (fn []
+                                     (cond
+                                       (#{:wallet-send-transaction-modal
+                                          :wallet-sign-message-modal}
+                                        modal-view)
+                                       (if signing?
+                                         (dispatch [:wallet/cancel-entering-password])
+                                         (dispatch [:wallet/discard-transaction-navigate-back]))
 
-                                     :else
-                                     (dispatch [:navigate-back])))}
-        [react/main-screen-modal-view modal-view
-         [component]]]]
+                                       :else
+                                       (dispatch [:navigate-back])))}
+          [react/main-screen-modal-view modal-view
+           [component]]]])
       [react/main-screen-modal-view modal-view
        [component]])))
 
