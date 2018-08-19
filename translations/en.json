@@ -332,6 +332,8 @@
     "enter-word": "Enter word",
     "sync-in-progress": "Syncing...",
     "enter-password": "Enter password",
+    "enter-password-placeholder": "Enter your login password...",
+    "password-input-drawer-tooltip": "Only send the transaction if you recognize your three emoji's",
     "logout-are-you-sure": "Are you sure you want\nto log out?",
     "allow": "Allow",
     "leave-group-confirmation": "Are you sure you want to leave this group?",
