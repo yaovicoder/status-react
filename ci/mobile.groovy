@@ -5,8 +5,7 @@ def uploadArtifact() {
   println (artifact_dir + 'app-release.apk')
   def artifact = (artifact_dir + 'app-release.apk')
   def server = Artifactory.server('artifacts')
-  def commit = common.getShortCommit()
-  def filename = "im.status.ethereum-${commit}-n-fl.apk"
+  def filename = "im.status.ethereum-${GIT_COMMIT.take(6)}-n-fl.apk"
   def newArtifact = (artifact_dir + filename)
   sh "cp ${artifact} ${newArtifact}"
   def uploadSpec = '{ "files": [ { "pattern": "*apk/release/' + filename + '", "target": "nightlies-local" }]}'
@@ -51,17 +50,29 @@ def bundleAndroid() {
   ]) {
     sh 'bundle exec fastlane android nightly'
   }
-  def commit = common.getShortCommit()
-  def pkg = "StatusIm-${commit}.apk"
+  def pkg = "StatusIm-${GIT_COMMIT.take(6)}.apk"
   sh "cp android/app/build/outputs/apk/release/app-release.apk ${pkg}"
   return pkg
+}
+
+def uploadSauceLabs() {
+  env.SAUCE_LABS_APK = "im.status.ethereum-e2e-${GIT_COMMIT.take(6)}.apk"
+  withCredentials([
+    string(credentialsId: 'SAUCE_ACCESS_KEY', variable: 'SAUCE_ACCESS_KEY'),
+    string(credentialsId: 'SAUCE_USERNAME', variable: 'SAUCE_USERNAME'),
+    string(credentialsId: 'GIT_HUB_TOKEN', variable: 'GITHUB_TOKEN'),
+    string(credentialsId: 'SLACK_JENKINS_WEBHOOK', variable: 'SLACK_URL')
+  ]) {
+    sh 'fastlane android saucelabs'
+  }
+  return env.SAUCE_LABS_APK
 }
 
 def compileiOS() {
   version = readFile("${env.WORKSPACE}/VERSION").trim()
   build_no = common.tagBuild()
   withCredentials([
-    string(credentialsId: "SLACK_URL", variable: 'SLACK_URL'),
+    string(credentialsId: 'SLACK_URL', variable: 'SLACK_URL'),
     string(credentialsId: "slave-pass-${env.NODE_NAME}", variable: 'KEYCHAIN_PASSWORD'),
     string(credentialsId: 'FASTLANE_PASSWORD', variable: 'FASTLANE_PASSWORD'),
     string(credentialsId: 'APPLE_ID', variable: 'APPLE_ID'),
@@ -71,10 +82,21 @@ def compileiOS() {
     sh "plutil -replace CFBundleVersion -string ${build_no} ios/StatusIm/Info.plist"
     sh 'fastlane ios nightly'
   }
-  def commit = common.getShortCommit()
-  def pkg = "StatusIm-${commit}.ipa"
+  def pkg = "StatusIm-${GIT_COMMIT.take(6)}.ipa"
   sh "cp status-adhoc/StatusIm.ipa ${pkg}"
   return pkg
+}
+
+def uploadiOS() {
+  withCredentials([
+    string(credentialsId: 'diawi-token', variable: 'DIAWI_TOKEN'),
+    string(credentialsId: 'GIT_HUB_TOKEN', variable: 'GITHUB_TOKEN'),
+    string(credentialsId: 'SLACK_JENKINS_WEBHOOK', variable: 'SLACK_URL')
+  ]) {
+    sh 'fastlane android upload_diawi'
+  }
+  diawiUrl = readFile "${env.WORKSPACE}/fastlane/diawi.out"
+  return diawiUrl
 }
 
 return this

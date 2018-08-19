@@ -35,11 +35,4 @@ def tagBuild() {
   }
 }
 
-def getShortCommit() {
-  return sh(
-    returnStdout: true,
-    script: 'git rev-parse HEAD'
-  ).trim().take(6)
-}
-
 return this
