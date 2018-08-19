@@ -13,16 +13,6 @@ pipeline {
   stages {
     stage('Build') {
       parallel {
-        stage('iOS') {
-          steps { script {
-            ios = build('status-react/combined/mobile-ios')
-          } }
-        }
-        stage('Android') {
-          steps { script {
-            dro = build('status-react/combined/mobile-android')
-          } }
-        }
         stage('MacOS') {
           steps { script {
             osx = build('status-react/combined/desktop-macos')
@@ -31,6 +21,16 @@ pipeline {
         stage('Linux') {
           steps { script {
             nix = build('status-react/combined/desktop-linux')
+          } }
+        }
+        stage('iOS') {
+          steps { script {
+            ios = build('status-react/combined/mobile-ios')
+          } }
+        }
+        stage('Android') {
+          steps { script {
+            dro = build('status-react/combined/mobile-android')
           } }
         }
       }
@@ -72,10 +72,10 @@ pipeline {
     //  build(
     //    job: 'misc/status-im.github.io-update_env',
     //    parameters: [
-    //      [name: 'APK_URL', value: apkUr, $class: 'StringParameterValue'l],
-    //      [name: 'IOS_URL', value: ipaUr, $class: 'StringParameterValue'l],
-    //      [name: 'DMG_URL', value: dmgUr, $class: 'StringParameterValue'l],
-    //      [name: 'NIX_URL', value: appUr, $class: 'StringParameterValue'l]
+    //      [name: 'APK_URL', value: apkUr, $class: 'StringParameterValue'],
+    //      [name: 'IOS_URL', value: ipaUr, $class: 'StringParameterValue'],
+    //      [name: 'DMG_URL', value: dmgUr, $class: 'StringParameterValue'],
+    //      [name: 'NIX_URL', value: appUr, $class: 'StringParameterValue']
     //    ]
     //  )
     //}

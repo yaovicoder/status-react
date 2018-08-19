@@ -1,6 +1,5 @@
 common = load 'ci/common.groovy'
 
-commit = ''
 qtBin = '/opt/qt59/bin'
 packageFolder = './StatusImPackage'
 external_modules_dir = [
@@ -78,10 +77,6 @@ def uploadArtifact(filename) {
 def prepDeps() {
   common.doGitRebase()
   cleanupAndDeps()
-  commit = sh(
-    returnStdout: true,
-    script: 'git rev-parse HEAD'
-  ).trim().take(6)
 }
   
 def compileLinux() {
@@ -144,7 +139,7 @@ def bundleLinux() {
   dir(packageFolder) {
     sh 'ldd AppDir/usr/bin/StatusIm'
     sh 'rm -rf StatusIm.AppImage'
-    appFile = "StatusIm-${commit}.AppImage"
+    appFile = "StatusIm-${GIT_COMMIT.take(6)}.AppImage"
     sh "mv ../StatusIm-x86_64.AppImage ${appFile}"
   }
   return "${packageFolder}/${appFile}".drop(2)
@@ -179,7 +174,7 @@ def bundleMacOS() {
         -qmldir='${workspace}/node_modules/react-native/ReactQt/runtime/src/qml/'
     """
     sh 'rm -fr StatusAppFiles'
-    dmgFile = "StatusIm-${commit}.dmg"
+    dmgFile = "StatusIm-${GIT_COMMIT.take(6)}.dmg"
     sh "mv StatusIm.dmg ${dmgFile}"
   }
   return "${packageFolder}/${dmgFile}".drop(2)
