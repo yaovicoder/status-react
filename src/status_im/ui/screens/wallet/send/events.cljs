@@ -24,7 +24,9 @@
 
 (defn- send-ethers [params on-completed masked-password]
   (status/send-transaction (types/clj->json params)
-                           (security/unmask masked-password)
+                           (if masked-password
+                             (security/unmask masked-password)
+                             "")
                            on-completed))
 
 (defn- send-tokens [symbol chain {:keys [from to value gas gasPrice]} on-completed masked-password]
@@ -75,7 +77,9 @@
    (let [{:keys [data from password]} (get-in db [:wallet :send-transaction])]
      {:db            (assoc-in db [:wallet :send-transaction :in-progress?] true)
       ::sign-message {:params       {:data     data
-                                     :password (security/unmask password)
+                                     :password (if password
+                                                 (security/unmask password)
+                                                 "")
                                      :account  from}
                       :on-completed #(re-frame/dispatch [::transaction-completed (types/json->clj %)])}})))
 
@@ -124,12 +128,14 @@
      (when (and (not (:id send-transaction)) queued-transaction)
        (cond
 
-         ;;SEND TRANSACTION
+          ;;SEND TRANSACTION
          (= method constants/web3-send-transaction)
-         (let [{:keys [gas gas-price] :as transaction} (models.wallet/prepare-dapp-transaction
-                                                        queued-transaction (:contacts/contacts db))
+         (let [{:keys [gas gas-price amount] :as transaction} (models.wallet/prepare-dapp-transaction
+                                                               queued-transaction (:contacts/contacts db))
                {:keys [wallet-set-up-passed?]} (:account/account db)]
-           {:db         (assoc-in db' [:wallet :send-transaction] transaction)
+           {:db         (assoc-in db'
+                                  [:wallet :send-transaction]
+                                  (assoc transaction :amount-text (str (money/wei->ether amount))))
             :dispatch-n [[:update-wallet]
                          (when-not gas
                            [:wallet/update-estimated-gas (first params)])
@@ -140,9 +146,10 @@
                             :wallet-send-modal-stack
                             :wallet-send-modal-stack-with-onboarding)]]})
 
-         ;;SIGN MESSAGE
+          ;;SIGN MESSAGE
          (= method constants/web3-personal-sign)
-         (let [[address data] (models.wallet/normalize-sign-message-params params)]
+         (let [[address data] (models.wallet/normalize-sign-message-params params)
+               {:keys [wallet-set-up-passed?]} (:account/account db)]
            (if (and address data)
              (let [db'' (assoc-in db' [:wallet :send-transaction]
                                   {:id               (str (or id message-id))
@@ -150,8 +157,11 @@
                                    :data             data
                                    :dapp-transaction queued-transaction
                                    :method           method})]
-               (navigation/navigate-to-cofx
-                :wallet-sign-message-modal nil {:db db''}))
+               (navigation/navigate-to-cofx (if wallet-set-up-passed?
+                                              :wallet-sign-message-modal
+                                              :wallet-onboarding-setup-modal)
+                                            nil
+                                            {:db db''}))
              {:db db'})))))))
 
 (handlers/register-handler-fx
