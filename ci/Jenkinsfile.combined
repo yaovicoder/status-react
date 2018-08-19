@@ -14,26 +14,46 @@ pipeline {
     stage('Build') {
       parallel {
         stage('iOS') {
-          steps { build('status-react/combined/mobile-ios') }
+          steps { script {
+            ios = build('status-react/combined/mobile-ios')
+          } }
         }
         stage('Android') {
-          steps { build('status-react/combined/mobile-android') }
+          steps { script {
+            dro = build('status-react/combined/mobile-android')
+          } }
         }
         stage('MacOS') {
-          steps { build('status-react/combined/desktop-macos') }
+          steps { script {
+            osx = build('status-react/combined/desktop-macos')
+          } }
         }
         stage('Linux') {
-          steps { build('status-react/combined/desktop-linux') }
+          steps { script {
+            nix = build('status-react/combined/desktop-linux')
+          } }
         }
       }
     }
     stage('Archive') {
       steps {
         sh('rm -f pkg/*')
-        copyArtifacts(projectName: 'status-react/combined/mobile-ios', target: 'pkg', flatten: true)
-        copyArtifacts(projectName: 'status-react/combined/mobile-android', target: 'pkg', flatten: true)
-        copyArtifacts(projectName: 'status-react/combined/desktop-macos', target: 'pkg', flatten: true)
-        copyArtifacts(projectName: 'status-react/combined/desktop-linux', target: 'pkg', flatten: true)
+        copyArtifacts(
+          projectName: 'status-react/combined/mobile-ios', target: 'pkg',
+          flatten: true, selector: specific("${ios.number}")
+        )
+        copyArtifacts(
+          projectName: 'status-react/combined/mobile-android', target: 'pkg',
+          flatten: true, selector: specific("${dro.number}")
+        )
+        copyArtifacts(
+          projectName: 'status-react/combined/desktop-macos', target: 'pkg',
+          flatten: true, selector: specific("${osx.number}")
+        )
+        copyArtifacts(
+          projectName: 'status-react/combined/desktop-linux', target: 'pkg',
+          flatten: true, selector: specific("${nix.number}")
+        )
         archiveArtifacts('pkg/*')
       }
     }
