@@ -22,6 +22,7 @@
             [status-im.protocol.core :as protocol]
             [status-im.qr-scanner.core :as qr-scanner]
             [status-im.signals.core :as signals]
+            [status-im.wallet.core :as wallet]
             [status-im.ui.screens.currency-settings.models
              :as
              currency-settings.models]
@@ -114,9 +115,9 @@
    (accounts/switch-web3-opt-in-mode opt-in cofx)))
 
 (handlers/register-handler-fx
- :accounts.ui/wallet-set-up-confirmed
+ :accounts.ui/wallet-setup-confirmed
  (fn [cofx [_ modal?]]
-   (accounts/confirm-wallet-set-up modal? cofx)))
+   (accounts/confirm-wallet-setup modal? cofx)))
 
 ;; accounts create module
 
@@ -420,6 +421,17 @@
  :wallet.settings.ui/currency-selected
  (fn [cofx [_ currency]]
    (currency-settings.models/set-currency currency cofx)))
+
+(handlers/register-handler-fx
+ :wallet.send.ui/sign-button-pressed
+ (fn [cofx [_ params]]
+   (navigation/navigate-to-cofx :password-drawer
+                                {:password-drawer params} cofx)))
+
+(handlers/register-handler-fx
+ :wallet.setup.ui/got-it-button-pressed
+ (fn [cofx [_ modal?]]
+   (wallet/show-setup-confirmation modal? cofx)))
 
 ;; chat module
 
