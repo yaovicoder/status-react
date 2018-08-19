@@ -35,4 +35,26 @@ def tagBuild() {
   }
 }
 
+def uploadArtifact(filename) {
+  def domain = 'ams3.digitaloceanspaces.com'
+  def bucket = 'status-im-desktop'
+  withCredentials([usernamePassword(
+    credentialsId: 'digital-ocean-access-keys',
+    usernameVariable: 'DO_ACCESS_KEY',
+    passwordVariable: 'DO_SECRET_KEY'
+  )]) {
+    sh """
+      s3cmd \\
+        --acl-public \\
+        --host='${domain}' \\
+        --host-bucket='%(bucket)s.${domain}' \\
+        --access_key=${DO_ACCESS_KEY} \\
+        --secret_key=${DO_SECRET_KEY} \\
+        put ${filename} s3://${bucket}/
+    """
+  }
+  def url = "https://${bucket}.${domain}/${filename}"
+  return url
+}
+
 return this

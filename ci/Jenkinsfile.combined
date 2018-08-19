@@ -65,17 +65,30 @@ pipeline {
         archiveArtifacts('pkg/*')
       }
     }
+    stage('Upload') {
+      steps { script {
+        def pkg = "pkg/StatusIm-${GIT_COMMIT.take(6)}"
+        def uploadArtifact = load('ci/common.groovy').uploadArtifact
+        apkUrl = uploadArtifact("${pkg}.apk")
+        ipaUrl = uploadArtifact("${pkg}.ipa")
+        dmgUrl = uploadArtifact("${pkg}.dmg")
+        appUrl = uploadArtifact("${pkg}.AppImage")
+      } }
+    }
     stage('Notify') {
       steps {
         slackSend(
-          message: "Combined Nightly build success! (develop)",
+          message: (
+            "Combined Nightly build success! (develop)\n"+
+            "APK: ${apkUrl}\n"+
+            "IPA: ${ipaUrl}\n"+
+            "DMG: ${dmgUrl}\n"+
+            "APP: ${appUrl}\n"
+          ),
           color: 'good'
         )
       }
     }
-    //stage('Upload') {
-    //  TODO
-    //}
     //stage('Publish') {
     //  build(
     //    job: 'misc/status-im.github.io-update_env',
