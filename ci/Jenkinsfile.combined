@@ -1,13 +1,6 @@
 pipeline {
   agent { label 'master' }
 
-  parameters {
-    booleanParam(
-      name: 'PUBLISH',
-      description: 'If true the nightlies page will be updated.'
-    )
-  }
-
   options {
     disableConcurrentBuilds()
     buildDiscarder(logRotator(
@@ -110,10 +103,10 @@ pipeline {
         build(
           job: 'misc/status-im.github.io-update_env',
           parameters: [
-            [name: 'APK_URL', value: apkUr, $class: 'StringParameterValue'],
-            [name: 'IOS_URL', value: ipaUr, $class: 'StringParameterValue'],
-            [name: 'DMG_URL', value: dmgUr, $class: 'StringParameterValue'],
-            [name: 'NIX_URL', value: appUr, $class: 'StringParameterValue']
+            [name: 'APK_URL', value: apkUrl, $class: 'StringParameterValue'],
+            [name: 'IOS_URL', value: ipaUrl, $class: 'StringParameterValue'],
+            [name: 'DMG_URL', value: dmgUrl, $class: 'StringParameterValue'],
+            [name: 'NIX_URL', value: appUrl, $class: 'StringParameterValue']
           ]
         )
       }
