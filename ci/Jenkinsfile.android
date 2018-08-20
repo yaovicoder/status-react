@@ -51,16 +51,17 @@ pipeline {
     }
     stage('Compile') {
       steps {
-        script { mobile.compileAndroid(e2e: params.RUN_E2E) }
+        script { apk = mobile.compileAndroid(e2e: params.RUN_E2E) }
       }
     }
     stage('Bundle') {
-      when { expression { params.RUN_E2E == false } }
+      when { expression { !params.RUN_E2E } }
       steps {
-        script { apk = mobile.bundleAndroid() }
+        script { mobile.bundleAndroid() }
       }
     }
     stage('Archive') {
+      when { expression { !params.RUN_E2E } }
       steps {
         script { archiveArtifacts apk }
       }
