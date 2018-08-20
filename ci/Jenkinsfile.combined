@@ -83,9 +83,9 @@ pipeline {
       steps {
         slackSend(
           message: (
-            "Build success! ${currentBuild.displayName} "+
+            "Build success! "+
+            "<${currentBuild.absoluteUrl}|${currentBuild.displayName}> "+
             "(${currentBuild.durationString})\n"+
-            "Build: ${currentBuild.absoluteUrl}\n"+
             (params.PUBLISH ?
               "APK: ${apkUrl}\n"+
               "IPA: ${ipaUrl}\n"+
@@ -103,10 +103,10 @@ pipeline {
         build(
           job: 'misc/status-im.github.io-update_env',
           parameters: [
-            [name: 'APK_URL', value: apkUrl],
-            [name: 'IOS_URL', value: ipaUrl],
-            [name: 'DMG_URL', value: dmgUrl],
-            [name: 'NIX_URL', value: appUrl]
+            [name: 'APK_URL', value: apkUrl, $class: 'StringParameterValue'],
+            [name: 'IOS_URL', value: ipaUrl, $class: 'StringParameterValue'],
+            [name: 'DMG_URL', value: dmgUrl, $class: 'StringParameterValue'],
+            [name: 'NIX_URL', value: appUrl, $class: 'StringParameterValue']
           ]
         )
       }
