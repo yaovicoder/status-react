@@ -41,6 +41,8 @@ def compileAndroid(e2e = false) {
     sh './gradlew react-native-android:installArchives'
     sh './gradlew assembleRelease'
   }
+  sh "cp android/app/build/outputs/apk/release/app-release.apk ${pkg}"
+  return pkg
 }
 
 def bundleAndroid() {
@@ -51,8 +53,6 @@ def bundleAndroid() {
     sh 'bundle exec fastlane android nightly'
   }
   def pkg = "StatusIm-${GIT_COMMIT.take(6)}.apk"
-  sh "cp android/app/build/outputs/apk/release/app-release.apk ${pkg}"
-  return pkg
 }
 
 def uploadSauceLabs() {
