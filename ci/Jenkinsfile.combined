@@ -11,6 +11,13 @@ pipeline {
   }
   
   stages {
+    stage('Tag') {
+      steps { script {
+        common = load('ci/common.groovy')
+        /* to avoid race conditions in parallel builds */
+        print "Build Number: ${common.tagBuild()}"
+      } }
+    }
     stage('Build') {
       parallel {
         stage('MacOS') {
@@ -65,11 +72,10 @@ pipeline {
     stage('Upload') {
       steps { script {
         def pkg = "pkg/StatusIm-${GIT_COMMIT.take(6)}"
-        def uploadArtifact = load('ci/common.groovy').uploadArtifact
-        apkUrl = uploadArtifact("${pkg}.apk")
-        ipaUrl = uploadArtifact("${pkg}.ipa")
-        dmgUrl = uploadArtifact("${pkg}.dmg")
-        appUrl = uploadArtifact("${pkg}.AppImage")
+        apkUrl = common.uploadArtifact("${pkg}.apk")
+        ipaUrl = common.uploadArtifact("${pkg}.ipa")
+        dmgUrl = common.uploadArtifact("${pkg}.dmg")
+        appUrl = common.uploadArtifact("${pkg}.AppImage")
       } }
     }
     stage('Notify') {
