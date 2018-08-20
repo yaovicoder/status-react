@@ -55,6 +55,7 @@ pipeline {
       }
     }
     stage('Bundle') {
+      when { expression { params.RUN_E2E == false } }
       steps {
         script { apk = mobile.bundleAndroid() }
       }
