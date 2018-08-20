@@ -34,12 +34,9 @@ pipeline {
           } }
         }
         stage('Android e2e') {
-          steps { script {
-            build(
-              job: 'status-react/combined/mobile-android',
-              parameters: [booleanParam(name: 'RUN_E2E', value: true)]
-            )
-          } }
+          steps {
+            build('status-react/combined/mobile-android-e2e')
+          }
         }
       }
     }

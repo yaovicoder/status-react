@@ -51,7 +51,7 @@ pipeline {
     }
     stage('Compile') {
       steps {
-        script { mobile.compileAndroid(e2e: RUN_E2E) }
+        script { mobile.compileAndroid(e2e: params.RUN_E2E) }
       }
     }
     stage('Bundle') {
