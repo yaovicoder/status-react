@@ -106,15 +106,17 @@ pipeline {
     }
     stage('Publish') {
       when { expression { params.PUBLISH } }
-      build(
-        job: 'misc/status-im.github.io-update_env',
-        parameters: [
-          [name: 'APK_URL', value: apkUr, $class: 'StringParameterValue'],
-          [name: 'IOS_URL', value: ipaUr, $class: 'StringParameterValue'],
-          [name: 'DMG_URL', value: dmgUr, $class: 'StringParameterValue'],
-          [name: 'NIX_URL', value: appUr, $class: 'StringParameterValue']
-        ]
-      )
+      steps {
+        build(
+          job: 'misc/status-im.github.io-update_env',
+          parameters: [
+            [name: 'APK_URL', value: apkUr, $class: 'StringParameterValue'],
+            [name: 'IOS_URL', value: ipaUr, $class: 'StringParameterValue'],
+            [name: 'DMG_URL', value: dmgUr, $class: 'StringParameterValue'],
+            [name: 'NIX_URL', value: appUr, $class: 'StringParameterValue']
+          ]
+        )
+      }
     }
   }
 }
