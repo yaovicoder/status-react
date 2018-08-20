@@ -249,7 +249,7 @@ class StatusModule extends ReactContextBaseJavaModule implements LifecycleEventL
 
             }
             try {
-               JSONObject clusterConfig = (JSONObject) customConfig.get("ClusterConfig");
+                JSONObject clusterConfig = (JSONObject) customConfig.get("ClusterConfig");
                 if (clusterConfig != null) {
                     Log.d(TAG, "ClusterConfig is not null");
                     clusterConfig.put("Fleet", this.fleet);
