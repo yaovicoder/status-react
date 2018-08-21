@@ -155,7 +155,8 @@ class StatusModule extends ReactContextBaseJavaModule implements LifecycleEventL
 
     private String generateConfig(final String dataDir, final int networkId, final String keystoreDir, final String fleet, final Object upstreamConfig) throws JSONException {
 
-            JSONObject jsonConfig = new JSONObject(Statusgo.GenerateConfig(dataDir, networkId));
+            JSONObject jsonConfig = new JSONObject(
+                    Statusgo.GenerateConfig(dataDir, fleet, networkId));
 
             jsonConfig.put("NetworkId", networkId);
             jsonConfig.put("DataDir", dataDir);
@@ -211,8 +212,8 @@ class StatusModule extends ReactContextBaseJavaModule implements LifecycleEventL
 
         } catch (JSONException e) {
             Log.d(TAG, "Something went wrong " + e.getMessage());
-            Log.d(TAG, "Default configuration will be used");
-            return Statusgo.GenerateConfig(this.getTestnetDataDir(root), TESTNET_NETWORK_ID);
+            Log.d(TAG, "Default configuration will be used: ropsten, beta fleet");
+            return Statusgo.GenerateConfig(this.getTestnetDataDir(root), "eth.beta", TESTNET_NETWORK_ID);
         }
     }
 
