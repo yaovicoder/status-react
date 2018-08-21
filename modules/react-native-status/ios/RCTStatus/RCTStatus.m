@@ -65,7 +65,8 @@ RCT_EXPORT_MODULE();
 ////////////////////////////////////////////////////////////////////
 #pragma mark - startNode
 //////////////////////////////////////////////////////////////////// startNode
-RCT_EXPORT_METHOD(startNode:(NSString *)configString) {
+RCT_EXPORT_METHOD(startNode:(NSString *)configString
+                      fleet:(NSString *)fleet) {
 #if DEBUG
     NSLog(@"StartNode() method called");
 #endif
@@ -139,7 +140,6 @@ RCT_EXPORT_METHOD(startNode:(NSString *)configString) {
         [resultingConfigJson setValue:bootnodes forKeyPath:@"ClusterConfig.BootNodes"];
     }
 
-    NSString *fleet = [ReactNativeConfig envFor:@"FLEET"];
     if([fleet length] > 0) {
         [resultingConfigJson setValue:fleet forKeyPath:@"ClusterConfig.Fleet"];
     }

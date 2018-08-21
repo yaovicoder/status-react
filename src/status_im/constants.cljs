@@ -133,7 +133,14 @@
                                :address "enode://954c06603a6e755bffe9992615f4755848bda9aadda74d920aa31d1d8e4f6022dc556dca6768f8a0f9459f57b729509db3c8b3bb80acfbd8a2123087f6cbd7bd@47.52.251.180:30504"}}})
 
 (def default-wnodes
-  (assoc default-wnodes-without-custom :custom (get default-wnodes-without-custom config/fleet)))
+  ;; We use the same set of mailservers for every network now
+  ;; They are only dependent on the selected fleet (test, stage, beta)
+  (let [nodes-for-fleet (get default-wnodes-without-custom config/fleet)]
+    (-> {}
+        (assoc :custom nodes-for-fleet)
+        (assoc :testnet nodes-for-fleet)
+        (assoc :mainnet nodes-for-fleet)
+        (assoc :rinkeby nodes-for-fleet))))
 
 (defn default-account-settings []
   {:wallet {:visible-tokens {:testnet #{:STT :HND}
