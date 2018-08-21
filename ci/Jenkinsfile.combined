@@ -38,7 +38,7 @@ pipeline {
       }
     }
     stage('Archive') {
-      steps {
+      steps { script {
         sh('rm -f pkg/*')
         common.copyArts('status-react/combined/desktop-macos', osx.number)
         common.copyArts('status-react/combined/desktop-linux', nix.number)
@@ -46,7 +46,7 @@ pipeline {
         common.copyArts('status-react/combined/mobile-android', dro.number)
         common.copyArts('status-react/combined/mobile-android', e2e.number)
         archiveArtifacts('pkg/*')
-      }
+      } }
     }
     stage('Upload') {
       when { expression { params.BUILD_TYPE == 'release' } }
