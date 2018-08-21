@@ -1,22 +1,19 @@
 common = load 'ci/common.groovy'
+ios = load 'ci/ios.groovy'
+android = load 'ci/android.groovy'
 
-def uploadArtifact() {
-  def artifact_dir = pwd() + '/android/app/build/outputs/apk/release/'
-  println (artifact_dir + 'app-release.apk')
-  def artifact = (artifact_dir + 'app-release.apk')
-  def server = Artifactory.server('artifacts')
-  def filename = "im.status.ethereum-${GIT_COMMIT.take(6)}-n-fl.apk"
-  def newArtifact = (artifact_dir + filename)
-  sh "cp ${artifact} ${newArtifact}"
-  def uploadSpec = '{ "files": [ { "pattern": "*apk/release/' + filename + '", "target": "nightlies-local" }]}'
-  def buildInfo = server.upload(uploadSpec)
-  return 'http://artifacts.status.im:8081/artifactory/nightlies-local/' + filename
-}
-
-def prepDeps() {
-  sh 'rm -rf node_modules'
-  sh 'cp .env.nightly .env'
+def prep(type = 'debug') {
+  /* select type of build */
+  switch (type) {
+    case 'debug':
+      sh 'cp .env.nightly .env'; break
+    case 'release':
+      sh 'cp .env.prod .env'; break
+    case 'e2e':
+      sh 'cp .env.e2e .env'; break
+  }
   common.installJSDeps('mobile')
+  /* install Maven dependencies */
   sh 'mvn -f modules/react-native-status/ios/RCTStatus dependency:unpack'
   /* generate ios/StatusIm.xcworkspace */
   dir('ios') {
@@ -32,8 +29,9 @@ def leinBuild() {
   sh 'lein prod-build'
 }
 
+<<<<<<< HEAD
+=======
 def compileAndroid(e2e = false) {
-  build_no = common.tagBuild()
   if (e2e) {
     env.ENVFILE=".env.e2e"
   }
