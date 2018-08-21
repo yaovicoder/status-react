@@ -1,3 +1,28 @@
+def version() {
+  return readFile("${env.WORKSPACE}/VERSION").trim()
+}
+
+def buildBranch(name, e2e = false) {
+  /* special case for e2e, since it's within another type */
+  def buildType = (e2e ? 'e2e' : params.BUILD_TYPE)
+  /* always pass the BRANCH and BUILD_TYPE params with current branch */
+  return build(
+    job: name,
+    parameters: [
+      [name: 'BRANCH',     value: env.GIT_BRANCH, $class: 'StringParameterValue'],
+      [name: 'BUILD_TYPE', value: buildType,      $class: 'StringParameterValue'],
+  ])
+}
+
+def copyArts(projectName, buildNo) {
+  copyArtifacts(
+    projectName: projectName,
+    target: 'pkg',
+    flatten: true,
+    selector: specific("${number}")
+  )
+}
+
 def installJSDeps(platform) {
   def attempt = 1
   def maxAttempts = 10
