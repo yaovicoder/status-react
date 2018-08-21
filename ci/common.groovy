@@ -7,8 +7,8 @@ def buildBranch(name, e2e = false) {
   def buildType = (e2e ? 'e2e' : params.BUILD_TYPE)
   /* always pass the BRANCH and BUILD_TYPE params with current branch */
   return build(name, parameters: [
-      [name: 'BRANCH', value: BRANCH_NAME,   $class: 'StringParameterValue']
-      [name: 'BUILD_TYPE', value: buildType, $class: 'StringParameterValue']
+      [name: 'BRANCH',     value: env.GIT_BRANCH, $class: 'StringParameterValue'],
+      [name: 'BUILD_TYPE', value: buildType,      $class: 'StringParameterValue'],
   ])
 }
 
