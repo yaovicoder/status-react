@@ -20,56 +20,31 @@ pipeline {
     }
     stage('Build') {
       parallel {
-        stage('MacOS') {
-          steps { script {
-            osx = common.buildBranch('status-react/combined/desktop-macos')
-          } }
-        }
-        stage('Linux') {
-          steps { script {
-            nix = common.buildBranch('status-react/combined/desktop-linux')
-          } }
-        }
-        stage('iOS') {
-          steps { script {
-            ios = common.buildBranch('status-react/combined/mobile-ios')
-          } }
-        }
-        stage('Android') {
-          steps { script {
-            dro = common.buildBranch('status-react/combined/mobile-android')
-          } }
-        }
-        stage('Android e2e') {
-          steps {
-            e2e = common.buildBranch('status-react/combined/mobile-android', e2e: true)
-          }
-        }
+        stage('MacOS') { steps { script {
+          osx = common.buildBranch('status-react/combined/desktop-macos')
+        } } }
+        stage('Linux') { steps { script {
+          nix = common.buildBranch('status-react/combined/desktop-linux')
+        } } }
+        stage('iOS') { steps { script {
+          ios = common.buildBranch('status-react/combined/mobile-ios')
+        } } }
+        stage('Android') { steps { script {
+          dro = common.buildBranch('status-react/combined/mobile-android')
+        } } }
+        stage('Android e2e') { steps { script {
+          e2e = common.buildBranch('status-react/combined/mobile-android', e2e: true)
+        } } }
       }
     }
     stage('Archive') {
       steps {
         sh('rm -f pkg/*')
-        copyArtifacts(
-          projectName: 'status-react/combined/desktop-macos', target: 'pkg',
-          flatten: true, selector: specific("${osx.number}")
-        )
-        copyArtifacts(
-          projectName: 'status-react/combined/desktop-linux', target: 'pkg',
-          flatten: true, selector: specific("${nix.number}")
-        )
-        copyArtifacts(
-          projectName: 'status-react/combined/mobile-ios', target: 'pkg',
-          flatten: true, selector: specific("${ios.number}")
-        )
-        copyArtifacts(
-          projectName: 'status-react/combined/mobile-android', target: 'pkg',
-          flatten: true, selector: specific("${dro.number}")
-        )
-        copyArtifacts(
-          projectName: 'status-react/combined/mobile-android', target: 'pkg',
-          flatten: true, selector: specific("${e2e.number}")
-        )
+        common.copyArts('status-react/combined/desktop-macos', osx.number)
+        common.copyArts('status-react/combined/desktop-linux', nix.number)
+        common.copyArts('status-react/combined/mobile-ios', ios.number)
+        common.copyArts('status-react/combined/mobile-android', dro.number)
+        common.copyArts('status-react/combined/mobile-android', e2e.number)
         archiveArtifacts('pkg/*')
       }
     }

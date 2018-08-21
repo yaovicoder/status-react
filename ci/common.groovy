@@ -12,6 +12,15 @@ def buildBranch(name, e2e = false) {
   ])
 }
 
+def copyArts(projectName, buildNo) {
+  copyArtifacts(
+    projectName: projectName,
+    target: 'pkg',
+    flatten: true,
+    selector: specific("${number}")
+  )
+}
+
 def installJSDeps(platform) {
   def attempt = 1
   def maxAttempts = 10
