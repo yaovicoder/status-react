@@ -43,25 +43,25 @@ pipeline {
     }
     stage('Compile') {
       steps {
-        script { apk = mobile.compileAndroid(e2e: params.RUN_E2E) }
-      }
-    }
-    stage('Bundle') {
-      when { expression { !params.RUN_E2E } }
-      steps {
-        script { mobile.bundleAndroid() }
+        script { apk = mobile.android.compile(e2e: params.RUN_E2E) }
       }
     }
     stage('Archive') {
-      when { expression { !params.RUN_E2E } }
       steps {
         script { archiveArtifacts apk }
+      }
+    }
+    stage('Upload') {
+      when { expression { !params.RUN_E2E } }
+      steps {
+        script { mobile.android.uploadToPlayStore() }
       }
     }
     stage('Run e2e') {
       when { expression { params.RUN_E2E } }
       steps { script {
-        apk = mobile.uploadSauceLabs() 
+        mobile.android.uploadToDiawi()
+        apk = mobile.android.uploadToSauceLabs() 
         build(
           job: 'end-to-end-tests/status-app-nightly', wait: false,
           parameters: [string(name: 'apk', value: "--apk=${apk}")]

@@ -47,7 +47,7 @@ pipeline {
     }
     stage('Compile') {
       steps {
-        script { api = mobile.compileiOS() }
+        script { api = mobile.ios.compile() }
       }
     }
     stage('Archive') {
@@ -56,9 +56,8 @@ pipeline {
       }
     }
     stage('Upload') {
-      when { expression { params.RUN_E2E } }
       steps {
-        script { env.DIAWI_URL = uploadiOS() }
+        script { env.DIAWI_URL = mobile.ios.uploadToDiawi() }
       }
     }
   }
