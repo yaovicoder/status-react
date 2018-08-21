@@ -42,7 +42,12 @@ pipeline {
         }
         stage('Android e2e') {
           steps {
-            e2e = build('status-react/combined/mobile-android-e2e')
+            e2e = build(
+              'status-react/combined/mobile-android',
+              parameters: [
+                [name: 'BUILD_TYPE', value: 'e2e', $class: 'StringParameterValue'],
+              ]
+            )
           }
         }
       }
