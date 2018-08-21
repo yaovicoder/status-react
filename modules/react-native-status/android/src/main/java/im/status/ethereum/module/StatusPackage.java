@@ -16,13 +16,11 @@ public class StatusPackage implements ReactPackage {
 
     private boolean debug;
     private boolean devCluster;
-    private String fleet;
     private String logLevel;
 
-    public StatusPackage (boolean debug, boolean devCluster, String fleet, String logLevel) {
+    public StatusPackage (boolean debug, boolean devCluster, String logLevel) {
         this.debug = debug;
         this.devCluster = devCluster;
-        this.fleet = fleet;
         this.logLevel = logLevel;
     }
 
@@ -31,7 +29,7 @@ public class StatusPackage implements ReactPackage {
         List<NativeModule> modules = new ArrayList<>();
         System.loadLibrary("statusgoraw");
         System.loadLibrary("statusgo");
-        modules.add(new StatusModule(reactContext, this.debug, this.devCluster, this.fleet, this.logLevel));
+        modules.add(new StatusModule(reactContext, this.debug, this.devCluster, this.logLevel));
 
         return modules;
     }

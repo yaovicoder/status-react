@@ -45,18 +45,16 @@ class StatusModule extends ReactContextBaseJavaModule implements LifecycleEventL
     private ExecutorService executor = null;
     private boolean debug;
     private boolean devCluster;
-    private String fleet;
     private String logLevel;
     private ReactApplicationContext reactContext;
 
-    StatusModule(ReactApplicationContext reactContext, boolean debug, boolean devCluster, String fleet, String logLevel) {
+    StatusModule(ReactApplicationContext reactContext, boolean debug, boolean devCluster, String logLevel) {
         super(reactContext);
         if (executor == null) {
             executor = Executors.newCachedThreadPool();
         }
         this.debug = debug;
         this.devCluster = devCluster;
-        this.fleet = fleet;
         this.logLevel = logLevel;
         this.reactContext = reactContext;
         reactContext.addLifecycleEventListener(this);
@@ -153,7 +151,7 @@ class StatusModule extends ReactContextBaseJavaModule implements LifecycleEventL
         return null;
     }
 
-    private void doStartNode(final String defaultConfig) {
+    private void doStartNode(final String defaultConfig, final String fleet) {
 
         Activity currentActivity = getCurrentActivity();
 
@@ -252,7 +250,7 @@ class StatusModule extends ReactContextBaseJavaModule implements LifecycleEventL
                 JSONObject clusterConfig = (JSONObject) customConfig.get("ClusterConfig");
                 if (clusterConfig != null) {
                     Log.d(TAG, "ClusterConfig is not null");
-                    clusterConfig.put("Fleet", this.fleet);
+                    clusterConfig.put("Fleet", fleet);
                     jsonConfig.put("ClusterConfig", clusterConfig);
                 }
             } catch (Exception e) {
@@ -372,7 +370,7 @@ class StatusModule extends ReactContextBaseJavaModule implements LifecycleEventL
     }
 
     @ReactMethod
-    public void startNode(final String config) {
+    public void startNode(final String config, final String fleet) {
         Log.d(TAG, "startNode");
         if (!checkAvailability()) {
             return;
@@ -381,7 +379,7 @@ class StatusModule extends ReactContextBaseJavaModule implements LifecycleEventL
         Runnable r = new Runnable() {
             @Override
             public void run() {
-                doStartNode(config);
+                doStartNode(config, fleet);
             }
         };
 
