@@ -1,3 +1,7 @@
+def version() {
+  return readFile("${env.WORKSPACE}/VERSION").trim()
+}
+
 def installJSDeps(platform) {
   def attempt = 1
   def maxAttempts = 10
