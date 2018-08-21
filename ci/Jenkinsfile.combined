@@ -42,7 +42,7 @@ pipeline {
         }
         stage('Android e2e') {
           steps {
-            build('status-react/combined/mobile-android-e2e')
+            e2e = build('status-react/combined/mobile-android-e2e')
           }
         }
       }
@@ -50,6 +50,14 @@ pipeline {
     stage('Archive') {
       steps {
         sh('rm -f pkg/*')
+        copyArtifacts(
+          projectName: 'status-react/combined/desktop-macos', target: 'pkg',
+          flatten: true, selector: specific("${osx.number}")
+        )
+        copyArtifacts(
+          projectName: 'status-react/combined/desktop-linux', target: 'pkg',
+          flatten: true, selector: specific("${nix.number}")
+        )
         copyArtifacts(
           projectName: 'status-react/combined/mobile-ios', target: 'pkg',
           flatten: true, selector: specific("${ios.number}")
@@ -59,12 +67,8 @@ pipeline {
           flatten: true, selector: specific("${dro.number}")
         )
         copyArtifacts(
-          projectName: 'status-react/combined/desktop-macos', target: 'pkg',
-          flatten: true, selector: specific("${osx.number}")
-        )
-        copyArtifacts(
-          projectName: 'status-react/combined/desktop-linux', target: 'pkg',
-          flatten: true, selector: specific("${nix.number}")
+          projectName: 'status-react/combined/mobile-android', target: 'pkg',
+          flatten: true, selector: specific("${e2e.number}")
         )
         archiveArtifacts('pkg/*')
       }
@@ -73,6 +77,7 @@ pipeline {
       when { expression { params.PUBLISH } }
       steps { script {
         def pkg = "pkg/StatusIm-${GIT_COMMIT.take(6)}"
+        e2eUrl = common.uploadArtifact("${pkg}-e2e.apk")
         apkUrl = common.uploadArtifact("${pkg}.apk")
         ipaUrl = common.uploadArtifact("${pkg}.ipa")
         dmgUrl = common.uploadArtifact("${pkg}.dmg")
@@ -87,6 +92,7 @@ pipeline {
             "<${currentBuild.absoluteUrl}|${currentBuild.displayName}> "+
             "(${currentBuild.durationString})\n"+
             (params.PUBLISH ?
+              "E2E: ${e2eUrl}\n"+
               "APK: ${apkUrl}\n"+
               "IPA: ${ipaUrl}\n"+
               "DMG: ${dmgUrl}\n"+

@@ -25,9 +25,10 @@ pipeline {
     stage('Prep') {
       steps {
         script {
+          print "Running ${params.BUILD_TYPE} build!"
           /* Necessary to load methods */
           mobile = load 'ci/mobile.groovy'
-          mobile.prepDeps()
+          mobile.prep(type: params.BUILD_TYPE)
         }
       }
     }
@@ -43,7 +44,7 @@ pipeline {
     }
     stage('Compile') {
       steps {
-        script { apk = mobile.android.compile(e2e: params.RUN_E2E) }
+        script { apk = mobile.android.compile(type: params.BUILD_TYPE) }
       }
     }
     stage('Archive') {
@@ -52,13 +53,13 @@ pipeline {
       }
     }
     stage('Upload') {
-      when { expression { !params.RUN_E2E } }
+      when { expression { params.BUILD_TYPE == 'release' } }
       steps {
         script { mobile.android.uploadToPlayStore() }
       }
     }
     stage('Run e2e') {
-      when { expression { params.RUN_E2E } }
+      when { expression { params.BUILD_TYPE == 'e2e' } }
       steps { script {
         mobile.android.uploadToDiawi()
         apk = mobile.android.uploadToSauceLabs() 

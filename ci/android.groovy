@@ -1,3 +1,5 @@
+common = load 'ci/common.groovy'
+
 def uploadArtifact() {
   def artifact_dir = pwd() + '/android/app/build/outputs/apk/release/'
   println (artifact_dir + 'app-release.apk')
@@ -11,14 +13,15 @@ def uploadArtifact() {
   return 'http://artifacts.status.im:8081/artifactory/nightlies-local/' + filename
 }
 
-def compile(e2e = false) {
+def compile(type: 'debug') {
   build_no = common.tagBuild()
-  if (e2e) {
-    env.ENVFILE=".env.e2e"
+  def gradleOpt = ''
+  if (type == 'release') {
+    gradleOpt = "-PreleaseVersion=${common.version()}"
   }
   dir('android') {
     sh './gradlew react-native-android:installArchives'
-    sh './gradlew assembleRelease'
+    sh "./gradlew assembleRelease ${gradleOpt}"
   }
   def pkg = "StatusIm-${GIT_COMMIT.take(6)}${(e2e ?: '-e2e')}.apk"
   sh "cp android/app/build/outputs/apk/release/app-release.apk ${pkg}"

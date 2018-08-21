@@ -2,10 +2,18 @@ common = load 'ci/common.groovy'
 ios = load 'ci/ios.groovy'
 android = load 'ci/android.groovy'
 
-def prepDeps() {
-  sh 'rm -rf node_modules'
-  sh 'cp .env.nightly .env'
+def prep(type = 'debug') {
+  /* select type of build */
+  switch (type) {
+    case 'debug':
+      sh 'cp .env.nightly .env'; break
+    case 'release':
+      sh 'cp .env.prod .env'; break
+    case 'e2e':
+      sh 'cp .env.e2e .env'; break
+  }
   common.installJSDeps('mobile')
+  /* install Maven dependencies */
   sh 'mvn -f modules/react-native-status/ios/RCTStatus dependency:unpack'
   /* generate ios/StatusIm.xcworkspace */
   dir('ios') {

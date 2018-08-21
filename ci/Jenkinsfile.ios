@@ -29,9 +29,10 @@ pipeline {
     stage('Prep') {
       steps {
         script {
+          print "Running ${params.BUILD_TYPE} build!"
           /* Necessary to load methods */
           mobile = load 'ci/mobile.groovy'
-          mobile.prepDeps()
+          mobile.prep(type: params.BUILD_TYPE})
         }
       }
     }
@@ -47,7 +48,7 @@ pipeline {
     }
     stage('Compile') {
       steps {
-        script { api = mobile.ios.compile() }
+        script { api = mobile.ios.compile(type: params.DEBUG) }
       }
     }
     stage('Archive') {

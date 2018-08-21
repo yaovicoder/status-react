@@ -1,6 +1,5 @@
-def compile() {
-  version = readFile("${env.WORKSPACE}/VERSION").trim()
-  build_no = common.tagBuild()
+def compile(type: 'debug') {
+  def target = (type == 'release' ? 'adhoc' : 'nightly')
   withCredentials([
     string(credentialsId: 'SLACK_URL', variable: 'SLACK_URL'),
     string(credentialsId: "slave-pass-${env.NODE_NAME}", variable: 'KEYCHAIN_PASSWORD'),
@@ -8,9 +7,9 @@ def compile() {
     string(credentialsId: 'APPLE_ID', variable: 'APPLE_ID'),
     string(credentialsId: 'fastlane-match-password', variable:'MATCH_PASSWORD')
   ]) {
-    sh "plutil -replace CFBundleShortVersionString  -string ${version} ios/StatusIm/Info.plist"
-    sh "plutil -replace CFBundleVersion -string ${build_no} ios/StatusIm/Info.plist"
-    sh 'fastlane ios nightly'
+    sh "plutil -replace CFBundleShortVersionString  -string ${common.version()} ios/StatusIm/Info.plist"
+    sh "plutil -replace CFBundleVersion -string ${common.tagBuild()} ios/StatusIm/Info.plist"
+    sh "fastlane ios ${target}"
   }
   def pkg = "StatusIm-${GIT_COMMIT.take(6)}.ipa"
   sh "cp status-adhoc/StatusIm.ipa ${pkg}"
