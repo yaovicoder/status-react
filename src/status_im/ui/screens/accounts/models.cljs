@@ -86,7 +86,7 @@
   (handlers-macro/merge-fx cofx
                            {:db                                  (assoc db :accounts/create {:show-welcome? true})
                             :notifications/request-notifications nil
-                            :dispatch                            [:navigate-to-clean :home]}
+                            :dispatch                            [:navigate-to :home]}
                            (accounts.utils/account-update {:name (:name create)})))
 
 (defn account-set-input-text [input-key text {db :db}]
@@ -111,16 +111,17 @@
        (not (:in-progress? transaction))
        (:from-chat? transaction)))
 
-(defn continue-after-wallet-onboarding [db modal? cofx]
+(defn continue-after-wallet-onboarding [modal? {:keys [db] :as cofx}]
   (let [transaction (get-in db [:wallet :send-transaction])]
-    (cond modal? {:dispatch [:navigate-to-modal :wallet-send-transaction-modal]}
-          (chat-send? transaction) {:db       (navigation/navigate-back db)
-                                    :dispatch [:navigate-to :wallet-send-transaction-chat]}
-          :else {:db (navigation/navigate-back db)})))
+    (if modal?
+      {:dispatch [:navigate-to-clean :wallet-send-transaction-modal]}
+      (if-not (chat-send? transaction)
+        (navigation/navigate-to-clean :wallet cofx)
+        (navigation/navigate-to-cofx :wallet-send-transaction-modal nil cofx)))))
 
 (defn wallet-set-up-passed [modal? {:keys [db] :as cofx}]
   (handlers-macro/merge-fx
    cofx
-   (continue-after-wallet-onboarding db modal?)
+   (continue-after-wallet-onboarding modal?)
    (wallet.settings.models/wallet-autoconfig-tokens)
    (accounts.utils/account-update {:wallet-set-up-passed? true})))
