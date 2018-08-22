@@ -7,6 +7,7 @@
             [status-im.utils.ethereum.erc20 :as erc20]
             [status-im.utils.ethereum.tokens :as tokens]
             [status-im.utils.handlers :as handlers]
+            [status-im.utils.handlers-macro :as handlers-macro]
             [status-im.utils.prices :as prices]
             [status-im.utils.transactions :as transactions]
             [status-im.models.wallet :as models.wallet]
@@ -280,7 +281,8 @@
 
 (handlers/register-handler-fx
  :wallet-setup-navigate-back
- (fn [{:keys [db]}]
-   {:db (-> db
-            (assoc-in [:wallet :send-transaction] {})
-            (navigation/navigate-back))}))
+ (fn [{:keys [db] :as cofx}]
+   (handlers-macro/merge-fx
+    cofx
+    {:db (assoc-in db [:wallet :send-transaction] {})}
+    (navigation/navigate-back))))

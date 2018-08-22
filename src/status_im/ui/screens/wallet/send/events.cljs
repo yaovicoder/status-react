@@ -81,12 +81,12 @@
 ;; SEND TRANSACTION (SIGN MESSAGE) CALLBACK
 (handlers/register-handler-fx
  ::transaction-completed
- (fn [{:keys [db now]} [_ {:keys [result error]}]]
+ (fn [{:keys [db now] :as cofx} [_ {:keys [result error]}]]
    (let [{:keys [id method whisper-identity to symbol amount-text dapp-transaction]} (get-in db [:wallet :send-transaction])
          db' (assoc-in db [:wallet :send-transaction :in-progress?] false)]
      (if error
        ;; ERROR
-       (models.wallet/handle-transaction-error db' error)
+       (models.wallet/handle-transaction-error (assoc cofx :db db') error)
        ;; RESULT
        (merge
         {:db (cond-> (assoc-in db' [:wallet :send-transaction] {})
