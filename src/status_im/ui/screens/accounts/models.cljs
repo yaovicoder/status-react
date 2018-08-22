@@ -126,16 +126,17 @@
        (not (:in-progress? transaction))
        (:from-chat? transaction)))
 
-(defn continue-after-wallet-onboarding [db modal? cofx]
+(defn continue-after-wallet-onboarding [modal? {:keys [db] :as cofx}]
   (let [transaction (get-in db [:wallet :send-transaction])]
-    (cond modal? {:dispatch [:navigate-to-modal :wallet-send-transaction-modal]}
-          (chat-send? transaction) {:db       (navigation/navigate-back db)
-                                    :dispatch [:navigate-to :wallet-send-transaction-chat]}
-          :else {:db (navigation/navigate-back db)})))
+    (if modal?
+      {:dispatch [:navigate-to-modal :wallet-send-transaction-modal]}
+      (cond-> (navigation/navigate-back cofx)
+        (chat-send? transaction)
+        (assoc :dispatch [:navigate-to :wallet-send-transaction-chat])))))
 
 (defn wallet-set-up-passed [modal? {:keys [db] :as cofx}]
   (handlers-macro/merge-fx
    cofx
-   (continue-after-wallet-onboarding db modal?)
+   (continue-after-wallet-onboarding modal?)
    (wallet.settings.models/wallet-autoconfig-tokens)
    (accounts.utils/account-update {:wallet-set-up-passed? true})))
