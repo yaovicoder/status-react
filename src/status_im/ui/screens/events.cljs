@@ -146,12 +146,12 @@
 
 (defn logout
   [{:keys [db] :as cofx}]
-  (let [{:transport/keys [chats]} db]
+  (let [_ db]
     (handlers-macro/merge-fx cofx
                              {:dispatch            [:init/initialize-keychain]
                               :clear-user-password (get-in db [:account/account :address])
                               :dev-server/stop     nil}
-                             (navigation/navigate-to-clean nil)
+                             (navigation/navigate-to-clean :login)
                              (transport/stop-whisper))))
 
 (handlers/register-handler-fx
