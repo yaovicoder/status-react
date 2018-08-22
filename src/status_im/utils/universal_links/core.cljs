@@ -48,7 +48,7 @@
   (log/info "universal-links: handling view profile" profile-id)
   (if (new-chat.db/own-whisper-identity? db profile-id)
     (navigation/navigate-to-cofx :my-profile nil cofx)
-    (chat.events/show-profile profile-id true cofx)))
+    (chat.events/show-profile profile-id cofx)))
 
 (defn handle-not-found [full-url]
   (log/info "universal-links: no handler for " full-url))
