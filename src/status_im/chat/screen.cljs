@@ -64,7 +64,7 @@
         [toolbar/actions [{:icon      :icons/wallet
                            :icon-opts {:color               :black
                                        :accessibility-label :wallet-modal-button}
-                           :handler   #(re-frame/dispatch [:navigate-to-modal :wallet-modal])}
+                           :handler   #(re-frame/dispatch [:navigate-to :wallet-modal])}
                           {:icon      :icons/options
                            :icon-opts {:color               :black
                                        :accessibility-label :chat-menu-button}
