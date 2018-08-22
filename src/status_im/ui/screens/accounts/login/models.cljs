@@ -41,9 +41,10 @@
     {:login [address password save-password?]}))
 
 (defn user-login [{:keys [db] :as cofx}]
-  (handlers-macro/merge-fx cofx
-                           {:db (assoc-in db [:accounts/login :processing] true)}
-                           (node/initialize (get-in db [:accounts/login :address]))))
+  (handlers-macro/merge-fx
+   cofx
+   {:db (assoc-in db [:accounts/login :processing] true)}
+   (node/initialize (get-in db [:accounts/login :address]))))
 
 (defn user-login-callback [login-result {db :db :as cofx}]
   (let [data    (types/json->clj login-result)
