@@ -130,20 +130,24 @@
  (fn [{:keys [db] :as cofx} [chat-id event]]
    (if (get (:chats db) chat-id)
      {:db (assoc-in db [:chats chat-id :chat-loaded-event] event)}
-     (-> (models/upsert-chat {:chat-id chat-id} cofx) ; chat not created yet, we have to create it
+     (-> (models/upsert-chat {:chat-id chat-id} cofx)       ; chat not created yet, we have to create it
          (assoc-in [:db :chats chat-id :chat-loaded-event] event)))))
 
 (defn- navigate-to-chat
   "Takes coeffects map and chat-id, returns effects necessary for navigation and preloading data"
-  [chat-id {:keys [navigation-replace?]} {:keys [db] :as cofx}]
+  [chat-id {:keys [navigation-replace?]} cofx]
   (if navigation-replace?
-    (handlers-macro/merge-fx cofx
-                             (navigation/replace-view :chat)
-                             (preload-chat-data chat-id))
-    (handlers-macro/merge-fx cofx
-                             ;; TODO janherich - refactor `navigate-to` so it can be used with `merge-fx` macro
-                             {:db (navigation/navigate-to db :chat)}
-                             (preload-chat-data chat-id))))
+    (handlers-macro/merge-fx
+     cofx
+     (navigation/navigate-reset
+      {:index   1
+       :actions [{:routeName :home}
+                 {:routeName :chat}]})
+     (preload-chat-data chat-id))
+    (handlers-macro/merge-fx
+     cofx
+     (navigation/navigate-to-cofx :chat {})
+     (preload-chat-data chat-id))))
 
 (handlers/register-handler-fx
  :navigate-to-chat
@@ -156,8 +160,8 @@
  [(re-frame/inject-cofx :data-store/get-messages)
   (re-frame/inject-cofx :data-store/get-user-statuses)]
  (fn [{{:keys [current-chat-id] :as db} :db
-       get-stored-messages :get-stored-messages
-       get-stored-user-statuses :get-stored-user-statuses :as cofx} _]
+       get-stored-messages              :get-stored-messages
+       get-stored-user-statuses         :get-stored-user-statuses :as cofx} _]
    (when-not (get-in db [:chats current-chat-id :all-loaded?])
      (let [loaded-count     (count (get-in db [:chats current-chat-id :messages]))
            new-messages     (get-stored-messages current-chat-id loaded-count)
@@ -182,7 +186,7 @@
   ;; don't allow to open chat with yourself
   (when (not= (:current-public-key db) chat-id)
     (handlers-macro/merge-fx cofx
-                             (models/upsert-chat {:chat-id chat-id
+                             (models/upsert-chat {:chat-id   chat-id
                                                   :is-active true})
                              (navigate-to-chat chat-id opts))))
 
@@ -231,12 +235,12 @@
                         :confirm-button-text (i18n/label :t/clear)
                         :on-accept           #(re-frame/dispatch [:clear-history])}}))
 
-(defn create-new-public-chat [topic {:keys [db now] :as cofx}]
-  (handlers-macro/merge-fx cofx
-                           (models/add-public-chat topic)
-                           (navigation/navigate-to-clean :home)
-                           (navigate-to-chat topic {})
-                           (public-chat/join-public-chat topic)))
+(defn create-new-public-chat [topic cofx]
+  (handlers-macro/merge-fx
+   cofx
+   (models/add-public-chat topic)
+   (navigate-to-chat topic {:navigation-replace? true})
+   (public-chat/join-public-chat topic)))
 
 (handlers/register-handler-fx
  :create-new-public-chat
@@ -260,23 +264,23 @@
                              (group-name-from-contacts selected-contacts
                                                        (:contacts/contacts db)
                                                        (:username db)))]
-     (handlers-macro/merge-fx cofx
-                              {:db (assoc db :group/selected-contacts #{})}
-                              (models/add-group-chat random-id chat-name (:current-public-key db) selected-contacts)
-                              (navigation/navigate-to-clean :home)
-                              (navigate-to-chat random-id {})
-                              (transport.message/send (group-chat/GroupAdminUpdate. chat-name selected-contacts) random-id)))))
+     (handlers-macro/merge-fx
+      cofx
+      {:db (assoc db :group/selected-contacts #{})}
+      (models/add-group-chat random-id chat-name (:current-public-key db) selected-contacts)
+      (navigation/navigate-to-cofx :home nil)
+      (navigate-to-chat random-id {})
+      (transport.message/send (group-chat/GroupAdminUpdate. chat-name selected-contacts) random-id)))))
 
-(defn show-profile [identity keep-navigation? {:keys [db] :as cofx}]
-  (cond->> {:db (assoc db :contacts/identity identity)}
-    keep-navigation? (navigation/navigate-to-cofx :profile nil)
-    :else            (navigation/navigate-forget :profile)))
+(defn show-profile [identity {:keys [db]}]
+  (navigation/navigate-to-cofx
+   :profile nil {:db (assoc db :contacts/identity identity)}))
 
 (handlers/register-handler-fx
  :show-profile
  [re-frame/trim-v]
- (fn [cofx [identity keep-navigation?]]
-   (show-profile identity keep-navigation? cofx)))
+ (fn [cofx [identity]]
+   (show-profile identity cofx)))
 
 (handlers/register-handler-fx
  :resend-message

@@ -152,10 +152,11 @@
 
 (defn login-only-events [address {:keys [db] :as cofx}]
   (when (not= (:view-id db) :create-account)
-    (handlers-macro/merge-fx cofx
-                             (navigation/navigate-to-clean :home)
-                             (universal-links/process-stored-event)
-                             (notifications/process-stored-event address))))
+    (handlers-macro/merge-fx
+     cofx
+     (navigation/navigate-to-cofx :home nil)
+     (universal-links/process-stored-event)
+     (notifications/process-stored-event address))))
 
 (defn initialize-account [address {:keys [web3] :as cofx}]
   (handlers-macro/merge-fx cofx

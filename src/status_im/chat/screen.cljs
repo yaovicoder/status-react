@@ -30,7 +30,7 @@
             [status-im.ui.components.colors :as colors]))
 
 (defview add-contact-bar [contact-identity]
-  (letsubs [{:keys [hide-contact?] :as contact} [:get-contact-by-identity contact-identity]]
+  (letsubs [{:keys [hide-contact?] :as contact} [:get-contact-by-identity]]
     (when (and (not hide-contact?)
                (models.contact/can-add-to-contacts? contact))
       [react/view style/add-contact
@@ -64,7 +64,7 @@
         [toolbar/actions [{:icon      :icons/wallet
                            :icon-opts {:color               :black
                                        :accessibility-label :wallet-modal-button}
-                           :handler   #(re-frame/dispatch [:navigate-to-modal :wallet-modal])}
+                           :handler   #(re-frame/dispatch [:navigate-to :wallet-modal])}
                           {:icon      :icons/options
                            :icon-opts {:color               :black
                                        :accessibility-label :chat-menu-button}
