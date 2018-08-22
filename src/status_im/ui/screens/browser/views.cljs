@@ -70,7 +70,7 @@
    [toolbar.view/actions [{:icon      :icons/wallet
                            :icon-opts {:color               :black
                                        :accessibility-label :wallet-modal-button}
-                           :handler   #(re-frame/dispatch [:navigate-to-modal :wallet-modal])}]]])
+                           :handler   #(re-frame/dispatch [:navigate-to :wallet-modal])}]]])
 
 (defn- web-view-error [_ code desc]
   (reagent/as-element
@@ -89,8 +89,9 @@
       (re-frame/dispatch [:update-browser-on-nav-change browser url loading]))))
 
 (defn get-inject-js [url]
-  (let [domain-name (nth (re-find #"^\w+://(www\.)?([^/:]+)" url) 2)]
-    (get (:inject-js browser-config) domain-name)))
+  (when url
+    (let [domain-name (nth (re-find #"^\w+://(www\.)?([^/:]+)" url) 2)]
+      (get (:inject-js browser-config) domain-name))))
 
 (defn navigation [webview browser can-go-back? can-go-forward?]
   [react/view styles/toolbar
@@ -121,41 +122,42 @@
     (let [can-go-back?    (model/can-go-back? browser)
           can-go-forward? (model/can-go-forward? browser)
           url             (model/get-current-url browser)]
-      [react/view styles/browser
-       [status-bar/status-bar]
-       [toolbar webview error? url browser browser-id url-editing?]
-       [react/view components.styles/flex
-        [components.webview-bridge/webview-bridge
-         {:dapp?                                 dapp?
-          :dapp-name                             name
-          :ref                                   #(do
-                                                    (reset! webview %)
-                                                    (re-frame/dispatch [:set :webview-bridge %]))
-          :source                                {:uri url}
-          :java-script-enabled                   true
-          :bounces                               false
-          :local-storage-enabled                 true
-          :render-error                          web-view-error
-          :on-navigation-state-change            #(on-navigation-change % browser)
-          :on-bridge-message                     #(re-frame/dispatch [:on-bridge-message %])
-          :on-load                               #(re-frame/dispatch [:update-browser-options {:error? false}])
-          :on-error                              #(re-frame/dispatch [:update-browser-options {:error?   true
-                                                                                               :loading? false}])
-          :injected-on-start-loading-java-script (str js-res/web3
-                                                      (get-inject-js url)
-                                                      (js-res/web3-init
-                                                       rpc-url
-                                                       (ethereum/normalized-address address)
-                                                       (str network-id)))
-          :injected-java-script                  js-res/webview-js}]
-        (when loading?
-          [react/view styles/web-view-loading
-           [components/activity-indicator {:animating true}]])]
-       [navigation webview browser can-go-back? can-go-forward?]
-       [permissions.views/permissions-anim-panel browser show-permission]
-       (when show-tooltip
-         [tooltip/bottom-tooltip-info
-          (if (= show-tooltip :secure)
-            (i18n/label :t/browser-secure)
-            (i18n/label :t/browser-not-secure))
-          #(re-frame/dispatch [:update-browser-options {:show-tooltip nil}])])])))
+      (when url
+        [react/view styles/browser
+         [status-bar/status-bar]
+         [toolbar webview error? url browser browser-id url-editing?]
+         [react/view components.styles/flex
+          [components.webview-bridge/webview-bridge
+           {:dapp?                                 dapp?
+            :dapp-name                             name
+            :ref                                   #(do
+                                                      (reset! webview %)
+                                                      (re-frame/dispatch [:set :webview-bridge %]))
+            :source                                {:uri url}
+            :java-script-enabled                   true
+            :bounces                               false
+            :local-storage-enabled                 true
+            :render-error                          web-view-error
+            :on-navigation-state-change            #(on-navigation-change % browser)
+            :on-bridge-message                     #(re-frame/dispatch [:on-bridge-message %])
+            :on-load                               #(re-frame/dispatch [:update-browser-options {:error? false}])
+            :on-error                              #(re-frame/dispatch [:update-browser-options {:error?   true
+                                                                                                 :loading? false}])
+            :injected-on-start-loading-java-script (str js-res/web3
+                                                        (get-inject-js url)
+                                                        (js-res/web3-init
+                                                         rpc-url
+                                                         (ethereum/normalized-address address)
+                                                         (str network-id)))
+            :injected-java-script                  js-res/webview-js}]
+          (when loading?
+            [react/view styles/web-view-loading
+             [components/activity-indicator {:animating true}]])]
+         [navigation webview browser can-go-back? can-go-forward?]
+         [permissions.views/permissions-anim-panel browser show-permission]
+         (when show-tooltip
+           [tooltip/bottom-tooltip-info
+            (if (= show-tooltip :secure)
+              (i18n/label :t/browser-secure)
+              (i18n/label :t/browser-not-secure))
+            #(re-frame/dispatch [:update-browser-options {:show-tooltip nil}])])]))))
