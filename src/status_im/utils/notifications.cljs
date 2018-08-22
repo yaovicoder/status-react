@@ -58,14 +58,15 @@
   ;; TODO(oskarth): Only called in background on iOS right now.
   ;; NOTE(oskarth): Hardcoded data keys :sum and :msg in status-go right now.
   (defn on-notification []
-    (.onNotification (.notifications firebase)
-                     (fn [event-js]
-                       (let [event (js->clj event-js :keywordize-keys true)
-                             data (select-keys event [:sum :msg])
-                             aps (:aps event)]
-                         (log/debug "on-notification event: " (pr-str event))
-                         (log/debug "on-notification aps: " (pr-str aps))
-                         (log/debug "on-notification data: " (pr-str data))))))
+    (when firebase
+      (.onNotification (.notifications firebase)
+                       (fn [event-js]
+                         (let [event (js->clj event-js :keywordize-keys true)
+                               data  (select-keys event [:sum :msg])
+                               aps   (:aps event)]
+                           (log/debug "on-notification event: " (pr-str event))
+                           (log/debug "on-notification aps: " (pr-str aps))
+                           (log/debug "on-notification data: " (pr-str data)))))))
 
   (def channel-id "status-im")
   (def channel-name "Status")

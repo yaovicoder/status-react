@@ -46,7 +46,13 @@
 
 (def text-class (get-class "Text"))
 (def text-input-class (get-class "TextInput"))
-(def image (get-class "Image"))
+(def image-class (get-class "Image"))
+(defn image [{:keys [source] :as props}]
+  (when (or (not (map? source))
+            (not (contains? source :uri))
+            (and (contains? source :uri)
+                 (:uri source)))
+    [image-class props]))
 (def switch (get-class "Switch"))
 (def check-box (get-class "CheckBox"))
 
@@ -223,42 +229,43 @@
                                      platform/android? :android))
 
 (defmethod create-main-screen-view :iphone-x [current-view]
-  (fn [props & children]
-    (let [props    (merge props
-                          {:background-color
-                           (case current-view
-                             (:wallet
-                              :wallet-send-transaction
-                              :wallet-transaction-sent
-                              :wallet-request-transaction
-                              :wallet-send-assets
-                              :wallet-request-assets
-                              :choose-recipient
-                              :recent-recipients
-                              :wallet-send-transaction-modal
-                              :wallet-transaction-sent-modal
-                              :wallet-send-transaction-request
-                              :wallet-transaction-fee
-                              :wallet-sign-message-modal
-                              :contact-code)      styles/color-blue4
-                             (:qr-viewer
-                              :recipient-qr-code) "#2f3031"
-                             (:accounts :login
-                                        :wallet-transactions-filter) styles/color-white
-                             :transparent)})
-          children (cond-> children
-                     (#{:wallet
-                        :recent-recipients
-                        :wallet-send-assets
-                        :wallet-request-assets} current-view)
-                     (conj [view {:background-color styles/color-white
-                                  :position         :absolute
-                                  :bottom           0
-                                  :right            0
-                                  :left             0
-                                  :height           100
-                                  :z-index          -1000}]))]
-      (apply vector safe-area-view props children))))
+  (fn [props child]
+    (let [props (merge props
+                       {:background-color
+                        (case current-view
+                          (:wallet
+                           :wallet-send-transaction
+                           :wallet-transaction-sent
+                           :wallet-request-transaction
+                           :wallet-send-assets
+                           :wallet-request-assets
+                           :choose-recipient
+                           :recent-recipients
+                           :wallet-send-transaction-modal
+                           :wallet-transaction-sent-modal
+                           :wallet-send-transaction-request
+                           :wallet-transaction-fee
+                           :wallet-sign-message-modal
+                           :contact-code
+                           :wallet-onboarding-setup)
+                          styles/color-blue4
+                          (:qr-viewer
+                           :recipient-qr-code) "#2f3031"
+                          (:accounts :login
+                           :wallet-transactions-filter) styles/color-white
+                          styles/color-white)})
+          wow   (when (#{:wallet
+                         :recent-recipients
+                         :wallet-send-assets
+                         :wallet-request-assets} current-view)
+                  (conj [view {:background-color styles/color-white
+                               :position         :absolute
+                               :bottom           0
+                               :right            0
+                               :left             0
+                               :height           100
+                               :z-index          -1000}]))]
+      [safe-area-view props child wow])))
 
 (defmethod create-main-screen-view :default [_]
   view)

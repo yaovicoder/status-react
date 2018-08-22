@@ -5,6 +5,7 @@
             [status-im.constants :as constants]
             [status-im.utils.ethereum.tokens :as tokens]
             [status-im.ui.screens.navigation :as navigation]
+            [status-im.utils.handlers-macro :as handlers-macro]
             [status-im.utils.hex :as utils.hex]
             [status-im.transport.utils :as transport.utils]))
 
@@ -150,7 +151,7 @@
           (update :gas-price str)
           (dissoc :message-id :id :gas)))))
 
-(defn handle-transaction-error [db {:keys [code message]}]
+(defn handle-transaction-error [{:keys [db]} {:keys [code message]}]
   (let [{:keys [dapp-transaction]} (get-in db [:wallet :send-transaction])]
     (case code
 
@@ -159,11 +160,14 @@
       {:db (-> db
                (assoc-in [:wallet :send-transaction :wrong-password?] true))}
 
-      (cond-> {:db (-> db
-                       navigation/navigate-back
-                       (assoc-in [:wallet :transactions-queue] nil)
-                       (assoc-in [:wallet :send-transaction] {}))
-               :wallet/show-transaction-error message}
+      (cond-> (let [cofx {:db
+                          (-> db
+                              navigation/navigate-back
+                              (assoc-in [:wallet :transactions-queue] nil)
+                              (assoc-in [:wallet :send-transaction] {}))
+                          :wallet/show-transaction-error
+                          message}]
+                (navigation/navigate-back cofx))
 
         dapp-transaction
         (web3-error-callback db dapp-transaction message)))))

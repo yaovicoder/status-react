@@ -247,7 +247,7 @@
                              (preload-chat-data chat-id))
     (handlers-macro/merge-fx cofx
                              ;; TODO janherich - refactor `navigate-to` so it can be used with `merge-fx` macro
-                             {:db (navigation/navigate-to db :chat)}
+                             (navigation/navigate-to-cofx :chat {})
                              (preload-chat-data chat-id))))
 
 (handlers/register-handler-fx
@@ -339,7 +339,7 @@
 (defn create-new-public-chat [topic {:keys [db now] :as cofx}]
   (handlers-macro/merge-fx cofx
                            (models/add-public-chat topic)
-                           (navigation/navigate-to-clean :home)
+                           #_(navigation/navigate-to-clean :home)
                            (navigate-to-chat topic {})
                            (public-chat/join-public-chat topic)))
 
