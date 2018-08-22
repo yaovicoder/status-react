@@ -153,7 +153,7 @@
 (defn login-only-events [address {:keys [db] :as cofx}]
   (when (not= (:view-id db) :create-account)
     (handlers-macro/merge-fx cofx
-                             (navigation/navigate-to-clean :home)
+                             (navigation/navigate-to-cofx :home nil)
                              (universal-links/process-stored-event)
                              (notifications/process-stored-event address))))
 
