@@ -38,3 +38,8 @@
 
 (def password-container
   {:margin-top 24})
+
+(def save-password-checkbox-container
+  {:margin-top 0
+   :flex-direction :row
+   :align-items :center})
