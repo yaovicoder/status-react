@@ -1,3 +1,5 @@
+common = load('ci/common.groovy')
+
 def plutil(name, value) {
   sh "plutil -replace ${name} -string ${value} ios/StatusIm/Info.plist"
 }
@@ -18,7 +20,7 @@ def compile(type = 'nightly') {
   ]) {
     sh "fastlane ios ${target}"
   }
-  def pkg = "StatusIm-${GIT_COMMIT.take(6)}.ipa"
+  def pkg = common.pkgFilename(type, 'ipa')
   sh "cp status-adhoc/StatusIm.ipa ${pkg}"
   return pkg
 }
