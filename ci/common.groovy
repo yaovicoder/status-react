@@ -82,7 +82,7 @@ def uploadArtifact(path, filename) {
 
 def timestamp() {
   def now = new Date(currentBuild.startTimeInMillis)
-  return now.format("yyMMdd-HHmmss", TimeZone.getTimeZone('UTC'))
+  return now.format('yyMMdd.HHmmss', TimeZone.getTimeZone('UTC'))
 }
 
 def gitCommit() {
