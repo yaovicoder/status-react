@@ -67,11 +67,12 @@ pipeline {
             "<${currentBuild.absoluteUrl}|${currentBuild.displayName}> "+
             "(${currentBuild.durationString})\n"+
             (params.BUILD_TYPE == 'nightly' ?
-              "E2E: ${e2eUrl}\n"+
-              "APK: ${apkUrl}\n"+
-              "IPA: ${ipaUrl}\n"+
-              "DMG: ${dmgUrl}\n"+
-              "APP: ${appUrl}\n"
+              "Packages: "+
+              "<${apkUrl}|Android>, "+
+              "(<${e2eUrl}|e2e>), "+
+              "<${ipaUrl}|iOS>, "+
+              "<${dmgUrl}|MacOS>, "+
+              "<${appUrl}|AppImage>"
             : '')
           ),
           color: 'good'
