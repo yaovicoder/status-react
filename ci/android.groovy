@@ -15,9 +15,9 @@ def uploadArtifact() {
 
 def compile(type = 'nightly') {
   common.tagBuild()
-  def gradleOpt = "-PbuildUrl=${currentBuild.absoluteUrl} "
+  def gradleOpt = "-PbuildUrl='${currentBuild.absoluteUrl}' "
   if (type == 'release') {
-    gradleOpt = "-PreleaseVersion=${common.version()}"
+    gradleOpt = "-PreleaseVersion='${common.version()}'"
   }
   dir('android') {
     sh './gradlew react-native-android:installArchives'
