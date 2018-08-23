@@ -85,4 +85,12 @@ def timestamp() {
   return now.format("yyMMdd-HHmmss", TimeZone.getTimeZone('UTC'))
 }
 
+def gitCommit() {
+  return GIT_COMMIT.take(6)
+}
+
+def pkgFilename(type, ext) {
+  return "StatusIm.${timestamp()}.${gitCommit}.${type}.${ext}"
+}
+
 return this
