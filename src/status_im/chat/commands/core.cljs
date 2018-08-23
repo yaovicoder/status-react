@@ -140,7 +140,8 @@
                    :preview       :view
                    :parameters    [{:id           :keyword
                                     :type         {:one-of #{:text :phone :password :number}}
-                                    :placeholder  :string}]})
+                                    :placeholder  :string
+                                    :suggestions? :view}]})
   (hook-in [_ id {:keys [description scope parameters preview short-preview]} cofx]
     (let [new-command (reify protocol/Command
                         (id [_] (name id))
