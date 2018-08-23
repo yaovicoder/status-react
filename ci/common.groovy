@@ -60,7 +60,7 @@ def tagBuild() {
 
 def uploadArtifact(path, filename) {
   def domain = 'ams3.digitaloceanspaces.com'
-  def bucket = 'status-im-desktop'
+  def bucket = 'status-im'
   withCredentials([usernamePassword(
     credentialsId: 'digital-ocean-access-keys',
     usernameVariable: 'DO_ACCESS_KEY',
@@ -90,7 +90,7 @@ def gitCommit() {
 }
 
 def pkgFilename(type, ext) {
-  return "StatusIm.${timestamp()}.${gitCommit}.${type}.${ext}"
+  return "StatusIm.${timestamp()}.${gitCommit()}.${type}.${ext}"
 }
 
 return this
