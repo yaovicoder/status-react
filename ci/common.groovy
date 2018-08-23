@@ -80,4 +80,9 @@ def uploadArtifact(path, filename) {
   return url
 }
 
+def timestamp() {
+  def now = new Date(currentBuild.startTimeInMillis)
+  return now.format("yyMMdd-HHmmss", TimeZone.getTimeZone('UTC'))
+}
+
 return this
