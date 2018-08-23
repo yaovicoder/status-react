@@ -15,7 +15,7 @@ def uploadArtifact() {
 
 def compile(type = 'nightly') {
   common.tagBuild()
-  def gradleOpt = ''
+  def gradleOpt = "-PbuildUrl=${currentBuild.absoluteUrl}"
   if (type == 'release') {
     gradleOpt = "-PreleaseVersion=${common.version()}"
   }
