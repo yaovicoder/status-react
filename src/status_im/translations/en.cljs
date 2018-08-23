@@ -385,6 +385,7 @@
    :sign-in-to-status                    "Sign in to Status"
    :sign-in                              "Sign in"
    :sign-in-to-another                   "Sign in to another account"
+   :save-password                        "Save password until logout"
    :wrong-password                       "Wrong password"
    :enter-password                       "Enter password"
 
