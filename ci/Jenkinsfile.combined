@@ -13,48 +13,47 @@ pipeline {
   stages {
     stage('Tag') {
       steps { script {
-        common = load('ci/common.groovy')
+        cmn = load('ci/common.groovy')
         /* to avoid missing build tag parallel builds */
-        print "Build Number: ${common.tagBuild()}"
+        print "Build Number: ${cmn.tagBuild()}"
       } }
     }
     stage('Build') {
       parallel {
         stage('MacOS') { steps { script {
-          osx = common.buildBranch('status-react/combined/desktop-macos')
+          osx = cmn.buildBranch('status-react/combined/desktop-macos')
         } } }
         stage('Linux') { steps { script {
-          nix = common.buildBranch('status-react/combined/desktop-linux')
+          nix = cmn.buildBranch('status-react/combined/desktop-linux')
         } } }
         stage('iOS') { steps { script {
-          ios = common.buildBranch('status-react/combined/mobile-ios')
+          ios = cmn.buildBranch('status-react/combined/mobile-ios')
         } } }
         stage('Android') { steps { script {
-          dro = common.buildBranch('status-react/combined/mobile-android')
+          dro = cmn.buildBranch('status-react/combined/mobile-android')
         } } }
         stage('Android e2e') { steps { script {
-          e2e = common.buildBranch('status-react/combined/mobile-android', 'e2e')
+          e2e = cmn.buildBranch('status-react/combined/mobile-android', 'e2e')
         } } }
       }
     }
     stage('Archive') {
       steps { script {
         sh('rm -f pkg/*')
-        common.copyArts('status-react/combined/desktop-macos', osx.number)
-        common.copyArts('status-react/combined/desktop-linux', nix.number)
-        common.copyArts('status-react/combined/mobile-android', dro.number)
-        common.copyArts('status-react/combined/mobile-android', e2e.number)
+        cmn.copyArts('status-react/combined/desktop-macos', osx.number)
+        cmn.copyArts('status-react/combined/desktop-linux', nix.number)
+        cmn.copyArts('status-react/combined/mobile-android', dro.number)
+        cmn.copyArts('status-react/combined/mobile-android', e2e.number)
         archiveArtifacts('pkg/*')
       } }
     }
     stage('Upload') {
       when { expression { params.BUILD_TYPE == 'nightly' } }
       steps { script {
-        def pkgName = common.pkgFilename
-        e2eUrl = common.uploadArtifact('pkg', pkgName(params.BUILD_TYPE, 'apk'))
-        apkUrl = common.uploadArtifact('pkg', pkgName(params.BUILD_TYPE, 'apk'))
-        dmgUrl = common.uploadArtifact('pkg', pkgName(params.BUILD_TYPE, 'dmg'))
-        appUrl = common.uploadArtifact('pkg', pkgName(params.BUILD_TYPE, 'AppImage'))
+        e2eUrl = cmn.uploadArtifact('pkg', cmn.pkgFilename(params.BUILD_TYPE, 'apk'))
+        apkUrl = cmn.uploadArtifact('pkg', cmn.pkgFilename(params.BUILD_TYPE, 'apk'))
+        dmgUrl = cmn.uploadArtifact('pkg', cmn.pkgFilename(params.BUILD_TYPE, 'dmg'))
+        appUrl = cmn.uploadArtifact('pkg', cmn.pkgFilename(params.BUILD_TYPE, 'AppImage'))
         /* special case for iOS Diawi link */
         ipaUrl = ios.getBuildVariables().get('DIAWI_URL')
       } }
