@@ -103,7 +103,7 @@ def compileLinux() {
 }
   
 def bundleLinux(type = 'nightly') {
-  def appFile
+  def pkg
 
   dir(packageFolder) {
     sh 'rm -rf StatusImAppImage'
@@ -149,7 +149,7 @@ def bundleLinux(type = 'nightly') {
     pkg = common.pkgFilename(type, 'AppImage')
     sh "mv ../StatusIm-x86_64.AppImage ${pkg}"
   }
-  return "${packageFolder}/${appFile}".drop(2)
+  return "${packageFolder}/${pkg}".drop(2)
 }
 
 def compileMacOS() {
