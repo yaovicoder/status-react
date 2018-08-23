@@ -102,7 +102,7 @@ def compileLinux() {
   }
 }
   
-def bundleLinux() {
+def bundleLinux(type = 'nightly') {
   def appFile
 
   dir(packageFolder) {
@@ -146,8 +146,8 @@ def bundleLinux() {
   dir(packageFolder) {
     sh 'ldd AppDir/usr/bin/StatusIm'
     sh 'rm -rf StatusIm.AppImage'
-    appFile = "StatusIm-${GIT_COMMIT.take(6)}.AppImage"
-    sh "mv ../StatusIm-x86_64.AppImage ${appFile}"
+    pkg = common.pkgFilename(type, 'AppImage')
+    sh "mv ../StatusIm-x86_64.AppImage ${pkg}"
   }
   return "${packageFolder}/${appFile}".drop(2)
 }
@@ -169,8 +169,8 @@ def compileMacOS() {
   }
 }
 
-def bundleMacOS() {
-  def dmgFile
+def bundleMacOS(type = 'nightly') {
+  def pkg
   dir(packageFolder) {
     sh 'git clone https://github.com/vkjr/StatusAppFiles.git'
     sh 'unzip StatusAppFiles/StatusIm.app.zip'
@@ -182,10 +182,10 @@ def bundleMacOS() {
         -qmldir='${workspace}/node_modules/react-native/ReactQt/runtime/src/qml/'
     """
     sh 'rm -fr StatusAppFiles'
-    dmgFile = "StatusIm-${GIT_COMMIT.take(6)}.dmg"
-    sh "mv StatusIm.dmg ${dmgFile}"
+    pkg = common.pkgFilename(type, 'dmg')
+    sh "mv StatusIm.dmg ${pkg}"
   }
-  return "${packageFolder}/${dmgFile}".drop(2)
+  return "${packageFolder}/${pkg}".drop(2)
 }
 
 return this
