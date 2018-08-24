@@ -67,11 +67,14 @@ increment () {
 git fetch --tags --quiet >/dev/null || \
     >&2 echo "Could not fetch tags from remote"
 
+# check if this commit already has a build number
 NUMBER=$(findNumber)
 
+# if it doesn't, or we are forcing via cli option, increment
 if [ -z "$NUMBER" ] || [ "$1" = "--increment" ]; then
     NUMBER=$(increment)
     tagBuild $NUMBER
 fi
 
+# print build number
 echo $NUMBER
