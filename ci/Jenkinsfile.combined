@@ -15,7 +15,7 @@ pipeline {
       steps { script {
         cmn = load('ci/common.groovy')
         /* to avoid missing build tag parallel builds */
-        print "Build Number: ${cmn.tagBuild()}"
+        print "Build Number: ${cmn.tagBuild(true)}"
       } }
     }
     stage('Build') {
