@@ -44,7 +44,8 @@ def doGitRebase() {
   }
 }
 
-def tagBuild() {
+def tagBuild(increment = false) {
+  def opts = (increment ? '--increment' : '')
   withCredentials([[
     $class: 'UsernamePasswordMultiBinding',
     credentialsId: 'status-im-auto',
@@ -53,7 +54,7 @@ def tagBuild() {
   ]]) {
     return sh(
       returnStdout: true,
-      script: './scripts/build_no.sh --increment'
+      script: "./scripts/build_no.sh ${opts}"
     ).trim()
   }
 }
