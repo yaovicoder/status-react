@@ -88,4 +88,5 @@ timeout(90) {
         slackSend color: 'good', message: 'Release build ' + version + ' succesfully aploade to iTunes Connect'
       }
     }
+  }
 }
