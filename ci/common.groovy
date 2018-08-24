@@ -90,7 +90,7 @@ def uploadArtifact(path) {
 }
 
 def timestamp() {
-  def now = new Date(currentBuild.startTimeInMillis)
+  def now = new Date(currentBuild.timeInMillis)
   return now.format('yyMMdd.HHmmss', TimeZone.getTimeZone('UTC'))
 }
 
