@@ -67,10 +67,11 @@ increment () {
 git fetch --tags --quiet >/dev/null || \
     >&2 echo "Could not fetch tags from remote"
 
-if [ "$1" = "--increment" ]; then
+NUMBER=$(findNumber)
+
+if [ -z "$NUMBER" ] || [ "$1" = "--increment" ]; then
     NUMBER=$(increment)
     tagBuild $NUMBER
-else
-    NUMBER=$(findNumber)
 fi
+
 echo $NUMBER
