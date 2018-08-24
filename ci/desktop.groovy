@@ -170,7 +170,7 @@ def compileMacOS() {
 }
 
 def bundleMacOS(type = 'nightly') {
-  def pkg
+  def pkg = common.pkgFilename(type, 'dmg')
   dir(packageFolder) {
     sh 'git clone https://github.com/vkjr/StatusAppFiles.git'
     sh 'unzip StatusAppFiles/StatusIm.app.zip'
@@ -182,7 +182,6 @@ def bundleMacOS(type = 'nightly') {
         -qmldir='${workspace}/node_modules/react-native/ReactQt/runtime/src/qml/'
     """
     sh 'rm -fr StatusAppFiles'
-    pkg = common.pkgFilename(type, 'dmg')
     sh "mv StatusIm.dmg ${pkg}"
   }
   return "${packageFolder}/${pkg}".drop(2)
