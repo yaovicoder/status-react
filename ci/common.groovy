@@ -59,10 +59,15 @@ def tagBuild(increment = false) {
   }
 }
 
-def uploadArtifact(fullPath) {
-  /* nee to split fullpath to return proper URL */
-  def path = fullPath.tokenize('/')[0..-2].join('/')
-  def filename = fullPath.tokenize('/')[-1]
+def getDirPath(path) {
+  return path.tokenize('/')[0..-2].join('/')
+}
+
+def getFilename(path) {
+  return path.tokenize('/')[-1]
+}
+
+def uploadArtifact(path) {
   /* defaults for upload */
   def domain = 'ams3.digitaloceanspaces.com'
   def bucket = 'status-im'
@@ -78,10 +83,10 @@ def uploadArtifact(fullPath) {
         --host-bucket='%(bucket)s.${domain}' \\
         --access_key=${DO_ACCESS_KEY} \\
         --secret_key=${DO_SECRET_KEY} \\
-        put ${path}/${filename} s3://${bucket}/
+        put ${path} s3://${bucket}/
     """
   }
-  def url = "https://${bucket}.${domain}/${filename}"
+  def url = "https://${bucket}.${domain}/${getFilename(path)}"
   return url
 }
 
