@@ -50,10 +50,10 @@ pipeline {
     stage('Upload') {
       when { expression { params.BUILD_TYPE == 'nightly' } }
       steps { script {
-        e2eUrl = cmn.uploadArtifact('pkg', findFiles(glob: 'pkg/*.e2e.apk')[0].path)
-        apkUrl = cmn.uploadArtifact('pkg', findFiles(glob: "pkg/*.${params.BUILD_TYPE}.apk")[0].path)
-        dmgUrl = cmn.uploadArtifact('pkg', findFiles(glob: 'pkg/*.dmg')[0].path)
-        appUrl = cmn.uploadArtifact('pkg', findFiles(glob: 'pkg/*.AppImage')[0].path)
+        e2eUrl = cmn.uploadArtifact(findFiles(glob: 'pkg/*.e2e.apk')[0].path)
+        apkUrl = cmn.uploadArtifact(findFiles(glob: "pkg/*.${params.BUILD_TYPE}.apk")[0].path)
+        dmgUrl = cmn.uploadArtifact(findFiles(glob: 'pkg/*.dmg')[0].path)
+        appUrl = cmn.uploadArtifact(findFiles(glob: 'pkg/*.AppImage')[0].path)
         /* special case for iOS Diawi link */
         ipaUrl = ios.getBuildVariables().get('DIAWI_URL')
       } }
