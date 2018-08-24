@@ -59,7 +59,11 @@ def tagBuild(increment = false) {
   }
 }
 
-def uploadArtifact(path, filename) {
+def uploadArtifact(fullPath) {
+  /* nee to split fullpath to return proper URL */
+  def path = fullPath.tokenize('/')[0..-2].join('/')
+  def filename = fullPath.tokenize('/')[-1]
+  /* defaults for upload */
   def domain = 'ams3.digitaloceanspaces.com'
   def bucket = 'status-im'
   withCredentials([usernamePassword(
