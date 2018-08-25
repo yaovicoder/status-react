@@ -84,9 +84,12 @@
      (when tab-bar-visible?
        [tabs view-id])]))
 
-(views/defview main-tabs []
-  (views/letsubs [view-id [:get :view-id]]
-    [react/view common.styles/flex
-     [status-bar.view/status-bar
-      {:type (if (= view-id :wallet) :wallet-tab :main)}]
-     [main-container view-id]]))
+(defn main-tabs [view-id]
+  [react/view common.styles/flex
+   [status-bar.view/status-bar
+    {:type (if (= view-id :wallet) :wallet-tab :main)}]
+   [main-container view-id]])
+
+(defn get-main-tab [view-id]
+  (fn []
+    [main-tabs view-id]))

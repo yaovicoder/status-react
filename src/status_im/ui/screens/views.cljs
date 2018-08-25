@@ -5,7 +5,7 @@
             [status-im.utils.universal-links.core :as utils.universal-links]
             [status-im.ui.components.react :refer [view modal create-main-screen-view] :as react]
             [status-im.ui.components.styles :as common-styles]
-            [status-im.ui.screens.main-tabs.views :refer [main-tabs]]
+            [status-im.ui.screens.main-tabs.views :as main-tabs]
 
             [status-im.ui.screens.accounts.login.views :refer [login]]
             [status-im.ui.screens.accounts.recover.views :refer [recover]]
@@ -61,12 +61,27 @@
 (defn wrap [view-id component]
   (fn []
     (let [main-view (create-main-screen-view view-id)]
-      [main-view common-styles/flex [component]])))
+      [main-view common-styles/flex
+       [view common-styles/flex
+        [component]
+        [:> navigation/navigation-events
+         {:on-will-focus
+          (fn []
+            (re-frame/dispatch [:set :view-id view-id]))}]]])))
 
 (defn stack-screens [screens-map]
   (->> screens-map
        (map (fn [[k v]]
-              [k {:screen (nav-reagent/stack-screen (wrap k v))}]))
+              (let [screen (cond
+                             (map? v)
+                             (let [{:keys [screens config]} v]
+                               (nav-reagent/stack-navigator
+                                (stack-screens screens)
+                                config))
+
+                             :else
+                             (nav-reagent/stack-screen (wrap k v)))]
+                [k {:screen screen}])))
        (into {})))
 
 (defn get-main-component2 [view-id]
@@ -86,21 +101,19 @@
     :chat-stack
     {:screen
      (nav-reagent/stack-navigator
-      {:main-stack
-       {:screen
-        (nav-reagent/stack-navigator
-         (stack-screens
-          {:home            main-tabs
-           :chat            chat
-           :new             add-new
-           :new-chat        new-chat
-           :new-public-chat new-public-chat
-           :open-dapp       open-dapp
-           :browser         browser})
-         {:headerMode       "none"
-          :initialRouteName "home"})}
-       :wallet-modal
-       {:screen (nav-reagent/stack-screen wallet.main/wallet-modal)}}
+      (stack-screens
+       {:main-stack   {:screens
+                       {:home            (main-tabs/get-main-tab :home)
+                        :chat            chat
+                        :new             add-new
+                        :new-chat        new-chat
+                        :new-public-chat new-public-chat
+                        :open-dapp       open-dapp
+                        :browser         browser}
+                       :config
+                       {:headerMode       "none"
+                        :initialRouteName "home"}}
+        :wallet-modal wallet.main/wallet-modal})
       {:mode             "modal"
        :headerMode       "none"
        :initialRouteName "main-stack"})}
@@ -108,7 +121,7 @@
     {:screen
      (nav-reagent/stack-navigator
       (stack-screens
-       {:wallet                          main-tabs
+       {:wallet                          (main-tabs/get-main-tab :wallet)
         :wallet-onboarding-setup         wallet.onboarding.setup/screen
         :wallet-send-transaction         send-transaction
         :wallet-send-transaction-chat    send-transaction
@@ -129,11 +142,15 @@
        {:screen
         (nav-reagent/stack-navigator
          (stack-screens
-          {:my-profile        main-tabs
+          {:my-profile        (main-tabs/get-main-tab :my-profile)
            :about-app         about-app/about-app
            :help-center       help-center
            :currency-settings currency-settings
-           :backup-seed       backup-seed})
+           :backup-seed       backup-seed
+           :login             login
+           :create-account    create-account
+           :recover           recover
+           :accounts          accounts})
          {:headerMode       "none"
           :initialRouteName "my-profile"})}
        :profile-qr-viewer
@@ -148,7 +165,7 @@
     :collectibles-list collectibles-list
     :intro intro
     :create-account create-account
-    (:home :wallet :my-profile) main-tabs
+    ;;(:home :wallet :my-profile) main-tabs
     :browser browser
     :open-dapp open-dapp
     :dapp-description dapp-description

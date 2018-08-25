@@ -161,23 +161,23 @@
                                              (assoc-in acc [chat-id message-id] request))
                                            {}
                                            stored-unanswered-requests)
-         chats (reduce (fn [acc {:keys [chat-id] :as chat}]
-                         (let [chat-messages (index-messages (get-stored-messages chat-id))
-                               message-ids   (keys chat-messages)
-                               unviewed-ids  (get stored-unviewed-messages chat-id)]
-                           (assoc acc chat-id
-                                  (assoc chat
-                                         :unviewed-messages unviewed-ids
-                                         :requests (get chat->message-id->request chat-id)
-                                         :messages chat-messages
-                                         :message-statuses (get-stored-user-statuses chat-id message-ids)
-                                         :not-loaded-message-ids (set/difference (get stored-message-ids chat-id)
-                                                                                 (set message-ids))))))
-                       {}
-                       all-stored-chats)]
+         chats                     (reduce (fn [acc {:keys [chat-id] :as chat}]
+                                             (let [chat-messages (index-messages (get-stored-messages chat-id))
+                                                   message-ids   (keys chat-messages)
+                                                   unviewed-ids  (get stored-unviewed-messages chat-id)]
+                                               (assoc acc chat-id
+                                                      (assoc chat
+                                                             :unviewed-messages unviewed-ids
+                                                             :requests (get chat->message-id->request chat-id)
+                                                             :messages chat-messages
+                                                             :message-statuses (get-stored-user-statuses chat-id message-ids)
+                                                             :not-loaded-message-ids (set/difference (get stored-message-ids chat-id)
+                                                                                                     (set message-ids))))))
+                                           {}
+                                           all-stored-chats)]
      (handlers-macro/merge-fx cofx
                               {:db (assoc db
-                                          :chats          chats
+                                          :chats chats
                                           :contacts/dapps default-dapps)}
                               (group-chat-messages)
                               (add-default-contacts)
@@ -235,20 +235,19 @@
  (fn [{:keys [db] :as cofx} [chat-id event]]
    (if (get (:chats db) chat-id)
      {:db (assoc-in db [:chats chat-id :chat-loaded-event] event)}
-     (-> (models/upsert-chat {:chat-id chat-id} cofx) ; chat not created yet, we have to create it
+     (-> (models/upsert-chat {:chat-id chat-id} cofx)       ; chat not created yet, we have to create it
          (assoc-in [:db :chats chat-id :chat-loaded-event] event)))))
 
 (defn- navigate-to-chat
   "Takes coeffects map and chat-id, returns effects necessary for navigation and preloading data"
   [chat-id {:keys [navigation-replace?]} {:keys [db] :as cofx}]
-  (if navigation-replace?
-    (handlers-macro/merge-fx cofx
-                             (navigation/replace-view :chat)
-                             (preload-chat-data chat-id))
-    (handlers-macro/merge-fx cofx
-                             ;; TODO janherich - refactor `navigate-to` so it can be used with `merge-fx` macro
-                             (navigation/navigate-to-cofx :chat {})
-                             (preload-chat-data chat-id))))
+  (handlers-macro/merge-fx cofx
+                           ;; TODO janherich - refactor `navigate-to` so it can be used with `merge-fx` macro
+                           (navigation/navigate-reset
+                            {:index   1
+                             :actions [{:routeName :home}
+                                       {:routeName :chat}]})
+                           (preload-chat-data chat-id)))
 
 (handlers/register-handler-fx
  :navigate-to-chat
@@ -261,8 +260,8 @@
  [(re-frame/inject-cofx :data-store/get-messages)
   (re-frame/inject-cofx :data-store/get-user-statuses)]
  (fn [{{:keys [current-chat-id] :as db} :db
-       get-stored-messages :get-stored-messages
-       get-stored-user-statuses :get-stored-user-statuses :as cofx} _]
+       get-stored-messages              :get-stored-messages
+       get-stored-user-statuses         :get-stored-user-statuses :as cofx} _]
    (when-not (get-in db [:chats current-chat-id :all-loaded?])
      (let [loaded-count     (count (get-in db [:chats current-chat-id :messages]))
            new-messages     (get-stored-messages current-chat-id loaded-count)
@@ -287,7 +286,7 @@
   ;; don't allow to open chat with yourself
   (when (not= (:current-public-key db) chat-id)
     (handlers-macro/merge-fx cofx
-                             (models/upsert-chat {:chat-id chat-id
+                             (models/upsert-chat {:chat-id   chat-id
                                                   :is-active true})
                              (navigate-to-chat chat-id opts))))
 
@@ -339,8 +338,7 @@
 (defn create-new-public-chat [topic {:keys [db now] :as cofx}]
   (handlers-macro/merge-fx cofx
                            (models/add-public-chat topic)
-                           #_(navigation/navigate-to-clean :home)
-                           (navigate-to-chat topic {})
+                           (navigate-to-chat topic {:navigation-replace? true})
                            (public-chat/join-public-chat topic)))
 
 (handlers/register-handler-fx
@@ -375,7 +373,7 @@
 (defn show-profile [identity keep-navigation? {:keys [db] :as cofx}]
   (cond->> {:db (assoc db :contacts/identity identity)}
     keep-navigation? (navigation/navigate-to-cofx :profile nil)
-    :else            (navigation/navigate-forget :profile)))
+    :else (navigation/navigate-forget :profile)))
 
 (handlers/register-handler-fx
  :show-profile

@@ -76,7 +76,7 @@
 ;; Accessor methods for React Components
 
 (defn add-font-style [style-key {:keys [font] :as opts :or {font :default}}]
-  (let [font (get-in platform/platform-specific [:fonts (keyword font)])
+  (let [font  (get-in platform/platform-specific [:fonts (keyword font)])
         style (get opts style-key)]
     (-> opts
         (dissoc :font)
@@ -202,14 +202,14 @@
                         (views current-view)
                         (= views current-view))
 
-        style (if current-view?
-                {:flex   1
-                 :zIndex 0}
-                {:opacity 0
-                 :flex    0
-                 :zIndex -1})
+        style         (if current-view?
+                        {:flex   1
+                         :zIndex 0}
+                        {:opacity 0
+                         :flex    0
+                         :zIndex  -1})
 
-        component' (if (fn? component) [component] component)]
+        component'    (if (fn? component) [component] component)]
 
     (when (or (not hide?) (and hide? current-view?))
       (if hide?
@@ -230,42 +230,43 @@
 
 (defmethod create-main-screen-view :iphone-x [current-view]
   (fn [props child]
-    (let [props (merge props
-                       {:background-color
-                        (case current-view
-                          (:wallet
-                           :wallet-send-transaction
-                           :wallet-transaction-sent
-                           :wallet-request-transaction
-                           :wallet-send-assets
-                           :wallet-request-assets
-                           :choose-recipient
-                           :recent-recipients
-                           :wallet-send-transaction-modal
-                           :wallet-transaction-sent-modal
-                           :wallet-send-transaction-request
-                           :wallet-transaction-fee
-                           :wallet-sign-message-modal
-                           :contact-code
-                           :wallet-onboarding-setup)
-                          styles/color-blue4
-                          (:qr-viewer
-                           :recipient-qr-code) "#2f3031"
-                          (:accounts :login
-                           :wallet-transactions-filter) styles/color-white
-                          styles/color-white)})
-          wow   (when (#{:wallet
-                         :recent-recipients
-                         :wallet-send-assets
-                         :wallet-request-assets} current-view)
-                  (conj [view {:background-color styles/color-white
-                               :position         :absolute
-                               :bottom           0
-                               :right            0
-                               :left             0
-                               :height           100
-                               :z-index          -1000}]))]
-      [safe-area-view props child wow])))
+    (let [props             (merge props
+                                   {:background-color
+                                    (case current-view
+                                      (:wallet
+                                       :wallet-send-transaction
+                                       :wallet-transaction-sent
+                                       :wallet-request-transaction
+                                       :wallet-send-assets
+                                       :wallet-request-assets
+                                       :choose-recipient
+                                       :recent-recipients
+                                       :wallet-send-transaction-modal
+                                       :wallet-transaction-sent-modal
+                                       :wallet-send-transaction-request
+                                       :wallet-transaction-fee
+                                       :wallet-sign-message-modal
+                                       :contact-code
+                                       :wallet-onboarding-setup)
+                                      styles/color-blue4
+
+                                      (:qr-viewer
+                                       :recipient-qr-code)
+                                      "#2f3031"
+
+                                      styles/color-white)})
+          bottom-background (when (#{:wallet
+                                     :recent-recipients
+                                     :wallet-send-assets
+                                     :wallet-request-assets} current-view)
+                              (conj [view {:background-color styles/color-white
+                                           :position         :absolute
+                                           :bottom           0
+                                           :right            0
+                                           :left             0
+                                           :height           100
+                                           :z-index          -1000}]))]
+      [safe-area-view props child bottom-background])))
 
 (defmethod create-main-screen-view :default [_]
   view)
