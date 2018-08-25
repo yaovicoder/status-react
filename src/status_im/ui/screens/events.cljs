@@ -314,7 +314,7 @@
                 network network-status peers-count peers-summary view-id navigation-stack
                 status-module-initialized? status-node-started? device-UUID
                 push-notifications/initial? semaphores]
-         :or   [network (get app-db :network)]} db
+         :or   {network (get app-db :network)}} db
         console-contact (get contacts constants/console-chat-id)
         current-account (accounts address)
         account-network-id (get current-account :network network)
