@@ -36,5 +36,7 @@
    :color      colors/text-light-gray
    :margin-top 8})
 
-(def password-container
-  {:margin-top 24})
+(defstyle password-container
+  {:margin-top 24
+   :android {:margin-top 11
+             :padding-top 13}})
