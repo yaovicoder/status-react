@@ -132,6 +132,6 @@
                (assoc-in [:accounts/create :step] :enter-name))
    :dispatch [:initialize-account address
               (when (not= view-id :create-account)
-                [[:navigate-to-clean :home]
+                [[:navigate-to :home]
                  (universal-links/stored-url-event cofx)
                  (when-not platform/desktop? (notifications/stored-event address cofx))])]})

@@ -100,7 +100,7 @@
 (defn account-set-name [{{:accounts/keys [create] :as db} :db :as cofx}]
   (handlers-macro/merge-fx cofx
                            {:db         (assoc db :accounts/create {:show-welcome? true})
-                            :dispatch-n [[:navigate-to-clean :home]
+                            :dispatch-n [[:navigate-to :home]
                                          [:request-notifications]]}
                            (accounts.utils/account-update {:name (:name create)})))
 
