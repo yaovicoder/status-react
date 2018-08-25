@@ -78,5 +78,4 @@
                           true
                           {:db {:navigation-stack '(:home)}})]
         (is (= "a" (:contacts/identity db)))
-        (is (= '(:profile :home) (:navigation-stack db)))
         (is (= :profile (:view-id db)))))))
