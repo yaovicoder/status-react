@@ -21,6 +21,7 @@
             [taoensso.timbre :as log]
             [status-im.utils.universal-links.core :as universal-links]))
 
+;; TODO (yenda) move keychain functions to dedicated namespace
 (defn- reset-keychain []
   (.. (keychain/reset)
       (then
@@ -111,7 +112,7 @@
     (handlers-macro/merge-fx cofx
                              {:init/init-device-UUID                   nil
                               :init/init-store                         encryption-key
-                              :ui/listen-to-window-dimensions-change      nil
+                              :ui/listen-to-window-dimensions-change   nil
                               :init/testfairy-alert                    nil}
                              (initialize-db))))
 
@@ -157,10 +158,10 @@
 
 (defn initialize-account [address events-after {:keys [web3] :as cofx}]
   (handlers-macro/merge-fx cofx
-                           {:web3/set-default-account [web3 address]
-                            :web3/fetch-node-version  web3
-                            :notifications/get-fcm-token    nil
-                            :dispatch-n               (or events-after [])}
+                           {:web3/set-default-account    [web3 address]
+                            :web3/fetch-node-version     web3
+                            :notifications/get-fcm-token nil
+                            :dispatch-n                  (or events-after [])}
                            (initialize-account-db address)
                            (models.protocol/initialize-protocol address)
                            (models.contacts/load-contacts)
@@ -174,12 +175,14 @@
                            (models.account/update-sign-in-time)))
 
 (defn status-node-started [{{:node/keys [after-start] :as db} :db}]
+  ;;TODO (yenda) instead of passing events we can pass effects here and simply return them
   (merge {:db (assoc db :status-node-started? true)}
          (when after-start {:dispatch-n [after-start]})))
 
 (defn status-node-stopped [{{:node/keys [after-stop]} :db}]
+  ;;TODO (yenda) instead of passing events we can pass effects here and simply return them
   (when after-stop {:dispatch-n [after-stop]}))
 
 (defn status-module-initialized [{:keys [db]}]
-  {:db                               (assoc db :status-module-initialized? true)
+  {:db                                (assoc db :status-module-initialized? true)
    :init/status-module-initialized-fx nil})

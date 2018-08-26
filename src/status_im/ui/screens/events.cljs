@@ -1,6 +1,5 @@
 (ns status-im.ui.screens.events
   (:require status-im.chat.events
-            [status-im.models.chat :as chat]
             status-im.network.events
             [status-im.transport.handlers :as transport.handlers]
             status-im.protocol.handlers
@@ -10,20 +9,17 @@
             status-im.ui.screens.accounts.login.events
             [status-im.ui.screens.accounts.login.models :as login]
             status-im.ui.screens.accounts.recover.events
-            [status-im.ui.screens.contacts.events :as contacts]
             [status-im.models.contacts :as models.contacts]
             status-im.ui.screens.add-new.new-chat.events
             status-im.ui.screens.group.chat-settings.events
             status-im.ui.screens.group.events
             [status-im.ui.screens.navigation :as navigation]
-            [status-im.utils.universal-links.core :as universal-links]
             [status-im.utils.dimensions :as dimensions]
             status-im.utils.universal-links.events
             status-im.init.events
             status-im.signals.events
             status-im.web3.events
             status-im.notifications.events
-            [status-im.init.core :as init]
             status-im.ui.screens.add-new.new-chat.navigation
             status-im.ui.screens.network-settings.events
             status-im.ui.screens.profile.events
@@ -34,13 +30,11 @@
             status-im.ui.screens.wallet.send.events
             status-im.ui.screens.wallet.settings.events
             status-im.ui.screens.wallet.transactions.events
-            [status-im.models.transactions :as transactions]
             status-im.ui.screens.wallet.choose-recipient.events
             status-im.ui.screens.wallet.collectibles.cryptokitties.events
             status-im.ui.screens.wallet.collectibles.cryptostrikers.events
             status-im.ui.screens.wallet.collectibles.etheremon.events
             status-im.ui.screens.browser.events
-            [status-im.models.browser :as browser]
             status-im.ui.screens.offline-messaging-settings.events
             status-im.ui.screens.privacy-policy.events
             status-im.ui.screens.bootnodes-settings.events
@@ -49,26 +43,14 @@
             [re-frame.core :as re-frame]
             [status-im.native-module.core :as status]
             [status-im.ui.components.permissions :as permissions]
-            [status-im.constants :as constants]
-            [status-im.data-store.core :as data-store]
-            [status-im.data-store.realm.core :as realm]
-            [status-im.utils.keychain.core :as keychain]
-            [status-im.i18n :as i18n]
-            [status-im.js-dependencies :as dependencies]
-            [status-im.ui.components.react :as react]
             [status-im.transport.core :as transport]
             [status-im.transport.inbox :as inbox]
             [status-im.ui.screens.db :refer [app-db]]
             [status-im.utils.datetime :as time]
-            [status-im.utils.ethereum.core :as ethereum]
             [status-im.utils.random :as random]
-            [status-im.utils.config :as config]
             [status-im.utils.handlers :as handlers]
             [status-im.utils.handlers-macro :as handlers-macro]
             [status-im.utils.http :as http]
-            [status-im.utils.instabug :as instabug]
-            [status-im.utils.platform :as platform]
-            [status-im.utils.types :as types]
             [status-im.utils.utils :as utils]
             [taoensso.timbre :as log]))
 
@@ -150,15 +132,19 @@
  (fn [db [_ path v]]
    (assoc-in db path v)))
 
+(defn logout
+  [{:keys [db] :as cofx}]
+  (let [{:transport/keys [chats]} db]
+    (handlers-macro/merge-fx cofx
+                             {:dispatch [:init/initialize-keychain]
+                              :clear-user-password [(get-in db [:account/account :address])]}
+                             (navigation/navigate-to-clean nil)
+                             (transport/stop-whisper))))
+
 (handlers/register-handler-fx
  :logout
- (fn [{:keys [db] :as cofx} _]
-   (let [{:transport/keys [chats]} db]
-     (handlers-macro/merge-fx cofx
-                              {:dispatch [:init/initialize-keychain]
-                               :clear-user-password [(get-in db [:account/account :address])]}
-                              (navigation/navigate-to-clean nil)
-                              (transport/stop-whisper)))))
+ (fn [cofx _]
+   (logout cofx)))
 
 (defn app-state-change [state {:keys [db] :as cofx}]
   (let [app-coming-from-background? (= state "active")]
