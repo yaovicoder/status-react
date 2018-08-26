@@ -24,7 +24,7 @@
         (re-frame/dispatch [:update-sync-state error sync]))))))
 
 (re-frame/reg-fx
- :protocol/set-default-account
+ :web3/set-default-account
  (fn [[web3 address]]
    (set! (.-defaultAccount (.-eth web3))
          (ethereum/normalized-address address))))
