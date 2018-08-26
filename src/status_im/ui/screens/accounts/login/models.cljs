@@ -6,7 +6,7 @@
             [status-im.native-module.core :as status]
             [status-im.utils.config :as config]
             [status-im.utils.keychain.core :as keychain]
-            [status-im.utils.notifications :as notifications]
+            [status-im.notifications.core :as notifications]
             [status-im.utils.platform :as platform]
             [status-im.utils.universal-links.core :as universal-links]))
 
