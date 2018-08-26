@@ -22,6 +22,7 @@
             status-im.init.events
             status-im.signals.events
             status-im.web3.events
+            status-im.notifications.events
             [status-im.init.core :as init]
             status-im.ui.screens.add-new.new-chat.navigation
             status-im.ui.screens.network-settings.events
@@ -62,7 +63,6 @@
             [status-im.utils.ethereum.core :as ethereum]
             [status-im.utils.random :as random]
             [status-im.utils.config :as config]
-            [status-im.utils.notifications :as notifications]
             [status-im.utils.handlers :as handlers]
             [status-im.utils.handlers-macro :as handlers-macro]
             [status-im.utils.http :as http]
@@ -114,20 +114,9 @@
    (permissions/request-permissions options)))
 
 (re-frame/reg-fx
- :request-notifications-fx
- (fn [_]
-   (notifications/request-permissions)))
-
-(re-frame/reg-fx
  :ui/listen-to-window-dimensions-change
  (fn []
    (dimensions/add-event-listener)))
-
-(re-frame/reg-fx
- :notifications/get-fcm-token
- (fn [_]
-   (when platform/mobile?
-     (notifications/get-fcm-token))))
 
 (re-frame/reg-fx
  :show-error
@@ -187,11 +176,6 @@
  :request-permissions
  (fn [_ [_ options]]
    {:request-permissions-fx options}))
-
-(handlers/register-handler-fx
- :request-notifications
- (fn [_ _]
-   {:request-notifications-fx {}}))
 
 (handlers/register-handler-db
  :set-swipe-position
