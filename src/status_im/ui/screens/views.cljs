@@ -107,6 +107,7 @@
                         :chat            chat
                         :new             add-new
                         :new-chat        new-chat
+                        :qr-scanner      qr-scanner
                         :new-public-chat new-public-chat
                         :open-dapp       open-dapp
                         :browser         browser}
@@ -124,6 +125,8 @@
        {:wallet                          (main-tabs/get-main-tab :wallet)
         :wallet-onboarding-setup         wallet.onboarding.setup/screen
         :wallet-send-transaction         send-transaction
+        :recent-recipients               recent-recipients
+        :recipient-qr-code               recipient-qr-code
         :wallet-send-transaction-chat    send-transaction
         :wallet-transaction-sent         transaction-sent
         :wallet-request-transaction      request-transaction
