@@ -106,14 +106,6 @@
      (http-get call))))
 
 (re-frame/reg-fx
- :web3/fetch-node-version
- (fn [web3 _]
-   (.. web3 -version (getNode (fn [err resp]
-                                (when-not err
-                                  (re-frame/dispatch [:web3/fetch-node-version-callback resp])))))
-   nil))
-
-(re-frame/reg-fx
  :request-permissions-fx
  (fn [options]
    (permissions/request-permissions options)))
@@ -174,12 +166,6 @@
                               {:dispatch [:init/initialize-keychain]}
                               (navigation/navigate-to-clean nil)
                               (transport/stop-whisper)))))
-
-(handlers/register-handler-fx
- :web3/fetch-node-version-callback
- (fn [{:keys [db]} [_ resp]]
-   (when-let [git-commit (nth (re-find #"-([0-9a-f]{7,})/" resp) 1)]
-     {:db (assoc db :web3-node-version git-commit)})))
 
 (defn summary [peers-summary {:keys [db] :as cofx}]
   (let [previous-summary (:peers-summary db)
