@@ -240,14 +240,19 @@
 
 (defn- navigate-to-chat
   "Takes coeffects map and chat-id, returns effects necessary for navigation and preloading data"
-  [chat-id {:keys [navigation-replace?]} {:keys [db] :as cofx}]
-  (handlers-macro/merge-fx cofx
-                           ;; TODO janherich - refactor `navigate-to` so it can be used with `merge-fx` macro
-                           (navigation/navigate-reset
-                            {:index   1
-                             :actions [{:routeName :home}
-                                       {:routeName :chat}]})
-                           (preload-chat-data chat-id)))
+  [chat-id {:keys [navigation-replace?]} cofx]
+  (if navigation-replace?
+    (handlers-macro/merge-fx
+     cofx
+     (navigation/navigate-reset
+      {:index   1
+       :actions [{:routeName :home}
+                 {:routeName :chat}]})
+     (preload-chat-data chat-id))
+    (handlers-macro/merge-fx
+     cofx
+     (navigation/navigate-to-cofx :chat {})
+     (preload-chat-data chat-id))))
 
 (handlers/register-handler-fx
  :navigate-to-chat
@@ -335,11 +340,12 @@
                         :confirm-button-text (i18n/label :t/clear)
                         :on-accept           #(re-frame/dispatch [:clear-history])}}))
 
-(defn create-new-public-chat [topic {:keys [db now] :as cofx}]
-  (handlers-macro/merge-fx cofx
-                           (models/add-public-chat topic)
-                           (navigate-to-chat topic {:navigation-replace? true})
-                           (public-chat/join-public-chat topic)))
+(defn create-new-public-chat [topic cofx]
+  (handlers-macro/merge-fx
+   cofx
+   (models/add-public-chat topic)
+   (navigate-to-chat topic {:navigation-replace? true})
+   (public-chat/join-public-chat topic)))
 
 (handlers/register-handler-fx
  :create-new-public-chat
