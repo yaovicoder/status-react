@@ -3,6 +3,7 @@
             [status-im.data-store.core :as data-store]
             [status-im.i18n :as i18n]
             [status-im.init.core :as init]
+            status-im.web3.events
             [status-im.native-module.core :as status]
             [status-im.utils.config :as config]
             [status-im.utils.handlers :as handlers]
@@ -66,7 +67,7 @@
 
 (handlers/register-handler-fx
  :init/initialize-account
- [(re-frame/inject-cofx :protocol/get-web3)
+ [(re-frame/inject-cofx :web3/get-web3)
   (re-frame/inject-cofx :get-default-contacts)
   (re-frame/inject-cofx :get-default-dapps)
   (re-frame/inject-cofx :data-store/all-chats)
