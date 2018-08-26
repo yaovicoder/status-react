@@ -54,15 +54,13 @@
    (test-fixtures)
 
    (re-frame/dispatch [:initialize-test])
-   (println :app-db @re-frame.db/app-db)
+
    (let [browsers  (re-frame/subscribe [:browsers])
          dapp1-url "cryptokitties.co"
          dapp2-url "http://test2.com"]
 
      (testing "open and remove dapps"
-       (println :browsers @browsers)
-       (is (do (println :browser @browsers)
-               (zero? (count @browsers))))
+       (is (zero? (count @browsers)))
 
        (re-frame/dispatch [:open-url-in-browser dapp1-url])
 
