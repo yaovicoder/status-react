@@ -19,6 +19,8 @@
             [status-im.utils.dimensions :as dimensions]
             status-im.utils.universal-links.events
             status-im.init.events
+            status-im.signals.events
+            status-im.web3.events
             [status-im.init.core :as init]
             status-im.ui.screens.add-new.new-chat.navigation
             status-im.ui.screens.network-settings.events
@@ -166,34 +168,6 @@
                               {:dispatch [:init/initialize-keychain]}
                               (navigation/navigate-to-clean nil)
                               (transport/stop-whisper)))))
-
-(defn summary [peers-summary {:keys [db] :as cofx}]
-  (let [previous-summary (:peers-summary db)
-        peers-count      (count peers-summary)]
-    (handlers-macro/merge-fx cofx
-                             {:db (assoc db
-                                         :peers-summary peers-summary
-                                         :peers-count peers-count)}
-                             (transport.handlers/resend-contact-messages previous-summary)
-                             (inbox/peers-summary-change-fx previous-summary))))
-
-(defn process [event-str cofx]
-  (let [{:keys [type event]} (types/json->clj event-str)]
-    (case type
-      "node.started"       (init/status-node-started cofx)
-      "node.stopped"       (init/status-node-stopped cofx)
-      "module.initialized" (init/status-module-initialized cofx)
-      "envelope.sent"      (transport.handlers/update-envelope-status (:hash event) :sent cofx)
-      "envelope.expired"   (transport.handlers/update-envelope-status (:hash event) :sent cofx)
-      "discovery.summary"  (summary event cofx)
-      (log/debug "Event " type " not handled"))))
-
-(handlers/register-handler-fx
- :signal-event
- (fn [cofx [_ event-str]]
-   (log/debug :event-str event-str)
-   (instabug/log (str "Signal event: " event-str))
-   (process event-str cofx)))
 
 (defn app-state-change [state {:keys [db] :as cofx}]
   (let [app-coming-from-background? (= state "active")]
