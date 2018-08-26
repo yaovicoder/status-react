@@ -59,18 +59,20 @@
 (defn set-device-uuid [device-uuid {:keys [db]}]
   {:db (assoc db :device-UUID device-uuid)})
 
-(defn initialize-views [{{:accounts/keys [accounts] :as db} :db}]
-  {:db                                  (if (empty? accounts)
-                                          (assoc db :view-id :intro :navigation-stack (list :intro))
-                                          (let [{:keys [address photo-path name]} (first (sort-by :last-sign-in > (vals accounts)))]
-                                            (-> db
-                                                (assoc :view-id :login
-                                                       :navigation-stack (list :login))
-                                                (update :accounts/login assoc
-                                                        :address address
-                                                        :photo-path photo-path
-                                                        :name name))))
-   :handle-initial-push-notification-fx db})
+(defn initialize-views [{{:accounts/keys [accounts]
+                          :push-notifications/keys [initial?]
+                          :as db} :db}]
+  {:db (if (empty? accounts)
+         (assoc db :view-id :intro :navigation-stack (list :intro))
+         (let [{:keys [address photo-path name]} (first (sort-by :last-sign-in > (vals accounts)))]
+           (-> db
+               (assoc :view-id :login
+                      :navigation-stack (list :login))
+               (update :accounts/login assoc
+                       :address address
+                       :photo-path photo-path
+                       :name name))))
+   :notifications/handle-initial-push-notification initial?})
 
 (defn initialize-geth [{:keys [db]}]
   (when-not (:status-node-started? db)
