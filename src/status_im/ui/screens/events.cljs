@@ -41,7 +41,6 @@
             [status-im.data-store.core :as data-store]
             [status-im.data-store.realm.core :as realm]
             [status-im.utils.keychain.core :as keychain]
-            [status-im.utils.x3dh :as x3dh]
             [status-im.i18n :as i18n]
             [status-im.js-dependencies :as dependencies]
             [status-im.ui.components.react :as react]
@@ -271,7 +270,6 @@
                                ::init-store                         encryption-key
                                ::listen-to-window-dimensions-change nil
                                ::testfairy-alert                    nil}
-                              (x3dh/create-fx)
                               (initialize-db)))))
 
 ;; DB has been decrypted, load accounts, initialize geth, etc
