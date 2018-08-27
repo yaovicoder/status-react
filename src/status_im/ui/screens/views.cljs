@@ -103,14 +103,17 @@
      (nav-reagent/stack-navigator
       (stack-screens
        {:main-stack   {:screens
-                       {:home            (main-tabs/get-main-tab :home)
-                        :chat            chat
-                        :new             add-new
-                        :new-chat        new-chat
-                        :qr-scanner      qr-scanner
-                        :new-public-chat new-public-chat
-                        :open-dapp       open-dapp
-                        :browser         browser}
+                       {:home                         (main-tabs/get-main-tab :home)
+                        :chat                         chat
+                        :wallet-send-transaction-chat send-transaction
+                        :wallet-transaction-sent      transaction-sent
+                        :new                          add-new
+                        :new-chat                     new-chat
+                        :qr-scanner                   qr-scanner
+                        :new-public-chat              new-public-chat
+                        :open-dapp                    open-dapp
+                        :dapp-description             dapp-description
+                        :browser                      browser}
                        :config
                        {:headerMode       "none"
                         :initialRouteName "home"}}
@@ -148,6 +151,9 @@
           {:my-profile        (main-tabs/get-main-tab :my-profile)
            :about-app         about-app/about-app
            :help-center       help-center
+           :network-settings  network-settings
+           :network-details   network-details
+           :edit-network      edit-network
            :currency-settings currency-settings
            :backup-seed       backup-seed
            :login             login

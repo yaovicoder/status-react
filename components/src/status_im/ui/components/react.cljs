@@ -237,6 +237,7 @@
                                        :wallet-send-transaction
                                        :wallet-transaction-sent
                                        :wallet-request-transaction
+                                       :wallet-send-transaction-chat
                                        :wallet-send-assets
                                        :wallet-request-assets
                                        :choose-recipient

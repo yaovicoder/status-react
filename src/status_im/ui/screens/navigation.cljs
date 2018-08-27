@@ -22,12 +22,14 @@
 (defn navigate-to-clean
   ([view-id cofx] (navigate-to-clean view-id cofx nil))
   ([view-id {:keys [db]} screen-params]
-   {::navigate-to-clean view-id}))
+   (let [db (cond-> db
+              (seq screen-params)
+              (assoc-in [:navigation/screen-params view-id] screen-params))]
+     {:db                 (push-view db view-id)
+      ::navigate-to-clean view-id})))
 
-(defn replace-view [view-id {:keys [db]}]
-  {:db (-> (update db :navigation-stack replace-top-element view-id)
-           (assoc :view-id view-id))}
-  ::navigate-replace view-id)
+(defn replace-view [view-id _]
+  {::navigate-replace view-id})
 
 (defn navigate-forget [view-id {:keys [db]}]
   {:db (assoc db :view-id view-id)})
@@ -126,8 +128,7 @@
  (fn [cofx [_ view-id]]
    (replace-view view-id cofx)))
 
-(defn navigate-back
-  [{{:keys [navigation-stack modal view-id] :as db} :db}]
+(defn navigate-back [_]
   {::navigate-back nil})
 
 (handlers/register-handler-fx
