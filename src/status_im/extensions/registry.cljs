@@ -1,6 +1,7 @@
 (ns status-im.extensions.registry
   (:require [pluto.reader :as reader]
             [pluto.registry :as registry]
+            [pluto.host :as host]
             [pluto.storage :as storage]
             [pluto.storage.gist :as gist]
             [status-im.extensions.core :as extension]
@@ -11,9 +12,19 @@
   {'view react/view
    'text react/text})
 
+(def app-hooks #{commands/command-hook})
+
 (def capacities
-  {:components components
-   :hooks      {:commands (commands/CommandHook.)}})
+  (reduce (fn [capacities hook]
+            (assoc-in capacities [:hooks (host/id hook)] hook))
+          {:components    components
+           :subscriptions #{:get-in}
+           :events        #{:set-in}
+           :permissions   {:read  {:include-paths #{[:network]
+                                                    [:current-chat-id]
+                                                    [:chats #".*"]}}
+                           :write {:include-paths #{}}}}
+          app-hooks))
 
 (defn parse [{:keys [data]}]
   (try
