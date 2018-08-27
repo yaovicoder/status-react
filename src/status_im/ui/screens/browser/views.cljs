@@ -69,7 +69,7 @@
    [toolbar.view/actions [{:icon      :icons/wallet
                            :icon-opts {:color               :black
                                        :accessibility-label :wallet-modal-button}
-                           :handler   #(re-frame/dispatch [:navigate-to-modal :wallet-modal])}]]])
+                           :handler   #(re-frame/dispatch [:navigate-to :wallet-modal])}]]])
 
 (defn- web-view-error [_ code desc]
   (reagent/as-element

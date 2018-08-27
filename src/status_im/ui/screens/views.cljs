@@ -119,30 +119,41 @@
                        :config
                        {:headerMode       "none"
                         :initialRouteName "home"}}
-        :wallet-modal wallet.main/wallet-modal})
+        :wallet-modal (nav-reagent/stack-screen
+                       (wrap :wallet-modal wallet.main/wallet-modal))})
       {:mode             "modal"
        :headerMode       "none"
        :initialRouteName "main-stack"})}
     :wallet-stack
     {:screen
      (nav-reagent/stack-navigator
-      (stack-screens
-       {:wallet                          (main-tabs/get-main-tab :wallet)
-        :wallet-onboarding-setup         wallet.onboarding.setup/screen
-        :wallet-send-transaction         send-transaction
-        :recent-recipients               recent-recipients
-        :recipient-qr-code               recipient-qr-code
-        :wallet-send-transaction-chat    send-transaction
-        :wallet-transaction-sent         transaction-sent
-        :wallet-request-transaction      request-transaction
-        :wallet-send-transaction-request send-transaction-request
-        :unsigned-transactions           wallet-transactions/transactions
-        :transactions-history            wallet-transactions/transactions
-        :wallet-transaction-details      wallet-transactions/transaction-details
-        :wallet-send-assets              wallet.components/send-assets
-        :wallet-request-assets           wallet.components/request-assets})
-      {:headerMode       "none"
-       :initialRouteName "wallet"})}
+      {:main-stack
+       {:screen
+        (nav-reagent/stack-navigator
+         (stack-screens
+          {:wallet                          (main-tabs/get-main-tab :wallet)
+           :collectibles-list               collectibles-list
+           :wallet-onboarding-setup         wallet.onboarding.setup/screen
+           :wallet-send-transaction         send-transaction
+           :recent-recipients               recent-recipients
+           :recipient-qr-code               recipient-qr-code
+           :wallet-send-transaction-chat    send-transaction
+           :wallet-transaction-sent         transaction-sent
+           :wallet-request-transaction      request-transaction
+           :wallet-send-transaction-request send-transaction-request
+           :unsigned-transactions           wallet-transactions/transactions
+           :transactions-history            wallet-transactions/transactions
+           :wallet-transaction-details      wallet-transactions/transaction-details
+           :wallet-send-assets              wallet.components/send-assets
+           :wallet-request-assets           wallet.components/request-assets})
+         {:headerMode       "none"
+          :initialRouteName "wallet"})}
+       :wallet-settings-assets
+       {:screen (nav-reagent/stack-screen
+                 (wrap :wallet-settings-assets wallet-settings/manage-assets))}}
+      {:mode             "modal"
+       :headerMode       "none"
+       :initialRouteName "main-stack"})}
     :profile-stack
     {:screen
      (nav-reagent/stack-navigator
@@ -150,19 +161,24 @@
        {:screen
         (nav-reagent/stack-navigator
          (stack-screens
-          {:my-profile            (main-tabs/get-main-tab :my-profile)
-           :profile-photo-capture profile-photo-capture
-           :about-app             about-app/about-app
-           :help-center           help-center
-           :network-settings      network-settings
-           :network-details       network-details
-           :edit-network          edit-network
-           :currency-settings     currency-settings
-           :backup-seed           backup-seed
-           :login                 login
-           :create-account        create-account
-           :recover               recover
-           :accounts              accounts})
+          {:my-profile                 (main-tabs/get-main-tab :my-profile)
+           :profile-photo-capture      profile-photo-capture
+           :about-app                  about-app/about-app
+           :bootnodes-settings         bootnodes-settings
+           :edit-bootnode              edit-bootnode
+           :offline-messaging-settings offline-messaging-settings
+           :edit-mailserver            edit-mailserver
+           :help-center                help-center
+           :network-settings           network-settings
+           :network-details            network-details
+           :edit-network               edit-network
+           :currency-settings          currency-settings
+           :backup-seed                backup-seed
+           :login                      login
+           :create-account             create-account
+           :recover                    recover
+           :accounts                   accounts
+           :qr-scanner                 qr-scanner})
          {:headerMode       "none"
           :initialRouteName "my-profile"})}
        :profile-qr-viewer
@@ -174,15 +190,10 @@
 
 (defn get-main-component [view-id]
   (case view-id
-    :collectibles-list collectibles-list
     :new-group new-group
     :add-participants-toggle-list add-participants-toggle-list
     :contact-toggle-list contact-toggle-list
     :group-chat-profile profile.group-chat/group-chat-profile
-    :offline-messaging-settings offline-messaging-settings
-    :edit-mailserver edit-mailserver
-    :bootnodes-settings bootnodes-settings
-    :edit-bootnode edit-bootnode
     :contact-code contact-code
     [react/view [react/text (str "Unknown view: " view-id)]]))
 
