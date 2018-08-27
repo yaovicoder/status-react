@@ -386,7 +386,7 @@
    :sign-in                              "Sign in"
    :sign-in-to-another                   "Sign in to another account"
    :save-password                        "Save password until logout"
-   :save-password-unavailable            "device passcode is required to save password"
+   :save-password-unavailable            "Set device passcode to save password"
    :wrong-password                       "Wrong password"
    :enter-password                       "Enter password"
 
