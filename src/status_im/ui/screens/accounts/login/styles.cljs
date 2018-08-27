@@ -43,3 +43,11 @@
   {:margin-top 0
    :flex-direction :row
    :align-items :center})
+
+(def save-password-unavailable
+  {:margin-top 8
+   :width "100%"
+   :text-align :center
+   :color colors/red
+   :flex-direction :row
+   :align-items :center})

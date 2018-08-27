@@ -72,6 +72,17 @@
     (-> (.resetInternetCredentials rn/keychain address)
         (.then callback))))
 
+;; Resolves to `false` if the device doesn't have neither a passcode nor a biometry auth.
+(defn can-save-user-password [callback]
+  (if-not platform/ios?
+    (callback false)
+    (-> (.canImplyAuthentication
+         rn/keychain
+         (clj->js
+          {:authenticationType
+           (enum-val "ACCESS_CONTROL" "BIOMETRY_ANY_OR_DEVICE_PASSCODE")}))
+        (.then callback))))
+
 ;; ******************************************************************************** 
 ;; Storing / Retrieving the realm encryption key to/from the Keychain
 ;; ******************************************************************************** 
@@ -169,3 +180,8 @@
     address
     #(when-not %
        (log/error (str "Error while clearing saved password."))))))
+
+(re-frame/reg-fx
+ :can-save-user-password
+ (fn [[callback]]
+   (can-save-user-password callback)))
