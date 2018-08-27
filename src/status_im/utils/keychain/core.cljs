@@ -29,23 +29,20 @@
 ;;   see this article for more details: 
 ;;   https://developer.apple.com/documentation/security/keychain_services/keychain_items/restricting_keychain_item_accessibility?language=objc
 (def keychain-restricted-availability
-  ;; Constraint to access an item with Touch ID for currently enrolled fingers, or from Face ID with the currently enrolled user. The value is reset when fingers are added or remove or
-  ;; when a face is re-enrolled.
-  {:accessControl (enum-val "ACCESS_CONTROL" "BIOMETRY_CURRENT_SET_OR_DEVICE_PASSCODE")
-   ;; From Apple's documentation:
-   ;; > The kSecAttrAccessible attribute enables you to control item availability 
-   ;; > relative to the lock state of the device. 
-   ;; > It also lets you specify eligibility for restoration to a new device. 
-   ;; > If the attribute ends with the string ThisDeviceOnly, 
-   ;; > the item can be restored to the same device that created a backup, 
-   ;; > but it isn’t migrated when restoring another device’s backup data.
-   ;; > ...
-   ;; > For extremely sensitive data 
-   ;; > THAT YOU NEVER WANT STORED IN iCloud, 
-   ;; > you might choose kSecAttrAccessibleWhenPasscodeSetThisDeviceOnly.
-   ;; That is exactly what we use there.
-   ;; Note that the password won't be stored if the device isn't locked by a passcode.
-   :accessible    (enum-val "ACCESSIBLE"     "WHEN_PASSCODE_SET_THIS_DEVICE_ONLY")})
+  ;; From Apple's documentation:
+  ;; > The kSecAttrAccessible attribute enables you to control item availability 
+  ;; > relative to the lock state of the device. 
+  ;; > It also lets you specify eligibility for restoration to a new device. 
+  ;; > If the attribute ends with the string ThisDeviceOnly, 
+  ;; > the item can be restored to the same device that created a backup, 
+  ;; > but it isn’t migrated when restoring another device’s backup data.
+  ;; > ...
+  ;; > For extremely sensitive data 
+  ;; > THAT YOU NEVER WANT STORED IN iCloud, 
+  ;; > you might choose kSecAttrAccessibleWhenPasscodeSetThisDeviceOnly.
+  ;; That is exactly what we use there.
+  ;; Note that the password won't be stored if the device isn't locked by a passcode.
+  {:accessible    (enum-val "ACCESSIBLE"     "WHEN_PASSCODE_SET_THIS_DEVICE_ONLY")})
 
 ;; Stores the password for the address to the Keychain
 (defn save-user-password [address password callback]
