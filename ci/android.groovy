@@ -45,7 +45,7 @@ def uploadToSauceLabs() {
     string(credentialsId: 'GIT_HUB_TOKEN', variable: 'GITHUB_TOKEN'),
     string(credentialsId: 'SLACK_JENKINS_WEBHOOK', variable: 'SLACK_URL')
   ]) {
-    sh 'fastlane android saucelabs'
+    sh 'bundle exec fastlane android saucelabs'
   }
   return env.SAUCE_LABS_APK
 }
@@ -57,7 +57,7 @@ def uploadToDiawi() {
     string(credentialsId: 'GIT_HUB_TOKEN', variable: 'GITHUB_TOKEN'),
     string(credentialsId: 'SLACK_JENKINS_WEBHOOK', variable: 'SLACK_URL')
   ]) {
-    sh 'fastlane android upload_diawi'
+    sh 'bundle exec fastlane android upload_diawi'
   }
   diawiUrl = readFile "${env.WORKSPACE}/fastlane/diawi.out"
   return diawiUrl

@@ -66,7 +66,7 @@ pipeline {
             case 'nightly':
               env.DIAWI_URL = mobile.android.uploadToDiawi()
             case 'e2e':
-              apk = mobile.android.uploadToSauceLabs()
+              e2eApk = mobile.android.uploadToSauceLabs()
           } 
         }
       }
@@ -76,7 +76,7 @@ pipeline {
       steps { script {
         build(
           job: 'end-to-end-tests/status-app-nightly', wait: false,
-          parameters: [string(name: 'apk', value: "--apk=${apk}")]
+          parameters: [string(name: 'apk', value: "--apk=${e2eApk}")]
         )
       } }
     }
