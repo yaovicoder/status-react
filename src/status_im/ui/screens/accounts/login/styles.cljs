@@ -48,6 +48,5 @@
   {:margin-top 8
    :width "100%"
    :text-align :center
-   :color colors/red
    :flex-direction :row
    :align-items :center})

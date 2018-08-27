@@ -88,15 +88,13 @@
             :error             (when (pos? (count error)) (i18n/label (error-key error)))}]]
          (when platform/ios?
            [react/view {:style styles/save-password-checkbox-container}
-            (if can-save-password
-              [profile.components/settings-switch-item
-               {:label-kw :t/save-password
-                :value save-password
-                :action-fn #(re-frame/dispatch [:set-in [:accounts/login :save-password] %])}]
-              [react/i18n-text
-               {:style styles/save-password-unavailable
-                :key :save-password-unavailable}])])])]
-
+            [profile.components/settings-switch-item
+             {:label-kw (if can-save-password
+                          :t/save-password
+                          :t/save-password-unavailable)
+              :active? can-save-password
+              :value save-password
+              :action-fn #(re-frame/dispatch [:set-in [:accounts/login :save-password] %])}]])])]
      (when processing
        [react/view styles/processing-view
         [components/activity-indicator {:animating true}]
