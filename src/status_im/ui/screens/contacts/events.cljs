@@ -6,6 +6,7 @@
             [status-im.utils.handlers :as handlers]
             [status-im.utils.handlers-macro :as handlers-macro]
             [status-im.utils.js-resources :as js-res]
+            [status-im.utils.contact-code.model :as models.contact-code]
             [status-im.chat.events :as chat.events]
             [status-im.ui.screens.navigation :as navigation]
             [status-im.utils.utils :as utils]
