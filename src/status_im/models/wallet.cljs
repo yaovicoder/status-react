@@ -162,7 +162,6 @@
 
       (cond-> (let [cofx {:db
                           (-> db
-                              navigation/navigate-back
                               (assoc-in [:wallet :transactions-queue] nil)
                               (assoc-in [:wallet :send-transaction] {}))
                           :wallet/show-transaction-error
