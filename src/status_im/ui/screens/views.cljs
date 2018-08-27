@@ -105,6 +105,8 @@
        {:main-stack   {:screens
                        {:home                         (main-tabs/get-main-tab :home)
                         :chat                         chat
+                        :profile                      profile.contact/profile
+                        :wallet-onboarding-setup      wallet.onboarding.setup/screen
                         :wallet-send-transaction-chat send-transaction
                         :wallet-transaction-sent      transaction-sent
                         :new                          add-new
@@ -148,18 +150,19 @@
        {:screen
         (nav-reagent/stack-navigator
          (stack-screens
-          {:my-profile        (main-tabs/get-main-tab :my-profile)
-           :about-app         about-app/about-app
-           :help-center       help-center
-           :network-settings  network-settings
-           :network-details   network-details
-           :edit-network      edit-network
-           :currency-settings currency-settings
-           :backup-seed       backup-seed
-           :login             login
-           :create-account    create-account
-           :recover           recover
-           :accounts          accounts})
+          {:my-profile            (main-tabs/get-main-tab :my-profile)
+           :profile-photo-capture profile-photo-capture
+           :about-app             about-app/about-app
+           :help-center           help-center
+           :network-settings      network-settings
+           :network-details       network-details
+           :edit-network          edit-network
+           :currency-settings     currency-settings
+           :backup-seed           backup-seed
+           :login                 login
+           :create-account        create-account
+           :recover               recover
+           :accounts              accounts})
          {:headerMode       "none"
           :initialRouteName "my-profile"})}
        :profile-qr-viewer
@@ -172,50 +175,15 @@
 (defn get-main-component [view-id]
   (case view-id
     :collectibles-list collectibles-list
-    :intro intro
-    :create-account create-account
-    ;;(:home :wallet :my-profile) main-tabs
-    :browser browser
-    :open-dapp open-dapp
-    :dapp-description dapp-description
-    :wallet-onboarding-setup wallet.onboarding.setup/screen
-    :wallet-send-transaction send-transaction
-    :wallet-send-transaction-chat send-transaction
-    :wallet-transaction-sent transaction-sent
-    :wallet-request-transaction request-transaction
-    :wallet-send-transaction-request send-transaction-request
-    (:transactions-history :unsigned-transactions) wallet-transactions/transactions
-    :wallet-transaction-details wallet-transactions/transaction-details
-    :wallet-send-assets wallet.components/send-assets
-    :wallet-request-assets wallet.components/request-assets
-    :new add-new
     :new-group new-group
     :add-participants-toggle-list add-participants-toggle-list
-    :new-public-chat new-public-chat
     :contact-toggle-list contact-toggle-list
-    :new-chat new-chat
-    :qr-scanner qr-scanner
-    :chat chat
-    :profile profile.contact/profile
     :group-chat-profile profile.group-chat/group-chat-profile
-    :profile-photo-capture profile-photo-capture
-    :accounts accounts
-    :login login
-    :recover recover
-    :network-settings network-settings
-    :network-details network-details
-    :edit-network edit-network
     :offline-messaging-settings offline-messaging-settings
     :edit-mailserver edit-mailserver
     :bootnodes-settings bootnodes-settings
     :edit-bootnode edit-bootnode
-    :currency-settings currency-settings
-    :help-center help-center
-    :recent-recipients recent-recipients
-    :recipient-qr-code recipient-qr-code
     :contact-code contact-code
-    :backup-seed backup-seed
-    :about-app about-app/about-app
     [react/view [react/text (str "Unknown view: " view-id)]]))
 
 (defn get-modal-component [modal-view]
