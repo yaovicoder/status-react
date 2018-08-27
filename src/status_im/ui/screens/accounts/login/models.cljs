@@ -44,6 +44,7 @@
                      :photo-path photo-path
                      :password password
                      :name name)
+   :can-save-user-password [#(re-frame/dispatch [:set-in [:accounts/login :can-save-password] %])]
    :dispatch [:navigate-to :login]})
 
 (defn wrap-with-login-account-fx [db address password save-password]

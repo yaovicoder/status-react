@@ -52,7 +52,7 @@
      name]]])
 
 (defview login []
-  (letsubs [{:keys [address photo-path name password error processing save-password]} [:get :accounts/login]
+  (letsubs [{:keys [address photo-path name password error processing save-password can-save-password]} [:get :accounts/login]
             can-navigate-back? [:can-navigate-back?]
             password-text-input (atom nil)]
     ;; due to async nature of UI, this function can be called when
@@ -88,10 +88,15 @@
             :error             (when (pos? (count error)) (i18n/label (error-key error)))}]]
          (when platform/ios?
            [react/view {:style styles/save-password-checkbox-container}
-            [profile.components/settings-switch-item
-             {:label-kw :t/save-password
-              :value save-password
-              :action-fn #(re-frame/dispatch [:set-in [:accounts/login :save-password] %])}]])])]
+            (if can-save-password
+              [profile.components/settings-switch-item
+               {:label-kw :t/save-password
+                :value save-password
+                :action-fn #(re-frame/dispatch [:set-in [:accounts/login :save-password] %])}]
+              [react/i18n-text
+               {:style styles/save-password-unavailable
+                :key :save-password-unavailable}])])])]
+
      (when processing
        [react/view styles/processing-view
         [components/activity-indicator {:animating true}]
