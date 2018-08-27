@@ -6,6 +6,7 @@
             [status-im.utils.utils :as utils]
             [status-im.utils.datetime :as datetime]
             [status-im.utils.handlers :as handlers]
+            [status-im.utils.contact-code.events :as events.contact-code]
             [status-im.utils.handlers-macro :as handlers-macro]
             [status-im.utils.web3-provider :as web3-provider]
             [status-im.transport.core :as transport]
@@ -57,6 +58,7 @@
                                        :transport/chats transport)}
                            (assert-correct-network)
                            (transport.inbox/initialize-offline-inbox mailservers)
+                           (events.contact-code/create-fx)
                            (transport/init-whisper current-account-id)))
 ;;; INITIALIZE PROTOCOL
 (handlers/register-handler-fx
