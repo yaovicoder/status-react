@@ -25,7 +25,7 @@
 
 (defn login-account [password-text-input address password]
   (.blur password-text-input)
-  (re-frame/dispatch [:login-account address password]))
+  (re-frame/dispatch [:ui/login address password]))
 
 (defn- error-key [error]
   ;; TODO Improve selection logic when status-go provide an error code
