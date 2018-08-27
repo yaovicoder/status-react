@@ -79,7 +79,7 @@
                                                  first)]
       (when address
         {:db       (assoc-in db [:push-notifications/stored to] from)
-         :dispatch [:open-login address photo-path name]})))
+         :dispatch [:ui/open-login address photo-path name]})))
 
   (defn process-initial-push-notification [{:keys [initial?]} {:keys [db]}]
     (when initial?
@@ -88,23 +88,18 @@
   (defn process-push-notification [{:keys [from to] :as event} {:keys [db] :as cofx}]
     (let [current-public-key (get-in cofx [:db :current-public-key])]
       (if current-public-key
+        ;; TODO(yenda) why do we ignore the notification if
+        ;; it is not for the current account ?
         (when (= to current-public-key)
           {:db       (update db :push-notifications/stored dissoc to)
            :dispatch [:navigate-to-chat from]})
         (store-event event cofx))))
 
   (defn handle-push-notification
-    [cofx [_ event]]
+    [event cofx]
     (handlers-macro/merge-fx cofx
                              (process-initial-push-notification event)
                              (process-push-notification event)))
-
-  (defn stored-event [address cofx]
-    (let [to (get-in cofx [:db :accounts/accounts address :public-key])
-          from (get-in cofx [:db :push-notifications/stored to])]
-      (when from
-        [:notification/handle-push-notification {:from from
-                                                 :to   to}])))
 
   (defn parse-notification-payload [s]
     (try
@@ -166,3 +161,12 @@
     (on-notification-opened)
     (when platform/android?
       (create-notification-channel))))
+
+(defn process-stored-event [address cofx]
+  (when-not platform/desktop?
+    (let [to (get-in cofx [:db :accounts/accounts address :public-key])
+          from (get-in cofx [:db :push-notifications/stored to])]
+      (when from
+        (handle-push-notification {:from from
+                                   :to   to}
+                                  cofx)))))

@@ -5,9 +5,9 @@
             [status-im.data-store.accounts :as accounts-store]
             [status-im.i18n :as i18n]
             [status-im.native-module.core :as status]
+            [status-im.ui.screens.accounts.login.models :as login.models]
             [status-im.ui.screens.accounts.statuses :as statuses]
             [status-im.ui.screens.accounts.utils :as accounts.utils]
-            [status-im.ui.screens.accounts.login.models :as login.models]
             [status-im.ui.screens.navigation :as navigation]
             [status-im.ui.screens.wallet.settings.models :as wallet.settings.models]
             [status-im.utils.config :as config]
@@ -69,14 +69,7 @@
     (when-not (str/blank? pubkey)
       (handlers-macro/merge-fx cofx
                                (add-account account)
-                               (login.models/login-account normalized-address password)))))
-
-(defn load-accounts [{:keys [db all-accounts]}]
-  (let [accounts (->> all-accounts
-                      (map (fn [{:keys [address] :as account}]
-                             [address account]))
-                      (into {}))]
-    {:db (assoc db :accounts/accounts accounts)}))
+                               (login.models/user-login normalized-address password)))))
 
 (defn update-settings
   ([settings cofx] (update-settings settings nil cofx))
