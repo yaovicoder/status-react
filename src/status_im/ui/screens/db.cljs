@@ -147,9 +147,6 @@
 
 ;;;;NODE
 
-(spec/def :node/after-start (spec/nilable vector?))
-(spec/def :node/after-stop (spec/nilable vector?))
-
 (spec/def ::message-envelopes (spec/nilable map?))
 
 ;;;;UUID
@@ -202,8 +199,6 @@
                  :networks/manage
                  :mailservers/manage
                  :bootnodes/manage
-                 :node/after-start
-                 :node/after-stop
                  :inbox/wnodes
                  :inbox/last-received
                  :inbox/current-id
