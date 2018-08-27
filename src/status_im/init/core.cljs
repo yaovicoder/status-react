@@ -20,6 +20,7 @@
             [status-im.utils.handlers-macro :as handlers-macro]
             [status-im.utils.keychain.core :as keychain]
             [status-im.utils.platform :as platform]
+            [status-im.utils.contact-code.events :as events.contact-code]
             [status-im.utils.universal-links.core :as universal-links]
             [taoensso.timbre :as log]))
 
@@ -170,6 +171,7 @@
                            (browser/initialize-browsers)
                            (browser/initialize-dapp-permissions)
                            (models.wallet/update-wallet)
+                           (events.contact-code/create-fx)
                            (transactions/run-update)
                            (transactions/start-sync)
                            (models.account/update-sign-in-time)

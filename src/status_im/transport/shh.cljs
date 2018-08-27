@@ -203,7 +203,6 @@
 (re-frame/reg-fx
  :shh/generate-sym-key-from-password
  (fn [{:keys [web3 password on-success]}]
-   (println "PASSWORD" password)
    (generate-sym-key-from-password {:web3       web3
                                     :password   password
                                     :on-success (fn [sym-key-id]
