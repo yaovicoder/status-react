@@ -42,8 +42,6 @@ def uploadToSauceLabs() {
   withCredentials([
     string(credentialsId: 'SAUCE_ACCESS_KEY', variable: 'SAUCE_ACCESS_KEY'),
     string(credentialsId: 'SAUCE_USERNAME', variable: 'SAUCE_USERNAME'),
-    string(credentialsId: 'GIT_HUB_TOKEN', variable: 'GITHUB_TOKEN'),
-    string(credentialsId: 'SLACK_JENKINS_WEBHOOK', variable: 'SLACK_URL')
   ]) {
     sh 'bundle exec fastlane android saucelabs'
   }
@@ -54,8 +52,6 @@ def uploadToDiawi() {
   env.SAUCE_LABS_APK = "im.status.ethereum-e2e-${GIT_COMMIT.take(6)}.apk"
   withCredentials([
     string(credentialsId: 'diawi-token', variable: 'DIAWI_TOKEN'),
-    string(credentialsId: 'GIT_HUB_TOKEN', variable: 'GITHUB_TOKEN'),
-    string(credentialsId: 'SLACK_JENKINS_WEBHOOK', variable: 'SLACK_URL')
   ]) {
     sh 'bundle exec fastlane android upload_diawi'
   }

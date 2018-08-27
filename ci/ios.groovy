@@ -28,8 +28,6 @@ def compile(type = 'nightly') {
 def uploadToDiawi() {
   withCredentials([
     string(credentialsId: 'diawi-token', variable: 'DIAWI_TOKEN'),
-    string(credentialsId: 'GIT_HUB_TOKEN', variable: 'GITHUB_TOKEN'),
-    string(credentialsId: 'SLACK_JENKINS_WEBHOOK', variable: 'SLACK_URL')
   ]) {
     sh 'bundle exec fastlane ios upload_diawi'
   }
