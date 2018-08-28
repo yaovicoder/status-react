@@ -58,21 +58,20 @@
         [react/text {:style (styles/profile-actions-text colors/black)
                      :on-press #(re-frame/dispatch [:show-profile-desktop whisper-identity])}
          (i18n/label :t/view-profile)])
-       [react/text {:style (styles/profile-actions-text colors/red)
-                    :on-press (fn []
-                                (utils/show-confirmation (i18n/label :clear-history-confirmation)
-                                                         ""
-                                                         (i18n/label :clear-history-action)
-                                                         #(re-frame/dispatch [:clear-history])))}
-        (i18n/label :t/clear-history)]
-       [react/text {:style (styles/profile-actions-text colors/red)
-                    :on-press (fn []
-                                (utils/show-confirmation (i18n/label :delete-chat-confirmation)
-                                                         ""
-                                                         (i18n/label :delete-chat-action)
-                                                         #(re-frame/dispatch [:remove-chat-and-navigate-home chat-id])))}
-        (i18n/label :t/delete-chat)]]]
-     [connectivity/error-view {:top 2}]]))
+      [react/text {:style (styles/profile-actions-text colors/red)
+                   :on-press (fn []
+                               (utils/show-confirmation (i18n/label :clear-history-confirmation)
+                                                        ""
+                                                        (i18n/label :clear-history-action)
+                                                        #(re-frame/dispatch [:clear-history])))}
+       (i18n/label :t/clear-history)]
+      [react/text {:style (styles/profile-actions-text colors/red)
+                   :on-press (fn []
+                               (utils/show-confirmation (i18n/label :delete-chat-confirmation)
+                                                        ""
+                                                        (i18n/label :delete-chat-action)
+                                                        #(re-frame/dispatch [:remove-chat-and-navigate-home chat-id])))}
+       (i18n/label :t/delete-chat)]]]))
 
 (views/defview message-author-name [{:keys [outgoing from] :as message}]
   (views/letsubs [current-account [:get-current-account]
@@ -167,6 +166,7 @@
               (reset! chat-id* chat-id)
               (js/setTimeout #(when @scroll-ref (.scrollToEnd @scroll-ref)) 400))]
       [react/view {:style styles/messages-view}
+       [connectivity/error-view]
        [react/scroll-view {:scrollEventThrottle    16
                            :headerHeight styles/messages-list-vertical-padding
                            :footerWidth styles/messages-list-vertical-padding
