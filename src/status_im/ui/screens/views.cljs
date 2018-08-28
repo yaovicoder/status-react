@@ -40,6 +40,7 @@
             [status-im.ui.screens.network-settings.views :refer [network-settings]]
             [status-im.ui.screens.network-settings.network-details.views :refer [network-details]]
             [status-im.ui.screens.network-settings.edit-network.views :refer [edit-network]]
+            [status-im.ui.screens.log-level-settings.views :refer [log-level-settings]]
             [status-im.ui.screens.offline-messaging-settings.views :refer [offline-messaging-settings]]
             [status-im.ui.screens.offline-messaging-settings.edit-mailserver.views :refer [edit-mailserver]]
             [status-im.ui.screens.bootnodes-settings.views :refer [bootnodes-settings]]
@@ -89,6 +90,7 @@
     :network-settings network-settings
     :network-details network-details
     :edit-network edit-network
+    :log-level-settings log-level-settings
     :offline-messaging-settings offline-messaging-settings
     :edit-mailserver edit-mailserver
     :bootnodes-settings bootnodes-settings
