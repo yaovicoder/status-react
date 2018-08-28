@@ -84,7 +84,7 @@ def prepDeps() {
   common.doGitRebase()
   cleanupAndDeps()
 }
-  
+
 def compileLinux() {
   /* add path for QT installation binaries */
   env.PATH = "${qtBin}:${env.PATH}"
@@ -101,7 +101,7 @@ def compileLinux() {
     sh 'make'
   }
 }
-  
+
 def bundleLinux(type = 'nightly') {
   def pkg
 
@@ -172,11 +172,12 @@ def compileMacOS() {
 def bundleMacOS(type = 'nightly') {
   def pkg = common.pkgFilename(type, 'dmg')
   dir(packageFolder) {
-    sh 'git clone https://github.com/vkjr/StatusAppFiles.git'
-    sh 'unzip StatusAppFiles/StatusIm.app.zip'
-    sh 'cp -r assets/share/assets StatusIm.app/Contents/MacOs'
-    sh 'chmod +x StatusIm.app/Contents/MacOs/ubuntu-server'
-    sh 'cp ../desktop/bin/StatusIm StatusIm.app/Contents/MacOs'
+    sh 'curl -L -O "https://github.com/gnl/StatusAppFiles/raw/master/StatusIm.app.zip"'
+    sh 'unzip StatusIm.app.zip'
+    sh 'cp -r assets/share/assets StatusIm.app/Contents/Resources'
+    sh 'chmod +x StatusIm.app/Contents/Resources/ubuntu-server'
+    sh 'ln -sf ../Resources/assets ../Resources/ubuntu-server ../Resources/node_modules StatusIm.app/Contents/MacOS'
+    sh 'cp ../desktop/bin/StatusIm StatusIm.app/Contents/MacOS'
     sh 'cp -f ../deployment/macos/Info.plist StatusIm.app/Contents'
     sh """
       macdeployqt StatusIm.app -verbose=1 -dmg \\
