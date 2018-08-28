@@ -155,6 +155,13 @@
        [profile.components/settings-item-separator])
      (when config/offline-inbox-enabled?
        [profile.components/settings-item
+        {:label-kw            :t/log-level
+         :action-fn           #(re-frame/dispatch [:navigate-to :log-level-settings])
+         :accessibility-label :log-level-settings-button}])
+     (when config/offline-inbox-enabled?
+       [profile.components/settings-item-separator])
+     (when config/offline-inbox-enabled?
+       [profile.components/settings-item
         {:label-kw            :t/offline-messaging
          :action-fn           #(re-frame/dispatch [:navigate-to :offline-messaging-settings])
          :accessibility-label :offline-messages-settings-button}])
