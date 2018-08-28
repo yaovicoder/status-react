@@ -1,15 +1,10 @@
 (ns status-im.ui.screens.events
   (:require status-im.chat.events
+            status-im.dev-server.events
             status-im.network.events
-            [status-im.transport.handlers :as transport.handlers]
             status-im.protocol.handlers
-            [status-im.models.protocol :as models.protocol]
-            [status-im.models.account :as models.account]
-            [status-im.ui.screens.accounts.models :as accounts.models]
             status-im.ui.screens.accounts.login.events
-            [status-im.ui.screens.accounts.login.models :as login]
             status-im.ui.screens.accounts.recover.events
-            [status-im.models.contacts :as models.contacts]
             status-im.ui.screens.add-new.new-chat.events
             status-im.ui.screens.group.chat-settings.events
             status-im.ui.screens.group.events
@@ -28,7 +23,6 @@
             status-im.ui.screens.qr-scanner.events
             status-im.ui.screens.extensions.events
             status-im.ui.screens.wallet.events
-            [status-im.models.wallet :as models.wallet]
             status-im.ui.screens.wallet.collectibles.events
             status-im.ui.screens.wallet.send.events
             status-im.ui.screens.wallet.request.events
@@ -56,8 +50,7 @@
             [status-im.utils.handlers :as handlers]
             [status-im.utils.handlers-macro :as handlers-macro]
             [status-im.utils.http :as http]
-            [status-im.utils.utils :as utils]
-            [taoensso.timbre :as log]))
+            [status-im.utils.utils :as utils]))
 
 ;;;; COFX
 
@@ -153,8 +146,9 @@
   [{:keys [db] :as cofx}]
   (let [{:transport/keys [chats]} db]
     (handlers-macro/merge-fx cofx
-                             {:dispatch [:init/initialize-keychain]
-                              :clear-user-password (get-in db [:account/account :address])}
+                             {:dispatch            [:init/initialize-keychain]
+                              :clear-user-password (get-in db [:account/account :address])
+                              :dev-server/stop     nil}
                              (navigation/navigate-to-clean nil)
                              (transport/stop-whisper))))
 
