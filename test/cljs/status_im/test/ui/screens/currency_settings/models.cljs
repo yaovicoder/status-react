@@ -4,7 +4,7 @@
 
 (deftest get-currency
   (is (= :usd (models/get-currency {:account/account {:settings {:wallet {:currency :usd}}}})))
-  (is (nil? (models/get-currency {:account/account {:settings {:wallet {:currency nil}}}})))
+  (is (= :usd (models/get-currency {:account/account {:settings {:wallet {:currency nil}}}})))
   (is (= :usd (models/get-currency {:account/account {:settings {:wallet {}}}})))
   (is (= :aud (models/get-currency {:account/account {:settings {:wallet {:currency :aud}}}}))))
 

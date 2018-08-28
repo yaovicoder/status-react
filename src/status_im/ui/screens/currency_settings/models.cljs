@@ -4,7 +4,7 @@
             [status-im.utils.handlers-macro :as handlers-macro]))
 
 (defn get-currency [db]
-  (get-in db [:account/account :settings :wallet :currency] :usd))
+  (or (get-in db [:account/account :settings :wallet :currency]) :usd))
 
 (defn set-currency [currency {:keys [db] :as cofx}]
   (let [settings     (get-in db [:account/account :settings])
