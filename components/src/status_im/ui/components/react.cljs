@@ -248,7 +248,9 @@
                                        :wallet-transaction-fee
                                        :wallet-sign-message-modal
                                        :contact-code
-                                       :wallet-onboarding-setup)
+                                       :wallet-onboarding-setup
+                                       :wallet-settings-assets
+                                       :wallet-modal)
                                       styles/color-blue4
 
                                       (:qr-viewer
@@ -259,7 +261,9 @@
           bottom-background (when (#{:wallet
                                      :recent-recipients
                                      :wallet-send-assets
-                                     :wallet-request-assets} current-view)
+                                     :wallet-request-assets
+                                     :wallet-settings-assets
+                                     :wallet-modal} current-view)
                               (conj [view {:background-color styles/color-white
                                            :position         :absolute
                                            :bottom           0

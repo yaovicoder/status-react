@@ -252,7 +252,7 @@
    {:db       (assoc-in db [:wallet :send-transaction] {:id         id
                                                         :method     method
                                                         :from-chat? from-chat?})
-    :dispatch [:navigate-to-modal :wallet-send-transaction-modal]}))
+    :dispatch [:navigate-to :wallet-send-transaction-modal]}))
 
 (handlers/register-handler-db
  :wallet/update-gas-price-success

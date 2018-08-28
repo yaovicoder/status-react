@@ -53,6 +53,7 @@
             [status-im.ui.screens.profile.seed.views :refer [backup-seed]]
             [status-im.ui.screens.about-app.views :as about-app]
             [status-im.utils.navigation :as navigation]
+            [status-im.utils.handlers :as handlers]
             [reagent.core :as reagent]
             [cljs-react-navigation.reagent :as nav-reagent]
             [status-im.utils.random :as rand]
@@ -102,25 +103,36 @@
     {:screen
      (nav-reagent/stack-navigator
       (stack-screens
-       {:main-stack   {:screens
-                       {:home                         (main-tabs/get-main-tab :home)
-                        :chat                         chat
-                        :profile                      profile.contact/profile
-                        :wallet-onboarding-setup      wallet.onboarding.setup/screen
-                        :wallet-send-transaction-chat send-transaction
-                        :wallet-transaction-sent      transaction-sent
-                        :new                          add-new
-                        :new-chat                     new-chat
-                        :qr-scanner                   qr-scanner
-                        :new-public-chat              new-public-chat
-                        :open-dapp                    open-dapp
-                        :dapp-description             dapp-description
-                        :browser                      browser}
-                       :config
-                       {:headerMode       "none"
-                        :initialRouteName "home"}}
-        :wallet-modal (nav-reagent/stack-screen
-                       (wrap :wallet-modal wallet.main/wallet-modal))})
+       {:main-stack
+        {:screens
+         {:home                         (main-tabs/get-main-tab :home)
+          :chat                         chat
+          :profile                      profile.contact/profile
+          :wallet-onboarding-setup      wallet.onboarding.setup/screen
+          :wallet-send-transaction-chat send-transaction
+          :wallet-transaction-sent      transaction-sent
+          :new                          add-new
+          :new-chat                     new-chat
+          :qr-scanner                   qr-scanner
+          :new-public-chat              new-public-chat
+          :open-dapp                    open-dapp
+          :dapp-description             dapp-description
+          :browser                      browser}
+         :config
+         {:headerMode       "none"
+          :initialRouteName "home"}}
+
+        :wallet-modal
+        (nav-reagent/stack-screen
+         (wrap :wallet-modal wallet.main/wallet-modal))
+
+        :wallet-sign-message-modal
+        (nav-reagent/stack-screen
+         (wrap :wallet-sign-message-modal sign-message-modal))
+
+        :wallet-send-transaction-modal
+        (nav-reagent/stack-screen
+         (wrap :wallet-send-transaction-modal send-transaction-modal))})
       {:mode             "modal"
        :headerMode       "none"
        :initialRouteName "main-stack"})}
@@ -204,9 +216,7 @@
     :wallet-modal wallet.main/wallet-modal
     :wallet-transactions-filter wallet-transactions/filter-history
     :wallet-settings-assets wallet-settings/manage-assets
-    :wallet-send-transaction-modal send-transaction-modal
     :wallet-transaction-sent-modal transaction-sent-modal
-    :wallet-sign-message-modal sign-message-modal
     :wallet-transaction-fee wallet.transaction-fee/transaction-fee
     :wallet-onboarding-setup-modal wallet.onboarding.setup/modal
     [react/view [react/text (str "Unknown modal view: " modal-view)]]))

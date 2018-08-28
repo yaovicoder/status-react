@@ -129,7 +129,7 @@
 (defn continue-after-wallet-onboarding [modal? {:keys [db] :as cofx}]
   (let [transaction (get-in db [:wallet :send-transaction])]
     (if modal?
-      {:dispatch [:navigate-to-modal :wallet-send-transaction-modal]}
+      {:dispatch [:navigate-to :wallet-send-transaction-modal]}
       (cond-> (navigation/navigate-back cofx)
         (chat-send? transaction)
         (assoc :dispatch [:navigate-to :wallet-send-transaction-chat])))))
