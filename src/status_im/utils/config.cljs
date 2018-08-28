@@ -31,7 +31,7 @@
 (def rn-bridge-threshold-warnings-enabled? (enabled? (get-config :RN_BRIDGE_THRESHOLD_WARNINGS 0)))
 (def default-network (get-config :DEFAULT_NETWORK))
 ;; the default value should be a string for `enabled?` to work correctly.
-(def rpc-networks-only? (enabled? (get-config :RPC_NETWORKS_ONLY "1")))
+(def rpc-networks-only? (enabled? (get-config :RPC_NETWORKS_ONLY "0")))
 (def testfairy-token (get-config :TESTFAIRY_TOKEN))
 (def instabug-token (get-config :INSTABUG_TOKEN))
 (def instabug-surveys-enabled? (get-config :INSTABUG_SURVEYS))
