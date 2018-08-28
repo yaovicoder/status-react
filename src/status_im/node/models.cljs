@@ -26,7 +26,10 @@
       (and
        config/bootnodes-settings-enabled?
        use-custom-bootnodes)
-      (add-custom-bootnodes network bootnodes))))
+      (add-custom-bootnodes network bootnodes)
+
+      (:log-level settings)
+      (assoc :LogLevel (:log-level settings)))))
 
 (defn start
   ([cofx]
