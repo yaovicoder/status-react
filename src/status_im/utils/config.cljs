@@ -15,10 +15,9 @@
 ;; flags stay up to date and are removed once behavior introduced is stable.
 ;;
 ;; TESTFAIRY_ENABLED - indefinite
-;; OFFLINE_INBOX_ENABLED - TBD, tenatively until #idea 1 is merged
 
 (def testfairy-enabled? (enabled? (get-config :TESTFAIRY_ENABLED)))
-(def offline-inbox-enabled? (enabled? (get-config :OFFLINE_INBOX_ENABLED "1")))
+
 (def bootnodes-settings-enabled? (enabled? (get-config :BOOTNODES_SETTINGS_ENABLED "1")))
 (def universal-links-enabled? (enabled? (get-config :UNIVERSAL_LINK_ENABLED "1")))
 (def log-level
