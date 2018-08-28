@@ -163,9 +163,11 @@
                             :web3/fetch-node-version     [web3
                                                           #(re-frame/dispatch
                                                             [:web3/fetch-node-version-callback %])]
+                            :http-server/start-if-needed address
                             :notifications/get-fcm-token nil}
                            (initialize-account-db address)
                            (models.protocol/initialize-protocol address)
+
                            (models.contacts/load-contacts)
                            (chat/initialize-chats)
                            (chat/process-pending-messages)
