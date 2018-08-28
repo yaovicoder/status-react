@@ -1,7 +1,16 @@
 (ns status-im.ui.screens.events
-  (:require status-im.events
-            status-im.dev-server.events
-            status-im.ui.screens.add-new.events
+  (:require status-im.chat.events
+            status-im.network.events
+            [status-im.transport.handlers :as transport.handlers]
+            status-im.protocol.handlers
+            [status-im.models.protocol :as models.protocol]
+            [status-im.models.account :as models.account]
+            [status-im.models.chat :as models.chat]
+            [status-im.ui.screens.accounts.models :as accounts.models]
+            status-im.ui.screens.accounts.login.events
+            [status-im.ui.screens.accounts.login.models :as login]
+            status-im.ui.screens.accounts.recover.events
+            [status-im.models.contacts :as models.contacts]
             status-im.ui.screens.add-new.new-chat.events
             status-im.ui.screens.group.chat-settings.events
             status-im.ui.screens.group.events
@@ -113,8 +122,18 @@
 
 (handlers/register-handler-fx
  :set-in
- (fn [{:keys [db]} [_ path v]]
-   {:db (assoc-in db path v)}))
+ (fn [db [_ path v]]
+   (assoc-in db path v)))
+
+(defn logout
+  [{:keys [db] :as cofx}]
+  (let [{:transport/keys [chats]} db]
+    (handlers-macro/merge-fx cofx
+                             {:dispatch [:init/initialize-keychain]
+                              :clear-user-password (get-in db [:account/account :address])}
+                             (models.chat/persist-chat-ui-props)
+                             (navigation/navigate-to-clean nil)
+                             (transport/stop-whisper))))
 
 (fx/defn on-return-from-background [cofx]
   (fx/merge cofx
@@ -123,11 +142,11 @@
 
 (defn app-state-change [state {:keys [db] :as cofx}]
   (let [app-coming-from-background? (= state "active")]
-    (fx/merge cofx
-              {::app-state-change-fx state
-               :db                   (assoc db :app-state state)}
-              #(when app-coming-from-background?
-                 (on-return-from-background %)))))
+    (handlers-macro/merge-fx cofx
+                             {::app-state-change-fx state
+                              :db                   (assoc db :app-state state)}
+                             (models.chat/persist-chat-ui-props state)
+                             (inbox/request-messages app-coming-from-background?))))
 
 (handlers/register-handler-fx
  :app-state-change
