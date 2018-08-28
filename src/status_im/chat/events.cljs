@@ -7,6 +7,7 @@
             [status-im.chat.models :as models]
             [status-im.chat.models.message :as models.message]
             [status-im.chat.commands.core :as commands]
+            [status-im.react-native.js-dependencies :as js-dependencies]
             [status-im.ui.screens.navigation :as navigation]
             [status-im.utils.handlers :as handlers]
             [status-im.utils.handlers-macro :as handlers-macro]
@@ -139,6 +140,31 @@
              (:chats db)))
 
 (handlers/register-handler-fx
+ :chat-scroll-to-end
+ (fn [{{:keys [current-chat-id] :as db} :db} _]
+   {:db (-> db
+            (assoc-in [:chat-ui-props current-chat-id :offset] 0)
+            (assoc-in [:chats current-chat-id :unviewed-messages] nil))}))
+
+(handlers/register-handler-fx
+ :init-chat-ui-props
+ (fn [{:keys [db]} [_ props]]
+   {:db (assoc db :chat-ui-props props)}))
+
+(re-frame/reg-fx
+ ::load-chat-ui-props-fx
+ (fn [{:keys [current-public-key]}]
+   (.. js-dependencies/async-storage
+       (getItem (str "@StatusIm:" current-public-key ":chat-ui-props"))
+       (then (fn [result]
+               (when result
+                 (let [props (reduce-kv
+                              (fn [m k v] (assoc m (name k) v))
+                              {}
+                              (-> result js/JSON.parse (js->clj :keywordize-keys true)))]
+                   (re-frame/dispatch [:init-chat-ui-props props]))))))))
+
+(handlers/register-handler-fx
  :initialize-chats
  [(re-frame/inject-cofx :get-default-contacts)
   (re-frame/inject-cofx :get-default-dapps)
@@ -178,7 +204,8 @@
      (handlers-macro/merge-fx cofx
                               {:db (assoc db
                                           :chats          chats
-                                          :contacts/dapps default-dapps)}
+                                          :contacts/dapps default-dapps)
+                               ::load-chat-ui-props-fx db}
                               (group-chat-messages)
                               (add-default-contacts)
                               (commands/index-commands commands/register)))))

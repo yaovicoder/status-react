@@ -42,6 +42,7 @@
             [status-im.data-store.realm.core :as realm]
             [status-im.utils.keychain.core :as keychain]
             [status-im.i18n :as i18n]
+            [status-im.react-native.js-dependencies :as js-dependencies]
             [status-im.js-dependencies :as dependencies]
             [status-im.ui.components.react :as react]
             [status-im.transport.core :as transport]
@@ -171,6 +172,21 @@
  (fn [state]
    (status/app-state-change state)))
 
+(defn persist-chat-ui-props
+  ([cofx]
+   (persist-chat-ui-props "background" cofx))
+  ([state {{:keys [chat-ui-props current-public-key]} :db}]
+   (when (#{"background" "inactive"} state)
+     (->> chat-ui-props
+          (reduce-kv
+           (fn [acc k v] (assoc acc k (dissoc v :input-ref)))
+           {})
+          clj->js
+          js/JSON.stringify
+          (.setItem js-dependencies/async-storage
+                    (str "@StatusIm:" current-public-key ":chat-ui-props")))
+     nil)))
+
 ;;;; Handlers
 
 (handlers/register-handler-db
@@ -291,6 +307,7 @@
      (handlers-macro/merge-fx cofx
                               {:dispatch [:initialize-keychain]
                                :clear-user-password [(get-in db [:account/account :address])]}
+                              (persist-chat-ui-props)
                               (navigation/navigate-to-clean nil)
                               (transport/stop-whisper)))))
 
@@ -424,7 +441,8 @@
    (let [app-coming-from-background? (= state "active")]
      (handlers-macro/merge-fx cofx
                               {::app-state-change-fx state
-                               :db                   (assoc db :app-state state)}
+                               :db (assoc db :app-state state)}
+                              (persist-chat-ui-props state)
                               (inbox/request-messages app-coming-from-background?)))))
 
 (handlers/register-handler-fx
