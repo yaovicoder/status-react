@@ -21,6 +21,7 @@
             [status-im.utils.utils :as utils]
             [status-im.ui.components.icons.vector-icons :as icons]
             [status-im.ui.components.common.common :as components.common]
+            [status-im.utils.identicon :as identicon]
             [clojure.string :as string]))
 
 (defn my-profile-toolbar []
@@ -58,6 +59,10 @@
                                                                         #(utils/show-popup (i18n/label :t/error)
                                                                                            (i18n/label :t/camera-access-error))
                                                                         50))}]))}])
+
+(defn- profile-icon-options-ext []
+  (conj profile-icon-options {:label  (i18n/label :t/image-remove-current)
+                              :action #(re-frame/dispatch [:my-profile/remove-current-photo])}))
 
 (defn qr-viewer-toolbar [label value]
   [toolbar/toolbar {}
@@ -118,9 +123,15 @@
          :action-fn    #(re-frame/dispatch [:navigate-to :backup-seed])
          :icon-content [components.common/counter {:size 22} 1]}])
      [profile.components/settings-item-separator]
-     [profile.components/settings-item {:label-kw :t/need-help
-                                        :accessibility-label :help-button
-                                        :action-fn #(re-frame/dispatch [:navigate-to :help-center])}]
+     [profile.components/settings-item
+      {:label-kw            :t/need-help
+       :accessibility-label :help-button
+       :action-fn           #(re-frame/dispatch [:navigate-to :help-center])}]
+     [profile.components/settings-item-separator]
+     [profile.components/settings-item
+      {:label-kw            :t/about-app
+       :accessibility-label :about-button
+       :action-fn           #(re-frame/dispatch [:navigate-to :about-app])}]
      [profile.components/settings-item-separator]
      [react/view styles/my-profile-settings-logout-wrapper
       [react/view styles/my-profile-settings-logout
@@ -128,9 +139,7 @@
                                           :accessibility-label :log-out-button
                                           :destructive?        true
                                           :hide-arrow?         true
-                                          :action-fn           #(handle-logout)}]]
-      [react/view styles/my-profile-settings-logout-version
-       [react/text @(re-frame/subscribe [:get-app-version])]]]]))
+                                          :action-fn           #(handle-logout)}]]]]))
 
 (defview advanced-settings [{:keys [network networks dev-mode?]} on-show]
   (letsubs [{:keys [sharing-usage-data?]} [:get-current-account]]
@@ -178,7 +187,7 @@
        [advanced-settings params on-show])]))
 
 (defview my-profile []
-  (letsubs [{:keys [public-key] :as current-account} [:get-current-account]
+  (letsubs [{:keys [public-key photo-path] :as current-account} [:get-current-account]
             editing?        [:get :my-profile/editing?]
             changed-account [:get :my-profile/profile]
             currency        [:wallet/currency]
@@ -206,7 +215,9 @@
            :edited-contact       changed-account
            :editing?             editing?
            :allow-icon-change?   true
-           :options              profile-icon-options
+           :options              (if (not= (identicon/identicon public-key) photo-path)
+                                   (profile-icon-options-ext)
+                                   profile-icon-options)
            :on-change-text-event :my-profile/update-name}]]
         [react/view action-button.styles/actions-list
          [share-contact-code current-account public-key]]
