@@ -82,8 +82,7 @@
     true))
 
 (def default-networks
-  (into {} (filter network-enabled?
-                   (merge testnet-networks mainnet-networks))))
+  (merge testnet-networks mainnet-networks))
 
 (def default-wnodes-without-custom
   {"eth.beta" {"mailserver-a" {:id      "mailserver-a" ;mail-01.do-ams3.eth.beta
