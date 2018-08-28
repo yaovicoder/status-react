@@ -27,48 +27,46 @@
                                    :as current-chat}]
   (views/letsubs [chat-name         [:get-current-chat-name]
                   {:keys [pending? whisper-identity photo-path]} [:get-current-chat-contact]]
-    [react/view
-     [react/view {:style styles/toolbar-chat-view}
-      [react/view {:style {:flex-direction :row
-                           :flex 1}}
-       (if public?
-         [react/view {:style (styles/topic-image color)}
-          [react/text {:style styles/topic-text}
-           (string/capitalize (second chat-name))]]
-         [react/image {:style styles/chat-icon
-                       :source {:uri photo-path}}])
-       [react/view {:style (styles/chat-title-and-type pending?)}
-        [react/text {:style styles/chat-title
-                     :font  :medium}
-         chat-name]
-        (cond pending?
-              [react/text {:style styles/add-contact-text
-                           :on-press #(re-frame/dispatch [:add-contact whisper-identity])}
-               (i18n/label :t/add-to-contacts)]
-              public?
-              [react/text {:style styles/public-chat-text}
-               (i18n/label :t/public-chat)])]]
-      [react/view
-       (when (and (not group-chat) (not public?))
-         [react/text {:style (styles/profile-actions-text colors/black)
-                      :on-press #(re-frame/dispatch [:show-profile-desktop whisper-identity])}
-          (i18n/label :t/view-profile)])
+    [react/view {:style styles/toolbar-chat-view}
+     [react/view {:style {:flex-direction :row
+                          :flex 1}}
+      (if public?
+        [react/view {:style (styles/topic-image color)}
+         [react/text {:style styles/topic-text}
+          (string/capitalize (second chat-name))]]
+        [react/image {:style styles/chat-icon
+                      :source {:uri photo-path}}])
+      [react/view {:style (styles/chat-title-and-type pending?)}
+       [react/text {:style styles/chat-title
+                    :font  :medium}
+        chat-name]
+       (cond pending?
+             [react/text {:style styles/add-contact-text
+                          :on-press #(re-frame/dispatch [:add-contact whisper-identity])}
+              (i18n/label :t/add-to-contacts)]
+             public?
+             [react/text {:style styles/public-chat-text}
+              (i18n/label :t/public-chat)])]]
+     [react/view
+      (when (and (not group-chat) (not public?))
+        [react/text {:style (styles/profile-actions-text colors/black)
+                     :on-press #(re-frame/dispatch [:show-profile-desktop whisper-identity])}
+         (i18n/label :t/view-profile)])
 
-       [react/text {:style (styles/profile-actions-text colors/red)
-                    :on-press (fn []
-                                (utils/show-confirmation (i18n/label :clear-history-confirmation)
-                                                         ""
-                                                         (i18n/label :clear-history-action)
-                                                         #(re-frame/dispatch [:clear-history])))}
-        (i18n/label :t/clear-history)]
-       [react/text {:style (styles/profile-actions-text colors/red)
-                    :on-press (fn []
-                                (utils/show-confirmation (i18n/label :delete-chat-confirmation)
-                                                         ""
-                                                         (i18n/label :delete-chat-action)
-                                                         #(re-frame/dispatch [:remove-chat-and-navigate-home chat-id])))}
-        (i18n/label :t/delete-chat)]]]
-     [connectivity/error-view {:top 2}]]))
+      [react/text {:style (styles/profile-actions-text colors/red)
+                   :on-press (fn []
+                               (utils/show-confirmation (i18n/label :clear-history-confirmation)
+                                                        ""
+                                                        (i18n/label :clear-history-action)
+                                                        #(re-frame/dispatch [:clear-history])))}
+       (i18n/label :t/clear-history)]
+      [react/text {:style (styles/profile-actions-text colors/red)
+                   :on-press (fn []
+                               (utils/show-confirmation (i18n/label :delete-chat-confirmation)
+                                                        ""
+                                                        (i18n/label :delete-chat-action)
+                                                        #(re-frame/dispatch [:remove-chat-and-navigate-home chat-id])))}
+       (i18n/label :t/delete-chat)]]]))
 
 (views/defview message-author-name [{:keys [outgoing from] :as message}]
   (views/letsubs [current-account [:get-current-account]
@@ -163,6 +161,7 @@
               (reset! chat-id* chat-id)
               (js/setTimeout #(when @scroll-ref (.scrollToEnd @scroll-ref)) 400))]
       [react/view {:style styles/messages-view}
+       [connectivity/error-view]
        [react/scroll-view {:scrollEventThrottle    16
                            :headerHeight styles/messages-list-vertical-padding
                            :footerWidth styles/messages-list-vertical-padding
