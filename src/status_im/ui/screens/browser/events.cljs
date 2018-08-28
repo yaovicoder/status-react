@@ -1,20 +1,19 @@
 (ns status-im.ui.screens.browser.events
-  (:require status-im.ui.screens.browser.navigation
-            [status-im.utils.handlers :as handlers]
-            [re-frame.core :as re-frame]
-            [status-im.utils.random :as random]
-            [status-im.i18n :as i18n]
-            [status-im.ui.components.list-selection :as list-selection]
-            [status-im.utils.universal-links.core :as utils.universal-links]
-            [status-im.data-store.browser :as browser-store]
-            [status-im.utils.http :as http]
-            [status-im.models.browser :as model]
-            [status-im.utils.platform :as platform]
-            [status-im.utils.utils :as utils]
+  (:require [re-frame.core :as re-frame]
             [status-im.constants :as constants]
+            [status-im.data-store.browser :as browser-store]
+            [status-im.models.browser :as model]
             [status-im.native-module.core :as status]
-            [taoensso.timbre :as log]
-            [status-im.utils.types :as types]))
+            [status-im.ui.components.list-selection :as list-selection]
+            status-im.ui.screens.browser.navigation
+            [status-im.utils.handlers :as handlers]
+            [status-im.utils.handlers-macro :as handlers-macro]
+            [status-im.utils.http :as http]
+            [status-im.utils.platform :as platform]
+            [status-im.utils.random :as random]
+            [status-im.utils.types :as types]
+            [status-im.utils.universal-links.core :as utils.universal-links]
+            [taoensso.timbre :as log]))
 
 (re-frame/reg-fx
  :browse
@@ -39,32 +38,6 @@
  :send-to-bridge-fx
  (fn [[message webview]]
    (.sendToBridge webview (types/clj->json message))))
-
-(re-frame/reg-fx
- :show-dapp-permission-confirmation-fx
- (fn [[permission {:keys [dapp-name permissions-data] :as params}]]
-   (utils/show-confirmation
-    {:ios-confirm-style "default"}
-    (str "\"" dapp-name "\" " (i18n/label :t/would-like-to-access) " " (:label (get model/permissions permission)))
-    (i18n/label :t/make-sure-you-trust-dapp)
-    nil
-    #(re-frame/dispatch [:next-dapp-permission params permission permissions-data])
-    #(re-frame/dispatch [:next-dapp-permission params])
-    (i18n/label :t/dont-allow))))
-
-(handlers/register-handler-fx
- :initialize-browsers
- [(re-frame/inject-cofx :data-store/all-browsers)]
- (fn [{:keys [db all-stored-browsers]} _]
-   (let [browsers (into {} (map #(vector (:browser-id %) %) all-stored-browsers))]
-     {:db (assoc db :browser/browsers browsers)})))
-
-(handlers/register-handler-fx
- :initialize-dapp-permissions
- [(re-frame/inject-cofx :data-store/all-dapp-permissions)]
- (fn [{:keys [db all-dapp-permissions]} _]
-   (let [dapp-permissions (into {} (map #(vector (:dapp %) %) all-dapp-permissions))]
-     {:db (assoc db :dapps/permissions dapp-permissions)})))
 
 (handlers/register-handler-fx
  :browse-link-from-message
@@ -132,10 +105,10 @@
  :on-bridge-message
  [re-frame/trim-v]
  (fn [{:keys [db] :as cofx} [message]]
-   (let [{:browser/keys [options browsers] :keys [webview-bridge]} db
+   (let [{:browser/keys [options browsers]} db
          {:keys [browser-id]} options
          browser (get browsers browser-id)
-         data (types/json->clj message)
+         data    (types/json->clj message)
          {{:keys [url]} :navState :keys [type host permissions payload messageId]} data]
      (cond
 
@@ -143,23 +116,38 @@
        (model/update-browser-history-fx cofx browser url false)
 
        (= type constants/web3-send-async)
-       (model/web3-send-async cofx payload messageId)
+       (model/web3-send-async payload messageId cofx)
 
        (= type constants/status-api-request)
-       (let [{:account/keys [account]} db
-             {:keys [dapp? name]} browser
+       (let [{:keys [dapp? name]} browser
              dapp-name (if dapp? name host)]
-         (model/request-permission
+         {:db       (update-in db [:browser/options :permissions-queue] conj {:dapp-name   dapp-name
+                                                                              :permissions permissions})
+          :dispatch [:check-permissions-queue]})))))
+
+(handlers/register-handler-fx
+ :check-permissions-queue
+ [re-frame/trim-v]
+ (fn [{:keys [db] :as cofx} _]
+   (let [{:keys [show-permission permissions-queue]} (:browser/options db)]
+     (when (and (nil? show-permission) (last permissions-queue))
+       (let [{:keys [dapp-name permissions]} (last permissions-queue)
+             {:account/keys [account]} db]
+         (handlers-macro/merge-fx
           cofx
-          {:dapp-name             dapp-name
-           :webview               webview-bridge
-           :index                 0
-           :user-permissions      (get-in db [:dapps/permissions dapp-name :permissions])
-           :requested-permissions permissions
-           :permissions-data      {constants/dapp-permission-contact-code (:public-key account)}}))))))
+          {:db (update-in db [:browser/options :permissions-queue] drop-last)}
+          (model/request-permission
+           {:dapp-name             dapp-name
+            :index                 0
+            :user-permissions      (get-in db [:dapps/permissions dapp-name :permissions])
+            :requested-permissions permissions
+            :permissions-data      {constants/dapp-permission-contact-code (:public-key account)}})))))))
 
 (handlers/register-handler-fx
  :next-dapp-permission
  [re-frame/trim-v]
  (fn [cofx [params permission permissions-data]]
-   (model/next-permission cofx params permission permissions-data)))
+   (model/next-permission {:params           params
+                           :permission       permission
+                           :permissions-data permissions-data}
+                          cofx)))
