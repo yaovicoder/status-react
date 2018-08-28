@@ -24,8 +24,6 @@ pipeline {
         cmn = load('ci/common.groovy')
         /* to avoid missing build tag parallel builds */
         print "Build Number: ${cmn.tagBuild(true)}"
-        print env.BRANCH_NAME
-        print env.GIT_BRANCH
       } }
     }
     stage('Build') {
