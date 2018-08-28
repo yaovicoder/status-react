@@ -32,6 +32,8 @@
    :mailserver-connection-error          "Could not connect to mailserver"
    :dont-allow                           "Don't Allow"
    :custom                               "Custom"
+   :required-field                       "Required field"
+   :are-you-sure?                        "Are you sure?"
 
    :camera-access-error                  "To grant the required camera permission, please go to your system settings and make sure that Status > Camera is selected."
    :photos-access-error                  "To grant the required photos permission, please go to your system settings and make sure that Status > Photos is selected."
@@ -172,7 +174,6 @@
    :enter-word                           "Enter word"
    :check-your-recovery-phrase           "Check your recovery phrase"
    :wrong-word                           "Wrong word"
-   :are-you-sure?                        "Are you sure?"
    :are-you-sure-description             "You will not be able to see the whole recovery phrase again"
    :you-are-all-set                      "You’re all set!"
    :you-are-all-set-description          "Now if you lose your phone you can restore your account and wallet using the recovery phrase."
@@ -384,6 +385,8 @@
    :sign-in-to-status                    "Sign in to Status"
    :sign-in                              "Sign in"
    :sign-in-to-another                   "Sign in to another account"
+   :save-password                        "Save password until logout"
+   :save-password-unavailable            "Set device passcode to save password"
    :wrong-password                       "Wrong password"
    :enter-password                       "Enter password"
 
@@ -393,6 +396,12 @@
    :recover                              "Recover"
    :twelve-words-in-correct-order        "12 words in correct order"
    :enter-12-words                       "Enter the 12 words of your recovery phrase, separated by single spaces"
+   :recover-password-too-short           "Password is too short"
+   :recovery-phrase-invalid              "Recovery phrase is invalid"
+   :recovery-phrase-unknown-words        "Some words might be misspelled"
+   :recovery-typo-dialog-title           "Is the phrase correct?"
+   :recovery-typo-dialog-description     "If you enter the wrong words, you will create a new account instead of recovering an old one."
+   :recovery-confirm-phrase              "Confirm phrase"
 
    ;;accounts
    :recover-access                       "Recover access"
@@ -720,5 +729,10 @@
    :browser-secure                       "Connection is secure. Make sure you really trust this site before signing transactions or entering personal data."
    :browser-not-secure                   "Connection is not secure! Do not sign transactions or send personal data on this site."
    :make-sure-you-trust-dapp             "Make sure that you trust this DApp"
-   :would-like-to-access                 "Would like to Access"
-   :your-contact-code                    "Your Contact Code"})
+   :wants-to-access-profile              "wants to access to your profile"
+   :your-contact-code                    "Granting access authorizes this DApp to retrieve your contact code"
+   :dapp-would-like-to-connect-wallet    "would like\n to connect to your wallet"
+   :allowing-authorizes-this-dapp        "Allowing authorizes this DApp to retrieve your wallet address and enable Web3"
+   :manage-permissions                   "Manage permissions"
+   :deny                                 "Deny"
+   :allow                                "Allow"})
