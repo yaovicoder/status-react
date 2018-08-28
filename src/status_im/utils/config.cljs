@@ -20,7 +20,6 @@
 (def testfairy-enabled? (enabled? (get-config :TESTFAIRY_ENABLED)))
 
 (def bootnodes-settings-enabled? (enabled? (get-config :BOOTNODES_SETTINGS_ENABLED "1")))
-(def universal-links-enabled? (enabled? (get-config :UNIVERSAL_LINK_ENABLED "1")))
 (def rpc-networks-only? (enabled? (get-config :RPC_NETWORKS_ONLY "1")))
 (def group-chats-enabled? (enabled? (get-config :GROUP_CHATS_ENABLED)))
 (def spam-button-detection-enabled? (enabled? (get-config :SPAM_BUTTON_DETECTION_ENABLED "0")))
