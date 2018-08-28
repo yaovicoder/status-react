@@ -2,10 +2,10 @@ common = load 'ci/common.groovy'
 ios = load 'ci/ios.groovy'
 android = load 'ci/android.groovy'
 
-def prep(type = 'debug') {
+def prep(type = 'nightly') {
   /* select type of build */
   switch (type) {
-    case 'debug':
+    case 'nightly':
       sh 'cp .env.nightly .env'; break
     case 'release':
       sh 'cp .env.prod .env'; break
@@ -19,6 +19,10 @@ def prep(type = 'debug') {
   dir('ios') {
     sh 'pod install'
   }
+}
+
+def runLint() {
+  sh 'lein cljfmt check'
 }
 
 def runTests() {

@@ -102,8 +102,8 @@ def compileLinux() {
   }
 }
   
-def bundleLinux() {
-  def appFile
+def bundleLinux(type = 'nightly') {
+  def pkg
 
   dir(packageFolder) {
     sh 'rm -rf StatusImAppImage'
@@ -146,10 +146,10 @@ def bundleLinux() {
   dir(packageFolder) {
     sh 'ldd AppDir/usr/bin/StatusIm'
     sh 'rm -rf StatusIm.AppImage'
-    appFile = "StatusIm-${GIT_COMMIT.take(6)}.AppImage"
-    sh "mv ../StatusIm-x86_64.AppImage ${appFile}"
+    pkg = common.pkgFilename(type, 'AppImage')
+    sh "mv ../StatusIm-x86_64.AppImage ${pkg}"
   }
-  return "${packageFolder}/${appFile}".drop(2)
+  return "${packageFolder}/${pkg}".drop(2)
 }
 
 def compileMacOS() {
@@ -169,23 +169,23 @@ def compileMacOS() {
   }
 }
 
-def bundleMacOS() {
-  def dmgFile
+def bundleMacOS(type = 'nightly') {
+  def pkg = common.pkgFilename(type, 'dmg')
   dir(packageFolder) {
     sh 'git clone https://github.com/vkjr/StatusAppFiles.git'
     sh 'unzip StatusAppFiles/StatusIm.app.zip'
     sh 'cp -r assets/share/assets StatusIm.app/Contents/MacOs'
     sh 'chmod +x StatusIm.app/Contents/MacOs/ubuntu-server'
     sh 'cp ../desktop/bin/StatusIm StatusIm.app/Contents/MacOs'
+    sh 'cp -f ../deployment/macos/Info.plist StatusIm.app/Contents'
     sh """
       macdeployqt StatusIm.app -verbose=1 -dmg \\
         -qmldir='${workspace}/node_modules/react-native/ReactQt/runtime/src/qml/'
     """
     sh 'rm -fr StatusAppFiles'
-    dmgFile = "StatusIm-${GIT_COMMIT.take(6)}.dmg"
-    sh "mv StatusIm.dmg ${dmgFile}"
+    sh "mv StatusIm.dmg ${pkg}"
   }
-  return "${packageFolder}/${dmgFile}".drop(2)
+  return "${packageFolder}/${pkg}".drop(2)
 }
 
 return this
