@@ -45,6 +45,14 @@
             [re-frame.core :as re-frame]
             [status-im.native-module.core :as status]
             [status-im.ui.components.permissions :as permissions]
+            [status-im.constants :as constants]
+            [status-im.data-store.core :as data-store]
+            [status-im.data-store.realm.core :as realm]
+            [status-im.utils.keychain.core :as keychain]
+            [status-im.i18n :as i18n]
+            [status-im.react-native.js-dependencies :as js-dependencies]
+            [status-im.js-dependencies :as dependencies]
+            [status-im.ui.components.react :as react]
             [status-im.transport.core :as transport]
             [status-im.transport.inbox :as inbox]
             [status-im.ui.screens.db :refer [app-db]]
@@ -122,6 +130,21 @@
  (fn [state]
    (status/app-state-change state)))
 
+(defn persist-chat-ui-props
+  ([cofx]
+   (persist-chat-ui-props "background" cofx))
+  ([state {{:keys [chat-ui-props current-public-key]} :db}]
+   (when (#{"background" "inactive"} state)
+     (->> chat-ui-props
+          (reduce-kv
+           (fn [acc k v] (assoc acc k (dissoc v :input-ref)))
+           {})
+          clj->js
+          js/JSON.stringify
+          (.setItem js-dependencies/async-storage
+                    (str "@StatusIm:" current-public-key ":chat-ui-props")))
+     nil)))
+
 ;;;; Handlers
 
 (handlers/register-handler-db
@@ -140,6 +163,7 @@
     (handlers-macro/merge-fx cofx
                              {:dispatch [:init/initialize-keychain]
                               :clear-user-password (get-in db [:account/account :address])}
+                             (persist-chat-ui-props)
                              (navigation/navigate-to-clean nil)
                              (transport/stop-whisper))))
 
@@ -148,11 +172,125 @@
  (fn [cofx _]
    (logout cofx)))
 
+(handlers/register-handler-db
+ :initialize-account-db
+ (fn [{:keys [accounts/accounts accounts/create contacts/contacts networks/networks
+              network network-status peers-count peers-summary view-id navigation-stack
+              status-module-initialized? status-node-started? device-UUID
+              push-notifications/initial? semaphores]
+       :or   [network (get app-db :network)]} [_ address]]
+   (let [console-contact (get contacts constants/console-chat-id)
+         current-account (accounts address)
+         account-network-id (get current-account :network network)
+         account-network (get-in current-account [:networks account-network-id])]
+     (cond-> (assoc app-db
+                    :current-public-key (:public-key current-account)
+                    :view-id view-id
+                    :navigation-stack navigation-stack
+                    :status-module-initialized? (or platform/ios? js/goog.DEBUG status-module-initialized?)
+                    :status-node-started? status-node-started?
+                    :accounts/create create
+                    :networks/networks networks
+                    :account/account current-account
+                    :network-status network-status
+                    :network network
+                    :chain (ethereum/network->chain-name account-network)
+                    :push-notifications/initial? initial?
+                    :peers-summary peers-summary
+                    :peers-count peers-count
+                    :device-UUID device-UUID
+                    :semaphores semaphores)
+       console-contact
+       (assoc :contacts/contacts {constants/console-chat-id console-contact})))))
+
+(handlers/register-handler-fx
+ :initialize-account
+ (fn [cofx [_ address events-after]]
+   {:dispatch-n (cond-> [[:initialize-account-db address]
+                         [:initialize-protocol address]
+                         [:fetch-web3-node-version]
+                         [:start-check-sync-state]
+                         [:load-contacts]
+                         [:initialize-chats]
+                         [:initialize-browsers]
+                         [:initialize-dapp-permissions]
+                         [:send-account-update-if-needed]
+                         [:process-pending-messages]
+                         [:update-wallet]
+                         [:update-transactions]
+                         (when platform/mobile? [:get-fcm-token])
+                         [:start-wallet-transactions-sync]
+                         [:update-sign-in-time]]
+                  (seq events-after) (into events-after))}))
+
+(handlers/register-handler-fx
+ :initialize-geth
+ (fn [{db :db} _]
+   (when-not (:status-node-started? db)
+     (let [default-networks (:networks/networks db)
+           default-network  (:network db)]
+       {:initialize-geth-fx (get-in default-networks [default-network :config])}))))
+
+(handlers/register-handler-fx
+ :fetch-web3-node-version-callback
+ (fn [{:keys [db]} [_ resp]]
+   (when-let [git-commit (nth (re-find #"-([0-9a-f]{7,})/" resp) 1)]
+     {:db (assoc db :web3-node-version git-commit)})))
+
+(handlers/register-handler-fx
+ :fetch-web3-node-version
+ (fn [{{:keys [web3] :as db} :db} _]
+   (.. web3 -version (getNode (fn [err resp]
+                                (when-not err
+                                  (re-frame/dispatch [:fetch-web3-node-version-callback resp])))))
+   nil))
+
+(handlers/register-handler-fx
+ :get-fcm-token
+ (fn [_ _]
+   {::get-fcm-token-fx nil}))
+
+(handlers/register-handler-fx
+ :discovery/summary
+ (fn [{:keys [db] :as cofx} [_ peers-summary]]
+   (let [previous-summary (:peers-summary db)
+         peers-count      (count peers-summary)]
+     (handlers-macro/merge-fx cofx
+                              {:db (assoc db
+                                          :peers-summary peers-summary
+                                          :peers-count peers-count)}
+                              (transport.handlers/resend-contact-messages previous-summary)
+                              (inbox/peers-summary-change-fx previous-summary)))))
+
+(handlers/register-handler-fx
+ :signal-event
+ (fn [_ [_ event-str]]
+   (log/debug :event-str event-str)
+   (instabug/log (str "Signal event: " event-str))
+   (let [{:keys [type event]} (types/json->clj event-str)
+         to-dispatch (case type
+                       "node.started"        [:status-node-started]
+                       "node.stopped"        [:status-node-stopped]
+                       "module.initialized"  [:status-module-initialized]
+                       "envelope.sent"       [:signals/envelope-status (:hash event) :sent]
+                       "envelope.expired"    [:signals/envelope-status (:hash event) :not-sent]
+                       "discovery.summary"   [:discovery/summary event]
+                       (log/debug "Event " type " not handled"))]
+     (when to-dispatch
+       {:dispatch to-dispatch}))))
+
+(handlers/register-handler-fx
+ :status-module-initialized
+ (fn [{:keys [db]} _]
+   {:db                            (assoc db :status-module-initialized? true)
+    ::status-module-initialized-fx nil}))
+
 (defn app-state-change [state {:keys [db] :as cofx}]
   (let [app-coming-from-background? (= state "active")]
     (handlers-macro/merge-fx cofx
                              {::app-state-change-fx state
                               :db                   (assoc db :app-state state)}
+                             (persist-chat-ui-props state)
                              (inbox/request-messages app-coming-from-background?))))
 
 (handlers/register-handler-fx

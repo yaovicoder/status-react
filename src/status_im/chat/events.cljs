@@ -10,6 +10,10 @@
             [status-im.constants :as constants]
             [status-im.data-store.user-statuses :as user-statuses-store]
             [status-im.i18n :as i18n]
+            [status-im.ui.screens.navigation :as navigation]
+            [status-im.utils.handlers :as handlers]
+            [status-im.utils.handlers-macro :as handlers-macro]
+            [status-im.utils.utils :as utils]
             [status-im.transport.message.core :as transport.message]
             [status-im.transport.message.v1.group-chat :as group-chat]
             [status-im.transport.message.v1.protocol :as protocol]
@@ -77,6 +81,31 @@
                                [:chats chat-id :message-statuses message-id user-id]
                                new-status)
       :data-store/tx [(user-statuses-store/save-status-tx new-status)]})))
+
+(handlers/register-handler-fx
+ :chat-scroll-to-end
+ (fn [{{:keys [current-chat-id] :as db} :db} _]
+   {:db (-> db
+            (assoc-in [:chat-ui-props current-chat-id :offset] 0)
+            (assoc-in [:chats current-chat-id :unviewed-messages] nil))}))
+
+(handlers/register-handler-fx
+ :init-chat-ui-props
+ (fn [{:keys [db]} [_ props]]
+   {:db (assoc db :chat-ui-props props)}))
+
+(re-frame/reg-fx
+ :load-chat-ui-props-fx
+ (fn [{:keys [current-public-key]}]
+   (.. js-dependencies/async-storage
+       (getItem (str "@StatusIm:" current-public-key ":chat-ui-props"))
+       (then (fn [result]
+               (when result
+                 (let [props (reduce-kv
+                              (fn [m k v] (assoc m (name k) v))
+                              {}
+                              (-> result js/JSON.parse (js->clj :keywordize-keys true)))]
+                   (re-frame/dispatch [:init-chat-ui-props props]))))))))
 
 (defn- send-messages-seen [chat-id message-ids {:keys [db] :as cofx}]
   (when (and (not (get-in db [:chats chat-id :public?]))

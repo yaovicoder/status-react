@@ -69,7 +69,8 @@
     (handlers-macro/merge-fx cofx
                              {:db (assoc db
                                          :chats          chats
-                                         :contacts/dapps default-dapps)}
+                                         :contacts/dapps default-dapps)
+                              :load-chat-ui-props-fx db}
                              (group-chat-messages)
                              (add-default-contacts)
                              (commands/index-commands commands/register))))
