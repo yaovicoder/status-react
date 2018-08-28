@@ -63,8 +63,11 @@
 
 (handlers/register-handler-fx
  :switch-dev-mode
- (fn [cofx [_ dev-mode]]
-   (accounts.utils/account-update {:dev-mode? dev-mode} cofx)))
+ (fn [cofx [_ dev-mode?]]
+   (merge (accounts.utils/account-update {:dev-mode? dev-mode?} cofx)
+          (if dev-mode?
+            {:http-server/start nil}
+            {:http-server/stop nil}))))
 
 (handlers/register-handler-fx
  :wallet-set-up-passed
