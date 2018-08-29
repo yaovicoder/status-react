@@ -1,5 +1,4 @@
 import time
-from tests import info
 from tests.base_test_case import AbstractTestCase
 from views.base_element import BaseText, BaseButton, BaseEditBox, BaseElement
 from views.base_view import BaseView
@@ -14,7 +13,7 @@ class PublicKeyText(BaseText):
     @property
     def text(self):
         text = self.scroll_to_element().text
-        info('%s is %s' % (self.name, text))
+        self.driver.info('%s is %s' % (self.name, text))
         return text
 
 
@@ -74,6 +73,11 @@ class LogoutButton(BaseButton):
     def __init__(self, driver):
         super(LogoutButton, self).__init__(driver)
         self.locator = self.Locator.accessibility_id('log-out-button')
+
+    def click(self):
+        self.scroll_to_element().click()
+        self.driver.info('Tap on %s' % self.name)
+        return self.navigate()
 
 
 class LogoutDialog(BaseView):
@@ -161,7 +165,7 @@ class AdvancedButton(BaseButton):
 
     def click(self):
         self.scroll_to_element().click()
-        info('Tap on %s' % self.name)
+        self.driver.info('Tap on %s' % self.name)
         return self.navigate()
 
 

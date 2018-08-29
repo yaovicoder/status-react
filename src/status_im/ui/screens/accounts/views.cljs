@@ -11,10 +11,11 @@
             [status-im.ui.components.icons.vector-icons :as icons]
             [status-im.ui.components.colors :as colors]
             [status-im.ui.components.common.common :as components.common]
-            [status-im.ui.components.toolbar.view :as toolbar]))
+            [status-im.ui.components.toolbar.view :as toolbar]
+            [status-im.ui.screens.privacy-policy.views :as privacy-policy]))
 
 (defn account-view [{:keys [address photo-path name public-key]}]
-  [react/touchable-highlight {:on-press #(re-frame/dispatch [:open-login address photo-path name])}
+  [react/touchable-highlight {:on-press #(re-frame/dispatch [:ui/open-login address photo-path name])}
    [react/view styles/account-view
     [photos/photo photo-path {:size styles/account-image-size}]
     [react/view styles/account-badge-text-view
@@ -46,4 +47,5 @@
        [react/view styles/bottom-button-container
         [components.common/button {:on-press    #(re-frame/dispatch [:navigate-to :recover])
                                    :label       (i18n/label :t/add-existing-account)
-                                   :background? false}]]]]]))
+                                   :background? false}]]
+       [privacy-policy/privacy-policy-button]]]]))
