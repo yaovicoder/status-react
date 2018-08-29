@@ -42,6 +42,11 @@
    (load-collectible-fx symbol token-id)))
 
 (handlers/register-handler-fx
+ :store-collectibles
+ (fn [{db :db} [_ symbol collectibles]]
+   {:db (update-in db [:collectibles symbol] merge collectibles)}))
+
+(handlers/register-handler-fx
  :load-collectible-success
  [re-frame/trim-v]
  (fn [{db :db} [symbol collectibles]]
@@ -50,8 +55,8 @@
 (handlers/register-handler-fx
  :load-collectibles-failure
  [re-frame/trim-v]
- (fn [{db :db} [{:keys [message]}]]
-   {:db (assoc db :collectibles-failure message)}))
+ (fn [{db :db} [reason]]
+   {:db (update-in db [:collectibles symbol :errors] merge reason)}))
 
 (handlers/register-handler-fx
  :load-collectible-failure
