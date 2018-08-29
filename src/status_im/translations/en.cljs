@@ -193,6 +193,11 @@
    :wallet-backup-recovery-title         "Backup your recovery phrase"
    :wallet-backup-recovery-description   "This will help you to keep your assets safe"
 
+   ;;unable to decrypt
+   :tried-to-contact-you-title           "Contact request"
+   :tried-to-contact-you-content         "{{name}} would like to connect with you. Would you like to establish a secure channel with them?"
+   :tried-to-contact-you-confirm         "Connect"
+
    ;;make_photo
    :image-source-title                   "Edit picture"
    :image-source-make-photo              "Capture"
