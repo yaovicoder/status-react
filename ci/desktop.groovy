@@ -128,7 +128,7 @@ def bundleLinux(type = 'nightly') {
   sh """
     ./linuxdeployqt-continuous-x86_64.AppImage  \\
     ${packageFolder}/AppDir/usr/bin/reportApp \\
-    -verbose=3 -always-overwrite -no-strip -no-translations -qmake=${qt_bin}/qmake \\
+    -verbose=3 -always-overwrite -no-strip -no-translations -qmake=${qtBin}/qmake \\
     -qmldir='${workspace}/desktop/reportApp'
   """
   sh """
