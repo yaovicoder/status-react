@@ -109,6 +109,7 @@
    :status-delivered                     "Delivered"
    :status-failed                        "Failed"
    :status-not-sent                      "Not sent. Tap for options"
+   :status-not-sent-without-tap          "Not sent"
    :message-not-sent                     "Message not sent"
    :resend-message                       "Resend"
    :delete-message                       "Delete message"
