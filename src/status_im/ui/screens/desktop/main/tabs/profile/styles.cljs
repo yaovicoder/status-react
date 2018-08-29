@@ -9,16 +9,27 @@
    :align-items   :center
    :margin-bottom 16})
 
-(def logout-row
-  {:justify-content   :space-between
-   :flex-direction    :row
-   :margin-horizontal 24
-   :align-self        :stretch
-   :margin-top        60})
+(defn profile-row [active?]
+  {:justify-content    :space-between
+   :flex-direction     :row
+   :padding-horizontal 24
+   :height             56
+   :align-self         :stretch
+   :align-items        :center
+   :background-color   (if active? colors/gray-lighter colors/white)})
 
-(defn logout-row-text [color]
-  {:color     color
-   :font-size 16})
+(defn profile-row-text [color]
+  {:color       color
+   :font-size   16})
+
+(defn profile-row-font [selected?]
+  (if selected? :medium :default))
+
+(def adv-settings
+  {:justify-content :space-between
+   :flex-direction  :row
+   :align-items     :center
+   :flex            1})
 
 (def profile-photo
   {:border-radius 100
@@ -26,8 +37,7 @@
    :height        100})
 
 (def profile-user-name
-  {:font-weight :bold
-   :font-size   18})
+  {:font-size   18})
 
 (def share-contact-code
   {:flex-direction    :row
@@ -36,6 +46,7 @@
    :height            45
    :width             240
    :margin-horizontal 50
+   :margin-bottom     48
    :border-radius     8
    :background-color  (colors/alpha colors/blue 0.1)})
 
@@ -83,7 +94,6 @@
 
 (def qr-code-title
   {:font-size     20
-   :font-weight   "600"
    :margin-bottom 32})
 
 (def qr-code
@@ -133,3 +143,17 @@
    :border-left-color  :transparent
    :border-right-color :transparent
    :border-top-color   colors/tooltip-green})
+
+(def advanced-settings-title
+  {:margin        24
+   :font-size     20})
+
+(def title-separator
+  {:height            1
+   :background-color  colors/gray-light})
+
+(def mailserver-title
+  {:margin-left      24
+   :margin-top       36
+   :margin-bottom    16
+   :font-size        16})
