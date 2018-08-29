@@ -4,7 +4,8 @@ pipeline {
   parameters {
     string(
       name: 'BUILD_TYPE',
-      description: 'Values: nightly / e2e / release'
+      description: 'Values: pr / nightly / e2e / release',
+      defaultValue: 'pr'
     )
   }
 
@@ -55,7 +56,6 @@ pipeline {
       } }
     }
     stage('Upload') {
-      when { expression { params.BUILD_TYPE == 'nightly' } }
       steps { script {
         e2eUrl = cmn.uploadArtifact(findFiles(glob: 'pkg/*.e2e.apk')[0].path)
         apkUrl = cmn.uploadArtifact(findFiles(glob: "pkg/*.${params.BUILD_TYPE}.apk")[0].path)
@@ -64,11 +64,9 @@ pipeline {
         /* special case for iOS Diawi links */
         ipaUrl = ios.getBuildVariables().get('DIAWI_URL')
       } }
-    }
     stage('Notify') {
       steps { script {
-        slackSend(
-          message: (
+        def message = (
             (env.CHANGE_ID != null ?
               "Build PR #${BRANCH_NAME}(${CHANGE_BRANCH}) success! " :
               "Build ${params.BUILD_TYPE} success! "
@@ -86,9 +84,14 @@ pipeline {
               "<${dro.getBuildVariables().get('DIAWI_URL')}|Android>, "+
               "<${ios.getBuildVariables().get('DIAWI_URL')}|iOS>"
             )
-          ),
+        )
+        slackSend(
+          message: message,
           color: 'good'
         )
+        if (env.CHANGE_ID != null) {
+            githubNotify(message, env.CHANGE_ID)
+        }
       } }
     }
     stage('Publish') {

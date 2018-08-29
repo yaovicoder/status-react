@@ -104,4 +104,13 @@ def pkgFilename(type, ext) {
   return "StatusIm.${timestamp()}.${gitCommit()}.${type}.${ext}"
 }
 
+
+def githubNotify(message, changeId) {
+  withCredentials([string(credentialsId: 'GIT_HUB_TOKEN', variable: 'githubToken')]) {
+    def script = "curl -u status-im:" + githubToken + " -H 'Content-Type: application/json'  --data '{\"body\": \"" + msg + "\"}' https://api.github.com/repos/status-im/status-react/issues/" + changeId + "/comments"
+    def ghOutput = sh(returnStdout: true, script: script) 
+    println("Result of github comment curl: " + ghOutput);
+  }
+}
+
 return this
