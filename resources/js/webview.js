@@ -24,17 +24,12 @@
                 host: window.location.hostname
             });
         }
+        else if (event.data.type === 'ETHEREUM_PROVIDER_REQUEST') {
+            bridgeSend({
+                type: 'status-api-request',
+                permissions: ['WEB3'],
+                host: window.location.hostname
+            });
+        }
     });
-
-    WebViewBridge.onMessage = function (message) {
-
-        data = JSON.parse(message);
-
-        if (data.type === "navigate-to-blank")
-            window.location.href = "about:blank";
-
-        else if (data.type === "status-api-success")
-            window.STATUS_API = data.data;
-            window.postMessage({ type: 'STATUS_API_SUCCESS', permissions: data.keys }, "*");
-    };
 }());
