@@ -1,6 +1,13 @@
 pipeline {
   agent { label 'master' }
 
+  parameters {
+    string(
+      name: 'BUILD_TYPE',
+      description: 'Values: nightly / e2e / release'
+    )
+  }
+
   options {
     disableConcurrentBuilds()
     buildDiscarder(logRotator(
