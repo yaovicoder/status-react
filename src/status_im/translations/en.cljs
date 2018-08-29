@@ -438,7 +438,7 @@
    :cost-fee                             "Cost/Fee"
    :nonce                                "Nonce"
    :confirmations                        "Confirmations"
-   :confirmations-helper-text            "Transactions with 12 confirmations can be considered irreversible"
+   :confirmations-helper-text            "When the transaction has 12 confirmations you can consider it settled."
    :copy-transaction-hash                "Copy transaction ID"
    :open-on-etherscan                    "Open on Etherscan.io"
    :incoming                             "Incoming"
