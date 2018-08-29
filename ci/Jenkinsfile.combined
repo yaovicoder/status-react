@@ -27,6 +27,7 @@ pipeline {
   stages {
     stage('Prep') {
       steps { script {
+        println "Current JOB: ${env.JOB_NAME}"
         /* load common lib */
         cmn = load('ci/common.groovy')
 
