@@ -3,25 +3,24 @@ def version() {
 }
 
 def getBuildType() {
-  if (params.BUILD_TYPE != null && params.BUILD_TYPE != '') {
-      return params.BUILD_TYPE
-  }
-
   def jobName = env.JOB_NAME
-
   if (jobName.startswith('status-react/pull requests')) {
+      println "returning PR"
       return 'pr'
   }
 
   if (jobName.startswith('status-react/nightly')) {
+      println "returning nightly"
       return 'nightly'
   }
 
   if (jobName.startswith('status-react/release')) {
+      println "returning release"
       return 'release'
   }
 
-  return 'pr'
+  println "returning BUILD_TYPE: ${params.BUILD_TYPE}"
+  return params.BUILD_TYPE
 }
   
 
