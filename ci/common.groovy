@@ -2,7 +2,15 @@ def version() {
   return readFile("${env.WORKSPACE}/VERSION").trim()
 }
 
-def buildBranch(name = null, buildType = params.BUILD_TYPE) {
+def getBuildType() {
+  if (params.BUILD_TYPE == null || params.BUILD_TYPE == '') {
+    return 'pr'
+  }
+  return params.BUILD_TYPE
+}
+  
+
+def buildBranch(name = null, buildType = getBuildType()) {
   /* need to drop origin/ to match definitions of child jobs */
   def branchName = env.GIT_BRANCH.replace('origin/', '')
   /* always pass the BRANCH and BUILD_TYPE params with current branch */

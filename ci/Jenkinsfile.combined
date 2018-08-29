@@ -9,8 +9,7 @@ pipeline {
        * IMPORTANT!
        * `defaultValue` should not be set!
        * It breaks job settings in Jenkins (like nightlies, etc).
-       * We actually set the defaul value in the "Prep" step.
-       * (see this file below)
+       * use `cmn.getBuildType()` instead of using this param directly!
        */
     )
   }
@@ -23,17 +22,11 @@ pipeline {
       artifactNumToKeepStr: '10',
     ))
   }
-  
+
+
   stages {
     stage('Prep') {
       steps { script {
-        /*
-         * Set build type in a way that doesn't change Jenkins job settings 
-         */
-        if (params.BUILD_TYPE == null || params.BUILD_TYPE == '') {
-          params.BUILD_TYPE = 'pr'
-        }
-
         /* load common lib */
         cmn = load('ci/common.groovy')
 
@@ -73,7 +66,7 @@ pipeline {
     stage('Upload') {
       steps { script {
         e2eUrl = cmn.uploadArtifact(findFiles(glob: 'pkg/*.e2e.apk')[0].path)
-        apkUrl = cmn.uploadArtifact(findFiles(glob: "pkg/*.${params.BUILD_TYPE}.apk")[0].path)
+        apkUrl = cmn.uploadArtifact(findFiles(glob: "pkg/*.${cmn.getBuildType()}.apk")[0].path)
         dmgUrl = cmn.uploadArtifact(findFiles(glob: 'pkg/*.dmg')[0].path)
         appUrl = cmn.uploadArtifact(findFiles(glob: 'pkg/*.AppImage')[0].path)
         /* special case for iOS Diawi links */
@@ -85,11 +78,11 @@ pipeline {
         def message = (
             (env.CHANGE_ID != null ?
               "Build PR #${BRANCH_NAME}(${CHANGE_BRANCH}) success! " :
-              "Build ${params.BUILD_TYPE} success! "
+              "Build ${cmn.getBuildType()} success! "
             )+
             "<${currentBuild.absoluteUrl}|${currentBuild.displayName}> "+
             "(${currentBuild.durationString})\n"+
-            (params.BUILD_TYPE == 'nightly' || params.BUILD_TYPE == 'pr' ?
+            (cmn.getBuildType() == 'nightly' || cmn.getBuildType() == 'pr' ?
               "Packages: "+
               "<${apkUrl}|Android>, "+
               "(<${e2eUrl}|e2e>), "+
@@ -118,7 +111,7 @@ pipeline {
       } }
     }
     stage('Publish') {
-      when { expression { params.BUILD_TYPE == 'nightly' } }
+      when { expression { cmn.getBuildType() == 'nightly' } }
       steps {
         build(
           job: 'misc/status-im.github.io-update_env',
