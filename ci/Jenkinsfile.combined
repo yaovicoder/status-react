@@ -21,6 +21,9 @@ pipeline {
   stages {
     stage('Tag') {
 
+      steps { script {
+        cmn = load('ci/common.groovy')
+
         def message = (
             (env.CHANGE_ID != null ?
               "Build PR #${BRANCH_NAME}(${CHANGE_BRANCH}) success! " :
@@ -44,8 +47,6 @@ pipeline {
     if (env.CHANGE_ID != null) {
         cmn.githubNotify(message, env.CHANGE_ID)
     }
-      steps { script {
-        cmn = load('ci/common.groovy')
         /* to avoid missing build tag parallel builds */
         print "Build Number: ${cmn.tagBuild(true)}"
       } }
