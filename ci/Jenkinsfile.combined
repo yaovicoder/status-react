@@ -91,7 +91,7 @@ pipeline {
           color: 'good'
         )
         if (env.CHANGE_ID != null) {
-            githubNotify(message, env.CHANGE_ID)
+            cmn.githubNotify(message, env.CHANGE_ID)
         }
       } }
     }
