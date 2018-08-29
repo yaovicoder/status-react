@@ -10,8 +10,7 @@
 (re-frame/reg-fx
  :resolve-whisper-identity
  (fn [{:keys [web3 registry ens-name cb]}]
-   (println registry ens-name)
-   (stateofus/text web3 registry ens-name cb)))
+   (stateofus/pubkey web3 registry ens-name cb)))
 
 (handlers/register-handler-fx
  :new-chat/set-new-identity
