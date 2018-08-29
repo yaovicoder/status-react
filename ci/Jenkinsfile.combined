@@ -20,7 +20,7 @@ pipeline {
   stages {
     stage('Set build type') {
       steps { script {
-        if params.BUILD_TYPE == null {
+        if (params.BUILD_TYPE == null || params.BUILD_TYPE == '') {
           params.BUILD_TYPE = 'pr'
         }
       } }
