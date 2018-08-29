@@ -22,10 +22,6 @@ PODS:
     - FirebaseCore (~> 5.1)
     - GoogleUtilities/Environment (~> 5.2)
   - FirebaseMessaging (3.1.0):
-    - FirebaseCore (~> 5.0)
-    - FirebaseInstanceID (~> 3.0)
-    - GoogleUtilities/Reachability (~> 5.2)
-    - Protobuf (~> 3.1)
   - GoogleAppMeasurement (5.1.1):
     - GoogleUtilities/AppDelegateSwizzler (~> 5.2.0)
     - GoogleUtilities/MethodSwizzler (~> 5.2.0)
@@ -48,6 +44,13 @@ PODS:
   - "GoogleUtilities/NSData+zlib (5.2.2)"
   - GoogleUtilities/Reachability (5.2.2):
     - GoogleUtilities/Logger
+=======
+  - GoogleToolboxForMac/Defines (2.1.4)
+  - GoogleToolboxForMac/Logger (2.1.4):
+    - GoogleToolboxForMac/Defines (= 2.1.4)
+  - "GoogleToolboxForMac/NSData+zlib (2.1.4)":
+    - GoogleToolboxForMac/Defines (= 2.1.4)
+>>>>>>> aec1bb6a2... [#3413] Update react-native-camera to 1.2.0
   - nanopb (0.3.8):
     - nanopb/decode (= 0.3.8)
     - nanopb/encode (= 0.3.8)
@@ -60,13 +63,13 @@ PODS:
     - React
   - React/Core (0.56.0):
     - yoga (= 0.56.0.React)
-  - react-native-camera (1.1.5):
+  - react-native-camera (1.2.0):
     - React
-    - react-native-camera/RCT (= 1.1.5)
-    - react-native-camera/RN (= 1.1.5)
-  - react-native-camera/RCT (1.1.5):
+    - react-native-camera/RCT (= 1.2.0)
+    - react-native-camera/RN (= 1.2.0)
+  - react-native-camera/RCT (1.2.0):
     - React
-  - react-native-camera/RN (1.1.5):
+  - react-native-camera/RN (1.2.0):
     - React
   - RNKeychain (3.0.0):
     - React
@@ -77,6 +80,7 @@ DEPENDENCIES:
   - Firebase/Messaging
   - React (from `../node_modules/react-native`)
   - react-native-background-timer (from `../node_modules/react-native-background-timer`)
+  - react-native-camera (from `../node_modules/react-native-camera`)
   - RNKeychain (from `../node_modules/react-native-keychain`)
   - yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
@@ -97,6 +101,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native"
   react-native-background-timer:
     :path: "../node_modules/react-native-background-timer"
+  react-native-camera:
+    :path: "../node_modules/react-native-camera"
   RNKeychain:
     :path: "../node_modules/react-native-keychain"
   yoga:
@@ -114,6 +120,7 @@ SPEC CHECKSUMS:
   Protobuf: 1eb9700044745f00181c136ef21b8ff3ad5a0fd5
   React: 1fe0eb13d90b625d94c3b117c274dcfd2e760e11
   react-native-background-timer: 63dcbf37dbcf294b5c6c071afcdc661fa06a7594
+  react-native-camera: 68ad5143d2d0636236d46c7de8d2a6455ca52a36
   RNKeychain: 627c6095cef215dd3d9804a9a9cf45ab96aa3997
   yoga: b1ce48b6cf950b98deae82838f5173ea7cf89e85
 
