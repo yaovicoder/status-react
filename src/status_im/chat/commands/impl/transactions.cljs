@@ -105,7 +105,7 @@
       (let [sanitised-str (string/replace amount #"," ".")
             portions      (string/split sanitised-str ".")
             decimals      (count (get portions 1))
-            amount        (js/parseFloat sanitised-str)]
+            amount        (js/Number sanitised-str)]
         (cond
 
           (or (js/isNaN amount)
