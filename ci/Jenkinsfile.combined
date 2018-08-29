@@ -20,6 +20,30 @@ pipeline {
   
   stages {
     stage('Tag') {
+
+        def message = (
+            (env.CHANGE_ID != null ?
+              "Build PR #${BRANCH_NAME}(${CHANGE_BRANCH}) success! " :
+              "Build ${params.BUILD_TYPE} success! "
+            )+
+            "<${currentBuild.absoluteUrl}|${currentBuild.displayName}> "+
+            "(${currentBuild.durationString})\n"+
+            (params.BUILD_TYPE == 'nightly' || params.BUILD_TYPE == 'pr' ?
+              "Packages: "+
+              "<http://test/|Android>, "+
+              "(http://test/|e2e>), "+
+              "<http://test/|iOS>, "+
+              "<http://test/|MacOS>, "+
+              "<http://test/|AppImage>" :
+              "Packages: "+
+              "<${dro.getBuildVariables().get('DIAWI_URL')}|Android>, "+
+              "<${ios.getBuildVariables().get('DIAWI_URL')}|iOS>"
+            )
+        )
+
+    if (env.CHANGE_ID != null) {
+        cmn.githubNotify(message, env.CHANGE_ID)
+    }
       steps { script {
         cmn = load('ci/common.groovy')
         /* to avoid missing build tag parallel builds */
@@ -74,7 +98,7 @@ pipeline {
             )+
             "<${currentBuild.absoluteUrl}|${currentBuild.displayName}> "+
             "(${currentBuild.durationString})\n"+
-            (params.BUILD_TYPE == 'nightly' ?
+            (params.BUILD_TYPE == 'nightly' || params.BUILD_TYPE == 'pr' ?
               "Packages: "+
               "<${apkUrl}|Android>, "+
               "(<${e2eUrl}|e2e>), "+
