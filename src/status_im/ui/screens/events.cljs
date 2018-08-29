@@ -391,12 +391,13 @@
    (instabug/log (str "Signal event: " event-str))
    (let [{:keys [type event]} (types/json->clj event-str)
          to-dispatch (case type
-                       "node.started"        [:status-node-started]
-                       "node.stopped"        [:status-node-stopped]
-                       "module.initialized"  [:status-module-initialized]
-                       "envelope.sent"       [:signals/envelope-status (:hash event) :sent]
-                       "envelope.expired"    [:signals/envelope-status (:hash event) :not-sent]
-                       "discovery.summary"   [:discovery/summary event]
+                       "node.started"            [:status-node-started]
+                       "node.stopped"            [:status-node-stopped]
+                       "module.initialized"      [:status-module-initialized]
+                       "envelope.sent"           [:signals/envelope-status (:hash event) :sent]
+                       "envelope.expired"        [:signals/envelope-status (:hash event) :not-sent]
+                       "messages.decrypt.failed" [:signals/message-decrypt-failed (:sender event)]
+                       "discovery.summary"       [:discovery/summary event]
                        (log/debug "Event " type " not handled"))]
      (when to-dispatch
        {:dispatch to-dispatch}))))

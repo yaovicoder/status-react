@@ -2,6 +2,7 @@
   (:require [re-frame.core :as re-frame]
             [status-im.i18n :as i18n]
             [status-im.ui.screens.add-new.new-chat.db :as new-chat.db]
+            [status-im.utils.gfycat.core :as gfycat]
             [status-im.ui.screens.browser.default-dapps :as default-dapps]
             [status-im.utils.handlers :as handlers]
             [status-im.utils.handlers-macro :as handlers-macro]
@@ -62,6 +63,18 @@
        (handlers-macro/merge-fx cofx
                                 fx
                                 (add-contact-and-open-chat contact-identity))))))
+
+(handlers/register-handler-fx
+ :signals/message-decrypt-failed
+ (fn [{:keys [db] :as cofx} [_ contact-identity]]
+   (let [current-account (:account/account db)]
+     (when-not (new-chat.db/validate-pub-key db contact-identity)
+       {:db (assoc db :contacts/new-identity contact-identity)
+        :show-confirmation {:title   (i18n/label :t/tried-to-contact-you-title)
+                            :content (i18n/label :t/tried-to-contact-you-content {:name (gfycat/generate-gfy contact-identity)})
+                            :confirm-button-text (i18n/label :t/tried-to-contact-you-confirm)
+                            :on-accept #(re-frame/dispatch [:open-chat-with-contact {:whisper-identity contact-identity}])
+                            :on-cancel #(println "CANCELING")}}))))
 
 (handlers/register-handler-db
  :open-contact-toggle-list
