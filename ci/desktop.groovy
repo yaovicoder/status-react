@@ -179,11 +179,12 @@ def bundleMacOS(type = 'nightly') {
     sh 'ln -sf ../Resources/assets ../Resources/ubuntu-server ../Resources/node_modules StatusIm.app/Contents/MacOS'
     sh 'cp ../desktop/bin/StatusIm StatusIm.app/Contents/MacOS'
     sh 'cp -f ../deployment/macos/Info.plist StatusIm.app/Contents'
+    sh 'cp -f ../deployment/macos/status-icon.icns StatusIm.app/Contents/Resources'
     sh """
-      macdeployqt StatusIm.app -verbose=1 -dmg \\
+      macdeployqt StatusIm.app -verbose=1 \\
         -qmldir='${workspace}/node_modules/react-native/ReactQt/runtime/src/qml/'
     """
-    sh 'rm -fr StatusAppFiles'
+    sh 'appdmg ../deployment/macos/status-dmg.json StatusIm.dmg'
     sh "mv StatusIm.dmg ${pkg}"
   }
   return "${packageFolder}/${pkg}".drop(2)
