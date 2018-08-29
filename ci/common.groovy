@@ -3,7 +3,7 @@ def version() {
 }
 
 def getBuildType() {
-  if params.BUILD_TYPE != null && params.BUILD_TYPE != '' {
+  if (params.BUILD_TYPE != null && params.BUILD_TYPE != '') {
       return params.BUILD_TYPE
   }
 
