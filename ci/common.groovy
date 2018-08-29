@@ -2,13 +2,33 @@ def version() {
   return readFile("${env.WORKSPACE}/VERSION").trim()
 }
 
-def buildBranch(name = null, buildType = params.BUILD_TYPE) {
+def getBuildType() {
+  def jobName = env.JOB_NAME
+  if (jobName.startsWith('status-react/pull requests')) {
+      return 'pr'
+  }
+
+  if (jobName.startsWith('status-react/nightly')) {
+      return 'nightly'
+  }
+
+  if (jobName.startsWith('status-react/release')) {
+      return 'release'
+  }
+
+  return params.BUILD_TYPE
+}
+  
+
+def buildBranch(name = null, buildType) {
+  /* need to drop origin/ to match definitions of child jobs */
+  def branchName = env.GIT_BRANCH.replace('origin/', '')
   /* always pass the BRANCH and BUILD_TYPE params with current branch */
   return build(
     job: name,
     parameters: [
-      [name: 'BRANCH',     value: env.GIT_BRANCH, $class: 'StringParameterValue'],
-      [name: 'BUILD_TYPE', value: buildType,      $class: 'StringParameterValue'],
+      [name: 'BRANCH',     value: branchName, $class: 'StringParameterValue'],
+      [name: 'BUILD_TYPE', value: buildType,  $class: 'StringParameterValue'],
   ])
 }
 
@@ -44,7 +64,8 @@ def doGitRebase() {
   }
 }
 
-def tagBuild() {
+def tagBuild(increment = false) {
+  def opts = (increment ? '--increment' : '')
   withCredentials([[
     $class: 'UsernamePasswordMultiBinding',
     credentialsId: 'status-im-auto',
@@ -53,14 +74,23 @@ def tagBuild() {
   ]]) {
     return sh(
       returnStdout: true,
-      script: './scripts/build_no.sh --increment'
+      script: "./scripts/build_no.sh ${opts}"
     ).trim()
   }
 }
 
-def uploadArtifact(path, filename) {
+def getDirPath(path) {
+  return path.tokenize('/')[0..-2].join('/')
+}
+
+def getFilename(path) {
+  return path.tokenize('/')[-1]
+}
+
+def uploadArtifact(path) {
+  /* defaults for upload */
   def domain = 'ams3.digitaloceanspaces.com'
-  def bucket = 'status-im-desktop'
+  def bucket = 'status-im'
   withCredentials([usernamePassword(
     credentialsId: 'digital-ocean-access-keys',
     usernameVariable: 'DO_ACCESS_KEY',
@@ -73,11 +103,46 @@ def uploadArtifact(path, filename) {
         --host-bucket='%(bucket)s.${domain}' \\
         --access_key=${DO_ACCESS_KEY} \\
         --secret_key=${DO_SECRET_KEY} \\
-        put ${path}/${filename} s3://${bucket}/
+        put ${path} s3://${bucket}/
     """
   }
-  def url = "https://${bucket}.${domain}/${filename}"
-  return url
+  return "https://${bucket}.${domain}/${getFilename(path)}"
+}
+
+def timestamp() {
+  def now = new Date(currentBuild.timeInMillis)
+  return now.format('yyMMdd.HHmmss', TimeZone.getTimeZone('UTC'))
+}
+
+def gitCommit() {
+  return GIT_COMMIT.take(6)
+}
+
+def pkgFilename(type, ext) {
+  return "StatusIm.${timestamp()}.${gitCommit()}.${type}.${ext}"
+}
+
+
+def githubNotify(apkUrl, e2eUrl, ipaUrl, dmgUrl, appUrl, changeId) {
+  withCredentials([string(credentialsId: 'GIT_HUB_TOKEN', variable: 'githubToken')]) {
+    def message =
+            "#### :white_check_mark: CI BUILD SUCCESSFUL\\n" +
+            "Jenkins job: [${currentBuild.displayName}](${currentBuild.absoluteUrl})\\n"+
+              "##### Mobile\\n" +
+              "* [Android](${apkUrl}), ([e2e](${e2eUrl}))\\n" +
+              "* [iOS](${ipaUrl})\\n" +
+              "##### Desktop\\n" +
+              "* [MacOS](${dmgUrl})\\n" +
+              "* [AppImage](${appUrl})"
+    def script = "curl "+ 
+                   "-u status-im:${githubToken} " + 
+                   "-H 'Content-Type: application/json' " + 
+                   "--data '{\"body\": \"${message}\"}' " +
+                   "https://api.github.com/repos/status-im/status-react/issues/${changeId}/comments"
+    println("running script:\n****\n" + script + "\n****");
+    def ghOutput = sh(returnStdout: true, script: script) 
+    println("Result of github comment curl: " + ghOutput);
+  }
 }
 
 return this

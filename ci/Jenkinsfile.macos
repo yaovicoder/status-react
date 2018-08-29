@@ -3,9 +3,9 @@ pipeline {
 
   options {
     buildDiscarder(logRotator(
-      numToKeepStr: '10',
+      numToKeepStr: '20',
       daysToKeepStr: '30',
-      artifactNumToKeepStr: '1',
+      artifactNumToKeepStr: '10',
     ))
   }
   
@@ -21,6 +21,7 @@ pipeline {
         script {
           /* Necessary to load methods */
           desktop = load 'ci/desktop.groovy'
+          cmn     = load 'ci/common.groovy'
           desktop.prepDeps()
         }
       }
@@ -37,7 +38,7 @@ pipeline {
     }
     stage('Bundle') {
       steps {
-        script { dmg = desktop.bundleMacOS() }
+        script { dmg = desktop.bundleMacOS(cmn.getBuildType()) }
       }
     }
     stage('Archive') {

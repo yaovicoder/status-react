@@ -11,9 +11,9 @@ pipeline {
 
   options {
     buildDiscarder(logRotator(
-      numToKeepStr: '10',
+      numToKeepStr: '20',
       daysToKeepStr: '30',
-      artifactNumToKeepStr: '1',
+      artifactNumToKeepStr: '10',
     ))
   }
   
@@ -32,8 +32,14 @@ pipeline {
           print "Running ${params.BUILD_TYPE} build!"
           /* Necessary to load methods */
           mobile = load 'ci/mobile.groovy'
-          mobile.prep(params.BUILD_TYPE)
+          cmn    = load 'ci/common.groovy'
+          mobile.prep(cmn.getBuildType())
         }
+      }
+    }
+    stage('Lint') {
+      steps {
+        script { mobile.runLint() }
       }
     }
     stage('Tests') {
@@ -48,7 +54,7 @@ pipeline {
     }
     stage('Compile') {
       steps {
-        script { api = mobile.ios.compile(params.BUILD_TYPE) }
+        script { api = mobile.ios.compile(cmn.getBuildType()) }
       }
     }
     stage('Archive') {
