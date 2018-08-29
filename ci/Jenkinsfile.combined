@@ -9,96 +9,97 @@ pipeline {
       artifactNumToKeepStr: '10',
     ))
   }
-  
+
+
   stages {
-    stage('Tag') {
+    stage('Prep') {
       steps { script {
-        common = load('ci/common.groovy')
-        /* to avoid race conditions in parallel builds */
-        print "Build Number: ${common.tagBuild()}"
+        println "Current JOB: ${env.JOB_NAME}"
+        /* load common lib */
+        cmn = load('ci/common.groovy')
+
+        /* to avoid missing build tag parallel builds */
+        print "Build Number: ${cmn.tagBuild(true)}"
       } }
     }
     stage('Build') {
       parallel {
-        stage('MacOS') {
-          steps { script {
-            osx = build('status-react/combined/desktop-macos')
-          } }
-        }
-        stage('Linux') {
-          steps { script {
-            nix = build('status-react/combined/desktop-linux')
-          } }
-        }
-        stage('iOS') {
-          steps { script {
-            ios = build('status-react/combined/mobile-ios')
-          } }
-        }
-        stage('Android') {
-          steps { script {
-            dro = build('status-react/combined/mobile-android')
-          } }
-        }
-        stage('Android e2e') {
-          steps {
-            build('status-react/combined/mobile-android-e2e')
-          }
-        }
+        stage('MacOS') { steps { script {
+          osx = cmn.buildBranch('status-react/combined/desktop-macos', cmn.getBuildType())
+        } } }
+        stage('Linux') { steps { script {
+          nix = cmn.buildBranch('status-react/combined/desktop-linux', cmn.getBuildType())
+        } } }
+        stage('iOS') { steps { script {
+          ios = cmn.buildBranch('status-react/combined/mobile-ios', cmn.getBuildType())
+        } } }
+        stage('Android') { steps { script {
+          dro = cmn.buildBranch('status-react/combined/mobile-android', cmn.getBuildType())
+        } } }
+        stage('Android e2e') { steps { script {
+          e2e = cmn.buildBranch('status-react/combined/mobile-android', 'e2e')
+        } } }
       }
     }
     stage('Archive') {
-      steps {
+      steps { script {
         sh('rm -f pkg/*')
-        copyArtifacts(
-          projectName: 'status-react/combined/mobile-ios', target: 'pkg',
-          flatten: true, selector: specific("${ios.number}")
-        )
-        copyArtifacts(
-          projectName: 'status-react/combined/mobile-android', target: 'pkg',
-          flatten: true, selector: specific("${dro.number}")
-        )
-        copyArtifacts(
-          projectName: 'status-react/combined/desktop-macos', target: 'pkg',
-          flatten: true, selector: specific("${osx.number}")
-        )
-        copyArtifacts(
-          projectName: 'status-react/combined/desktop-linux', target: 'pkg',
-          flatten: true, selector: specific("${nix.number}")
-        )
+        cmn.copyArts('status-react/combined/desktop-macos', osx.number)
+        cmn.copyArts('status-react/combined/desktop-linux', nix.number)
+        cmn.copyArts('status-react/combined/mobile-android', dro.number)
+        cmn.copyArts('status-react/combined/mobile-android', e2e.number)
         archiveArtifacts('pkg/*')
-      }
+      } }
     }
     stage('Upload') {
-      when { expression { params.PUBLISH } }
       steps { script {
-        def pkg = "StatusIm-${GIT_COMMIT.take(6)}"
-        apkUrl = common.uploadArtifact('pkg', "${pkg}.apk")
-        ipaUrl = common.uploadArtifact('pkg', "${pkg}.ipa")
-        dmgUrl = common.uploadArtifact('pkg', "${pkg}.dmg")
-        appUrl = common.uploadArtifact('pkg', "${pkg}.AppImage")
+        e2eUrl = cmn.uploadArtifact(findFiles(glob: 'pkg/*.e2e.apk')[0].path)
+        apkUrl = cmn.uploadArtifact(findFiles(glob: "pkg/*.${cmn.getBuildType()}.apk")[0].path)
+        dmgUrl = cmn.uploadArtifact(findFiles(glob: 'pkg/*.dmg')[0].path)
+        appUrl = cmn.uploadArtifact(findFiles(glob: 'pkg/*.AppImage')[0].path)
+        /* special case for iOS Diawi links */
+        ipaUrl = ios.getBuildVariables().get('DIAWI_URL')
       } }
     }
     stage('Notify') {
-      steps {
-        slackSend(
-          message: (
-            "Build success! "+
+      steps { script {
+        def message = (
+            (env.CHANGE_ID != null ?
+              "Build PR #${BRANCH_NAME}(${CHANGE_BRANCH}) success! " :
+              "Build ${cmn.getBuildType()} success! "
+            )+
             "<${currentBuild.absoluteUrl}|${currentBuild.displayName}> "+
             "(${currentBuild.durationString})\n"+
-            (params.PUBLISH ?
-              "APK: ${apkUrl}\n"+
-              "IPA: ${ipaUrl}\n"+
-              "DMG: ${dmgUrl}\n"+
-              "APP: ${appUrl}\n"
-            : '')
-          ),
+            (cmn.getBuildType() == 'nightly' || cmn.getBuildType() == 'pr' ?
+              "Packages: "+
+              "<${apkUrl}|Android>, "+
+              "(<${e2eUrl}|e2e>), "+
+              "<${ipaUrl}|iOS>, "+
+              "<${dmgUrl}|MacOS>, "+
+              "<${appUrl}|AppImage>" :
+              "Packages: "+
+              "<${dro.getBuildVariables().get('DIAWI_URL')}|Android>, "+
+              "<${ios.getBuildVariables().get('DIAWI_URL')}|iOS>"
+            )
+        )
+        slackSend(
+          message: message,
           color: 'good'
         )
-      }
+        if (env.CHANGE_ID != null) {
+            cmn.githubNotify(
+                apkUrl, 
+                e2eUrl,
+                ipaUrl,
+                dmgUrl,
+                appUrl,
+                env.CHANGE_ID
+            )
+        }
+      } }
     }
     stage('Publish') {
-      when { expression { params.PUBLISH } }
+      when { expression { cmn.getBuildType() == 'nightly' } }
       steps {
         build(
           job: 'misc/status-im.github.io-update_env',

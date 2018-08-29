@@ -3,9 +3,9 @@ pipeline {
 
   options {
     buildDiscarder(logRotator(
-      numToKeepStr: '10',
+      numToKeepStr: '30',
       daysToKeepStr: '30',
-      artifactNumToKeepStr: '4',
+      artifactNumToKeepStr: '30',
     ))
   }
   
@@ -25,10 +25,17 @@ pipeline {
     stage('Prep') {
       steps {
         script {
+          print "Running ${params.BUILD_TYPE} build!"
           /* Necessary to load methods */
           mobile = load 'ci/mobile.groovy'
-          mobile.prepDeps()
+          cmn    = load 'ci/common.groovy'
+          mobile.prep(cmn.getBuildType())
         }
+      }
+    }
+    stage('Lint') {
+      steps {
+        script { mobile.runLint() }
       }
     }
     stage('Tests') {
@@ -38,33 +45,39 @@ pipeline {
     }
     stage('Build') {
       steps {
-        script { mobile.leinBuild() }
+        script { mobile.leinBuild('android') }
       }
     }
     stage('Compile') {
       steps {
-        script { apk = mobile.compileAndroid(e2e: params.RUN_E2E) }
-      }
-    }
-    stage('Bundle') {
-      when { expression { !params.RUN_E2E } }
-      steps {
-        script { mobile.bundleAndroid() }
+        script { apk = mobile.android.compile(cmn.getBuildType()) }
       }
     }
     stage('Archive') {
-      when { expression { !params.RUN_E2E } }
       steps {
         script { archiveArtifacts apk }
       }
     }
+    stage('Upload') {
+      steps {
+        script {
+          switch (cmn.getBuildType()) {
+            case 'release':
+              mobile.android.uploadToPlayStore(); break;
+            case 'nightly':
+              env.DIAWI_URL = mobile.android.uploadToDiawi()
+            case 'e2e':
+              e2eApk = mobile.android.uploadToSauceLabs()
+          } 
+        }
+      }
+    }
     stage('Run e2e') {
-      when { expression { params.RUN_E2E } }
+      when { expression { cmn.getBuildType() == 'e2e' } }
       steps { script {
-        apk = mobile.uploadSauceLabs() 
         build(
           job: 'end-to-end-tests/status-app-nightly', wait: false,
-          parameters: [string(name: 'apk', value: "--apk=${apk}")]
+          parameters: [string(name: 'apk', value: "--apk=${e2eApk}")]
         )
       } }
     }
