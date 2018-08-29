@@ -197,6 +197,19 @@
                                  (update-mailserver-status :connecting)
                                  (generate-mailserver-symkey wnode))))))
 
+(defn disconnect-previous-peer
+  [cb {:keys [db] :as cofx}]
+  (let [{:keys [address] :as wnode} (models.mailserver/fetch-current cofx)
+        args {:jsonrpc "2.0"
+              :id      2
+              :method  constants/admin-remove-peer
+              :params  [address]}
+        payload (.stringify js/JSON (clj->js args))]
+    (status/call-private-rpc payload
+                             (response-handler
+                              ethereum/handle-error
+                              cb))))
+
 (defn peers-summary-change-fx
   "There is only 2 summary changes that require offline inboxing action:
   - mailserver disconnected: we try to reconnect
