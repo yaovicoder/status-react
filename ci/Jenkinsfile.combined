@@ -4,7 +4,8 @@ pipeline {
   parameters {
     string(
       name: 'BUILD_TYPE',
-      description: 'Values: nightly / e2e / release'
+      description: 'Values: pr / nightly / e2e / release',
+      defaultValue: 'pr'
     )
   }
 
@@ -19,8 +20,10 @@ pipeline {
   
   stages {
     stage('Tag') {
+
       steps { script {
         cmn = load('ci/common.groovy')
+
         /* to avoid missing build tag parallel builds */
         print "Build Number: ${cmn.tagBuild(true)}"
       } }
@@ -55,7 +58,6 @@ pipeline {
       } }
     }
     stage('Upload') {
-      when { expression { params.BUILD_TYPE == 'nightly' } }
       steps { script {
         e2eUrl = cmn.uploadArtifact(findFiles(glob: 'pkg/*.e2e.apk')[0].path)
         apkUrl = cmn.uploadArtifact(findFiles(glob: "pkg/*.${params.BUILD_TYPE}.apk")[0].path)
@@ -67,15 +69,14 @@ pipeline {
     }
     stage('Notify') {
       steps { script {
-        slackSend(
-          message: (
+        def message = (
             (env.CHANGE_ID != null ?
               "Build PR #${BRANCH_NAME}(${CHANGE_BRANCH}) success! " :
               "Build ${params.BUILD_TYPE} success! "
             )+
             "<${currentBuild.absoluteUrl}|${currentBuild.displayName}> "+
             "(${currentBuild.durationString})\n"+
-            (params.BUILD_TYPE == 'nightly' ?
+            (params.BUILD_TYPE == 'nightly' || params.BUILD_TYPE == 'pr' ?
               "Packages: "+
               "<${apkUrl}|Android>, "+
               "(<${e2eUrl}|e2e>), "+
@@ -86,9 +87,21 @@ pipeline {
               "<${dro.getBuildVariables().get('DIAWI_URL')}|Android>, "+
               "<${ios.getBuildVariables().get('DIAWI_URL')}|iOS>"
             )
-          ),
+        )
+        slackSend(
+          message: message,
           color: 'good'
         )
+        if (env.CHANGE_ID != null) {
+            cmn.githubNotify(
+                apkUrl, 
+                e2eUrl,
+                ipaUrl,
+                dmgUrl,
+                appUrl,
+                env.CHANGE_ID
+            )
+        }
       } }
     }
     stage('Publish') {
