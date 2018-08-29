@@ -4,8 +4,7 @@ pipeline {
   parameters {
     string(
       name: 'BUILD_TYPE',
-      description: 'Values: pr / nightly / e2e / release',
-      defaultValue: 'pr'
+      description: 'Values: pr / nightly / e2e / release'
     )
   }
 
@@ -19,6 +18,13 @@ pipeline {
   }
   
   stages {
+    stage('Set build type') {
+      steps { script {
+        if params.BUILD_TYPE == null {
+          params.BUILD_TYPE = 'pr'
+        }
+      } }
+    }
     stage('Tag') {
       steps { script {
         cmn = load('ci/common.groovy')
