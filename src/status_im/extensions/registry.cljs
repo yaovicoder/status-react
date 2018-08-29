@@ -6,11 +6,13 @@
             [pluto.storage.gist :as gist]
             [status-im.extensions.core :as extension]
             [status-im.chat.commands.core :as commands]
+            [status-im.chat.commands.impl.transactions :as transactions]
             [status-im.ui.components.react :as react]))
 
 (def components
-  {'view react/view
-   'text react/text})
+  {'view           react/view
+   'text           react/text
+   'asset-selector transactions/choose-asset-suggestion})
 
 (def app-hooks #{commands/command-hook})
 
@@ -18,7 +20,7 @@
   (reduce (fn [capacities hook]
             (assoc-in capacities [:hooks (host/id hook)] hook))
           {:components    components
-           :subscriptions #{:get-in}
+           :queries       #{:get-in}
            :events        #{:set-in}
            :permissions   {:read  {:include-paths #{[:network]
                                                     [:current-chat-id]
