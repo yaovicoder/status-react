@@ -229,7 +229,7 @@
                                      platform/android? :android))
 
 (defmethod create-main-screen-view :iphone-x [current-view]
-  (fn [props child]
+  (fn [props & children]
     (let [props             (merge props
                                    {:background-color
                                     (case current-view
@@ -265,14 +265,15 @@
                                      :wallet-request-assets
                                      :wallet-settings-assets
                                      :wallet-modal} current-view)
-                              (conj [view {:background-color styles/color-white
-                                           :position         :absolute
-                                           :bottom           0
-                                           :right            0
-                                           :left             0
-                                           :height           100
-                                           :z-index          -1000}]))]
-      [safe-area-view props child bottom-background])))
+                              [view {:background-color styles/color-white
+                                     :position         :absolute
+                                     :bottom           0
+                                     :right            0
+                                     :left             0
+                                     :height           100
+                                     :z-index          -1000}])
+          children (conj children bottom-background)]
+      (apply vector safe-area-view props children))))
 
 (defmethod create-main-screen-view :default [_]
   view)

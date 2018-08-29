@@ -62,12 +62,11 @@
   (fn []
     (let [main-view (create-main-screen-view view-id)]
       [main-view common-styles/flex
-       [view common-styles/flex
-        [component]
-        [:> navigation/navigation-events
-         {:on-will-focus
-          (fn []
-            #_(re-frame/dispatch [:set :view-id view-id]))}]]])))
+       [component]
+       [:> navigation/navigation-events
+        {:on-will-focus
+         (fn []
+           (re-frame/dispatch [:set :view-id view-id]))}]])))
 
 (defn stack-screens [screens-map]
   (->> screens-map
@@ -83,6 +82,11 @@
                              (nav-reagent/stack-screen (wrap k v)))]
                 [k {:screen screen}])))
        (into {})))
+
+(defn wrap-modal [modal-view component]
+  (fn []
+    [react/main-screen-modal-view modal-view
+     [component]]))
 
 (defn get-main-component2 [view-id]
   (nav-reagent/switch-navigator
@@ -124,16 +128,39 @@
         :wallet-modal
         wallet.main/wallet-modal
 
-        :wallet-send-stack
+        :wallet-send-modal-stack
         {:screens
-         {:wallet-onboarding-setup-modal wallet.onboarding.setup/modal
-          :wallet-send-transaction-modal send-transaction-modal
-          :wallet-transaction-sent-modal transaction-sent-modal}
+         {:wallet-send-transaction-modal
+          (wrap-modal :wallet-send-transaction-modal send-transaction-modal)
+
+          :wallet-transaction-sent-modal
+          (wrap-modal :wallet-transaction-sent-modal transaction-sent-modal)
+
+          :wallet-transaction-fee
+          (wrap-modal :wallet-transaction-fee wallet.transaction-fee/transaction-fee)}
          :config
-         {:headerMode "none"}}
+         {:headerMode       "none"
+          :initialRouteName "wallet-send-transaction-modal"}}
+
+        :wallet-send-modal-stack-with-onboarding
+        {:screens
+         {:wallet-onboarding-setup-modal
+          (wrap-modal :wallet-onboarding-setup-modal wallet.onboarding.setup/modal)
+
+          :wallet-send-transaction-modal
+          (wrap-modal :wallet-send-transaction-modal send-transaction-modal)
+
+          :wallet-transaction-sent-modal
+          (wrap-modal :wallet-transaction-sent-modal transaction-sent-modal)
+
+          :wallet-transaction-fee
+          (wrap-modal :wallet-transaction-fee wallet.transaction-fee/transaction-fee)}
+         :config
+         {:headerMode       "none"
+          :initialRouteName "wallet-onboarding-setup-modal"}}
 
         :wallet-sign-message-modal
-        sign-message-modal})
+        (wrap-modal :wallet-sign-message-modal sign-message-modal)})
       {:mode             "modal"
        :headerMode       "none"
        :initialRouteName "main-stack"})}

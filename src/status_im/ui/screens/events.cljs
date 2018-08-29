@@ -141,7 +141,7 @@
      cofx
      {:dispatch            [:init/initialize-keychain]
       :clear-user-password (get-in db [:account/account :address])}
-     (navigation/navigate-to-clean :logout)
+     (navigation/navigate-to-clean :login)
      (transport/stop-whisper))))
 
 (handlers/register-handler-fx

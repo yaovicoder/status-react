@@ -136,8 +136,8 @@
                            [:wallet/update-gas-price])
                          [:navigate-to
                           (if wallet-set-up-passed?
-                            :wallet-send-transaction-modal
-                            :wallet-onboarding-setup-modal)]]})
+                            :wallet-send-modal-stack
+                            :wallet-send-modal-stack-with-onboarding)]]})
 
          ;;SIGN MESSAGE
          (= method constants/web3-personal-sign)
