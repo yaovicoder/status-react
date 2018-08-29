@@ -184,8 +184,7 @@ def bundleMacOS(type = 'nightly') {
       macdeployqt StatusIm.app -verbose=1 \\
         -qmldir='${workspace}/node_modules/react-native/ReactQt/runtime/src/qml/'
     """
-    sh 'appdmg ../deployment/macos/status-dmg.json StatusIm.dmg'
-    sh "mv StatusIm.dmg ${pkg}"
+    sh "appdmg ../deployment/macos/status-dmg.json ${pkg}"
   }
   return "${packageFolder}/${pkg}".drop(2)
 }
