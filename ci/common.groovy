@@ -7,19 +7,15 @@ def getBuildType() {
   if (jobName.startsWith('status-react/pull requests')) {
       return 'pr'
   }
-
   if (jobName.startsWith('status-react/nightly')) {
       return 'nightly'
   }
-
   if (jobName.startsWith('status-react/release')) {
       return 'release'
   }
-
   return params.BUILD_TYPE
 }
   
-
 def buildBranch(name = null, buildType) {
   /* need to drop origin/ to match definitions of child jobs */
   def branchName = env.GIT_BRANCH.replace('origin/', '')
