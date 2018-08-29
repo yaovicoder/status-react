@@ -4,17 +4,17 @@ def version() {
 
 def getBuildType() {
   def jobName = env.JOB_NAME
-  if (jobName.startswith('status-react/pull requests')) {
+  if (jobName.startsWith('status-react/pull requests')) {
       println "returning PR"
       return 'pr'
   }
 
-  if (jobName.startswith('status-react/nightly')) {
+  if (jobName.startsWith('status-react/nightly')) {
       println "returning nightly"
       return 'nightly'
   }
 
-  if (jobName.startswith('status-react/release')) {
+  if (jobName.startsWith('status-react/release')) {
       println "returning release"
       return 'release'
   }
