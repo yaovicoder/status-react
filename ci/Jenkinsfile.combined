@@ -1,19 +1,6 @@
 pipeline {
   agent { label 'master' }
 
-  parameters {
-    string(
-      name: 'BUILD_TYPE',
-      description: 'Values: pr / nightly / e2e / release'
-      /* 
-       * IMPORTANT!
-       * `defaultValue` should not be set!
-       * It breaks job settings in Jenkins (like nightlies, etc).
-       * use `cmn.getBuildType()` instead of using this param directly!
-       */
-    )
-  }
-
   options {
     disableConcurrentBuilds()
     buildDiscarder(logRotator(
