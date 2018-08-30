@@ -30,6 +30,10 @@ def buildBranch(name = null, buildType) {
   ])
   /* BlueOcean seems to not show child-build links */
   print "URL: ${b.getAbsoluteUrl()}"
+  print "Result: ${b.result}"
+  if (b.result != 'SUCCESS') {
+    error("Build Failed")
+  }
   return b
 }
 
