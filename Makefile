@@ -29,6 +29,7 @@ HELP_FUN = \
 clean: ##@prepare Remove all output folders
 	git clean -qdxf modules/react-native-status/ target/ desktop/modules desktop/node_modules
 	npm prune
+	cd android && ./gradlew clean; cd ..
 
 setup: ##@prepare Install all the requirements for status-react
 	./scripts/setup
@@ -39,10 +40,10 @@ prepare: ##@prepare Install dependencies and prepare workspace
 
 prepare-ios: prepare ##@prepare Install iOS specific dependencies
 	mvn -f modules/react-native-status/ios/RCTStatus dependency:unpack
-	cd ios && pod install && cd ..
+	cd ios && pod install
 
 prepare-android: prepare ##@prepare Install Android specific dependencies
-	cd android; ./gradlew react-native-android:installArchives
+	cd android && ./gradlew react-native-android:installArchives
 
 #----------------
 # Release builds
