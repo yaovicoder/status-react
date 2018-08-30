@@ -126,13 +126,13 @@ def getBuildUrl = { ->
 }
 
 android {
-    compileSdkVersion 27
-    buildToolsVersion "27.0.3"
+    compileSdkVersion 26
+    buildToolsVersion "26.0.2"
 
     defaultConfig {
         applicationId "im.status.ethereum"
         minSdkVersion 23
-        targetSdkVersion 27
+        targetSdkVersion 26
         multiDexEnabled true
         versionCode getVersionCode()
         versionName getVersionName()
@@ -218,19 +218,11 @@ configurations.all {
 }
 
 subprojects { subproject ->
-    project.configurations.all {
-        resolutionStrategy.eachDependency { details ->
-            if (details.requested.group == 'com.android.support'
-                    && !details.requested.name.contains('multidex') ) {
-                details.useVersion "27.1.1"
-            }
-        }
-    }
     afterEvaluate {
         if ((subproject.plugins.hasPlugin('android') || subproject.plugins.hasPlugin('android-library'))) {
             android {
-                compileSdkVersion 27
-                buildToolsVersion "27.0.3"
+                compileSdkVersion 26
+                buildToolsVersion "26.0.2"
             }
         }
     }
