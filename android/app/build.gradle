@@ -126,13 +126,12 @@ def getBuildUrl = { ->
 }
 
 android {
-    compileSdkVersion 26
-    buildToolsVersion "26.0.3"
+    compileSdkVersion 27
 
     defaultConfig {
         applicationId "im.status.ethereum"
         minSdkVersion 23
-        targetSdkVersion 26
+        targetSdkVersion 27
         multiDexEnabled true
         versionCode getVersionCode()
         versionName getVersionName()
@@ -229,7 +228,7 @@ dependencies {
     implementation project(':react-native-dialogs')
     implementation project(':realm')
     implementation fileTree(dir: "libs", include: ["*.jar"])
-    implementation 'com.android.support:appcompat-v7:26.1.0'
+    implementation "com.android.support:appcompat-v7:26.1.0"
     // Force using exact RN version instead of relying on gradle dependency resolution
     // https://docs.gradle.org/current/userguide/introduction_dependency_management.html#sec:dependency_resolution
     //compile ("com.facebook.react:react-native:0.55.4") { force = true }  // From node_modules
