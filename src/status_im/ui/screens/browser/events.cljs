@@ -13,7 +13,8 @@
             [status-im.utils.random :as random]
             [status-im.utils.types :as types]
             [status-im.utils.universal-links.core :as utils.universal-links]
-            [taoensso.timbre :as log]))
+            [taoensso.timbre :as log]
+            [status-im.utils.ethereum.resolver :as resolver]))
 
 (re-frame/reg-fx
  :browse
@@ -39,19 +40,42 @@
  (fn [[message webview]]
    (.sendToBridge webview (types/clj->json message))))
 
+(re-frame/reg-fx
+ :resolve-ens-multihash
+ (fn [{:keys [web3 registry ens-name cb]}]
+   (resolver/content web3 registry ens-name cb)))
+
 (handlers/register-handler-fx
  :browse-link-from-message
  (fn [_ [_ link]]
    {:browse link}))
 
 (handlers/register-handler-fx
+ :ens-multihash-resolved
+ [re-frame/trim-v]
+ (fn [{:keys [db] :as cofx} [hash]]
+   (let [options (:browser/options db)
+         browsers (:browser/browsers db)
+         browser (get browsers (:browser-id options))
+         history-index (:history-index browser)]
+     (handlers-macro/merge-fx
+      cofx
+      {:db (assoc-in db [:browser/options :resolving?] false)}
+      (model/update-browser-fx
+       (assoc-in browser [:history history-index] (str "https://ipfs.infura.io/ipfs/" hash)))))))
+
+(handlers/register-handler-fx
  :open-url-in-browser
  [re-frame/trim-v]
  (fn [cofx [url]]
-   (let [normalized-url (http/normalize-and-decode-url url)]
-     (model/update-browser-and-navigate cofx {:browser-id    (or (http/url-host normalized-url) (random/id))
-                                              :history-index 0
-                                              :history       [normalized-url]}))))
+   (let [normalized-url (http/normalize-and-decode-url url)
+         host (http/url-host normalized-url)]
+     (model/update-new-browser-and-navigate
+      host
+      {:browser-id    (or host (random/id))
+       :history-index 0
+       :history       [normalized-url]}
+      cofx))))
 
 (handlers/register-handler-fx
  :send-to-bridge
@@ -63,13 +87,17 @@
  :open-browser
  [re-frame/trim-v]
  (fn [cofx [browser]]
-   (model/update-browser-and-navigate cofx browser)))
+   (model/update-browser-and-navigate browser cofx)))
 
 (handlers/register-handler-fx
  :update-browser-on-nav-change
  [re-frame/trim-v]
- (fn [cofx [browser url loading]]
-   (model/update-browser-history-fx cofx browser url loading)))
+ (fn [cofx [browser url loading error?]]
+   (let [host (http/url-host url)]
+     (handlers-macro/merge-fx
+      cofx
+      (model/resolve-multihash-fx host loading error?)
+      (model/update-browser-history-fx browser url loading)))))
 
 (handlers/register-handler-fx
  :update-browser-options
@@ -85,7 +113,7 @@
     :data-store/tx [(browser-store/remove-browser-tx browser-id)]}))
 
 (defn nav-update-browser [cofx browser history-index]
-  (model/update-browser-fx cofx (assoc browser :history-index history-index)))
+  (model/update-browser-fx (assoc browser :history-index history-index) cofx))
 
 (handlers/register-handler-fx
  :browser-nav-back
@@ -113,7 +141,7 @@
      (cond
 
        (and (= type constants/history-state-changed) platform/ios? (not= "about:blank" url))
-       (model/update-browser-history-fx cofx browser url false)
+       (model/update-browser-history-fx browser url false cofx)
 
        (= type constants/web3-send-async)
        (model/web3-send-async payload messageId cofx)
