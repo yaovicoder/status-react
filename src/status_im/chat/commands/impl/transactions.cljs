@@ -40,21 +40,40 @@
       #_[react/text {:style transactions-styles/asset-balance}
          (str (money/internal->formatted amount symbol decimals))]]]))
 
+(defn- render-nft-asset [selected-event-creator]
+  (fn [{:keys [name symbol amount] :as asset}]
+    [react/touchable-highlight
+     {:on-press #(re-frame/dispatch (selected-event-creator (clojure.core/name symbol)))}
+     [react/view transactions-styles/asset-container
+      [react/view transactions-styles/asset-main
+       [react/image {:source (-> asset :icon :source)
+                     :style  transactions-styles/asset-icon}]
+       [react/text {:style transactions-styles/asset-symbol} name]]
+      [react/text {:style transactions-styles/nft-asset-amount} (money/to-fixed amount)]]]))
+
 (def assets-separator [react/view transactions-styles/asset-separator])
 
-(defview choose-asset [selected-event-creator]
+(defview choose-asset [nft? selected-event-creator]
   (letsubs [assets [:wallet/visible-assets-with-amount]]
     [react/view
-     [list/flat-list {:data                      (filter #(not (:nft? %)) assets)
+     [list/flat-list {:data                      (filter #(if nft?
+                                                            (:nft? %)
+                                                            (not (:nft? %)))
+                                                         assets)
                       :key-fn                    (comp name :symbol)
-                      :render-fn                 (render-asset selected-event-creator)
+                      :render-fn                 (if nft?
+                                                   (render-nft-asset selected-event-creator)
+                                                   (render-asset selected-event-creator))
                       :enableEmptySections       true
                       :separator                 assets-separator
                       :keyboardShouldPersistTaps :always
                       :bounces                   false}]]))
 
 (defn choose-asset-suggestion [selected-event-creator]
-  [choose-asset selected-event-creator])
+  [choose-asset false selected-event-creator])
+
+(defn choose-nft-asset-suggestion [selected-event-creator]
+  [choose-asset true selected-event-creator])
 
 (defn personal-send-request-short-preview
   [label-key {:keys [content]}]
