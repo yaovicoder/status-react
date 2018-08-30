@@ -214,6 +214,7 @@ android {
 
 configurations.all {
     exclude group: 'com.facebook.react', module: 'react-native'
+    resolutionStrategy.force "com.android.support:appcompat-v7:26.1.0"
 }
 
 dependencies {
