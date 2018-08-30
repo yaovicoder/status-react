@@ -42,6 +42,6 @@
                        :default-separator?      false
                        :key-fn                  first
                        :render-fn               render-extension
-                       :content-container-style {:justify-content :center}
+                       :content-container-style (merge (when (zero? (count extensions)) {:flex-grow 1}) {:justify-content :center})
                        :empty-component         [react/text {:style styles/empty-list}
                                                  (i18n/label :t/no-extension)]}]]]))
