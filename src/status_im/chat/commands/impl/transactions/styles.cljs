@@ -23,6 +23,11 @@
 (def asset-symbol
   {:color colors/black})
 
+(def nft-asset-amount
+  {:font-size     16
+   :color         colors/gray
+   :padding-right 14})
+
 (def asset-name
   {:color        colors/gray
    :padding-left 4})
