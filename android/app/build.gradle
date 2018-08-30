@@ -127,6 +127,7 @@ def getBuildUrl = { ->
 
 android {
     compileSdkVersion 27
+    buildToolsVersion "27.0.3"
 
     defaultConfig {
         applicationId "im.status.ethereum"
@@ -215,6 +216,17 @@ android {
 configurations.all {
     exclude group: 'com.facebook.react', module: 'react-native'
     resolutionStrategy.force "com.android.support:appcompat-v7:26.1.0"
+}
+
+subprojects { subproject ->
+    afterEvaluate {
+        if ((subproject.plugins.hasPlugin('android') || subproject.plugins.hasPlugin('android-library'))) {
+            android {
+                compileSdkVersion rootProject.ext.compileSdkVersion
+                buildToolsVersion rootProject.ext.buildToolsVersion
+            }
+        }
+    }
 }
 
 dependencies {
