@@ -219,7 +219,7 @@ configurations.all {
 
 subprojects { subproject ->
     afterEvaluate {
-        if ((subproject.plugins.hasPlugin('android') || subproject.plugins.hasPlugin('android-library'))) {
+        if (project.hasProperty("android") && VersionNumber.parse(project.property("android").buildToolsVersion) < VersionNumber.parse("26.0.0")) {
             android {
                 compileSdkVersion 26
                 buildToolsVersion "26.0.2"
