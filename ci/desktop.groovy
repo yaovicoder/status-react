@@ -194,11 +194,11 @@ def bundleMacOS(type = 'nightly') {
             'StatusIm.app/Contents/MacOS/reportApp'
     sh 'cp -f ../deployment/macos/Info.plist StatusIm.app/Contents'
     sh """
-      macdeployqt StatusIm.app -verbose=1 -dmg \\
+      macdeployqt StatusIm.app -verbose=1 \\
         -qmldir='${workspace}/node_modules/react-native/ReactQt/runtime/src/qml/'
     """
     sh 'rm -f StatusIm.app.zip'
-    sh "mv StatusIm.dmg ${pkg}"
+    sh "../node_modules/appdmg/bin/appdmg.js ../deployment/macos/status-dmg.json ${pkg}"
   }
   return "${packageFolder}/${pkg}".drop(2)
 }
