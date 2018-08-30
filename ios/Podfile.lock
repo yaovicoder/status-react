@@ -61,13 +61,11 @@ DEPENDENCIES:
 
 SPEC REPOS:
   https://github.com/cocoapods/specs.git:
-    - Firebase
     - FirebaseAnalytics
     - FirebaseCore
     - FirebaseInstanceID
     - FirebaseMessaging
     - GoogleToolboxForMac
-    - nanopb
     - Protobuf
 
 EXTERNAL SOURCES:
@@ -99,4 +97,4 @@ SPEC CHECKSUMS:
 
 PODFILE CHECKSUM: 7b1cffafffc7716605022454f02fe45929cc85c3
 
-COCOAPODS: 1.5.2
+COCOAPODS: 1.4.0
