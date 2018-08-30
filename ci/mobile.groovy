@@ -19,8 +19,11 @@ def podUpdate() {
    **/
   def maxAttempts = 10
   def success = false
+  def rval
   for (i = 0; i <= maxAttempts; i++) {
-    if (!podLockExists()) {
+    rval = podLockExists()
+    print "exists? ${rval}"
+    if (!rval) {
       success = true
       break
     }
