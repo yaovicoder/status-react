@@ -45,8 +45,9 @@
 (defview message-content-command
   [command-message]
   (letsubs [id->command [:get-id->command]]
-    (when-let [command (commands-receiving/lookup-command-by-ref command-message id->command)]
-      (commands/generate-preview command command-message))))
+    (if-let [command (commands-receiving/lookup-command-by-ref command-message id->command)]
+      (commands/generate-preview command command-message)
+      [react/text (str "Unhandled command: " (-> command-message :content :command-path first))])))
 
 (def rtl-characters-regex #"[^\u0591-\u06EF\u06FA-\u07FF\u200F\u202B\u202E\uFB1D-\uFDFD\uFE70-\uFEFC]*?[\u0591-\u06EF\u06FA-\u07FF\u200F\u202B\u202E\uFB1D-\uFDFD\uFE70-\uFEFC]")
 
