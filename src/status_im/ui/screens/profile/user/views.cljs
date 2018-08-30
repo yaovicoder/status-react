@@ -145,7 +145,7 @@
   (letsubs [{:keys [sharing-usage-data?]} [:get-current-account]]
     {:component-did-mount on-show}
     [react/view
-     (when dev-mode?
+     (when (and config/extensions-enabled? dev-mode?)
        [profile.components/settings-item
         {:label-kw            :t/extensions
          :action-fn           #(re-frame/dispatch [:navigate-to :extensions-settings])
