@@ -159,6 +159,7 @@ timeout(90) {
                     macdeployqt StatusIm.app -verbose=1 -dmg \\
                       -qmldir='${workspace}/node_modules/react-native/ReactQt/runtime/src/qml/'
                   """
+                  sh 'rm -f StatusIm.app.zip'
                 }
               }
 
