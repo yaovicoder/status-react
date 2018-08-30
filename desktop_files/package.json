@@ -84,6 +84,7 @@
     "web3": "github:status-im/web3.js#feature/shhext"
   },
   "devDependencies": {
+    "appdmg": "^0.5.2",
     "patch-package": "^5.1.1"
   }
 }
