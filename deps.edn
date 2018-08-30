@@ -10,8 +10,8 @@
          com.andrewmcveigh/cljs-time {:mvn/version "0.5.2"}
          com.taoensso/timbre         {:mvn/version "4.10.0"}
          hickory                     {:mvn/version "0.7.1"}
-         com.cognitect/transit-cljs  {:mvn/version "0.8.248"}}
-
+         com.cognitect/transit-cljs  {:mvn/version "0.8.248"}
+         mvxcvi/alphabase            {:mvn/version "1.0.0"}}
  :aliases
  {:dev {:extra-deps
         {clj-rn {:git/url "https://github.com/status-im/clj-rn"
