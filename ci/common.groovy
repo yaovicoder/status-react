@@ -151,4 +151,13 @@ def githubNotify(apkUrl, e2eUrl, ipaUrl, dmgUrl, appUrl, changeId) {
   }
 }
 
+def getParentRunEnv(name) {
+  def c = currentBuild.rawBuild.getCause(hudson.model.Cause$UpstreamCause)
+  print c.properties
+  if (c) {
+    return c.getUpstreamRun().getEnvironment()[name]
+  }
+  return null
+}
+
 return this
