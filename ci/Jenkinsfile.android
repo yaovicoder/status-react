@@ -29,6 +29,9 @@ pipeline {
           /* Necessary to load methods */
           mobile = load 'ci/mobile.groovy'
           cmn    = load 'ci/common.groovy'
+          print "CHANGE_ID: ${CHANGE_ID}"
+          print "CHANGE_ID: ${env.CHANGE_ID}"
+          error('test')
           mobile.prep(cmn.getBuildType())
         }
       }
