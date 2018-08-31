@@ -129,6 +129,7 @@ android {
     compileSdkVersion 26
     buildToolsVersion "26.0.2"
 
+
     defaultConfig {
         applicationId "im.status.ethereum"
         minSdkVersion 23
@@ -218,11 +219,6 @@ configurations.all {
 }
 
 dependencies {
-    compile (project(':react-native-camera')) {
-        exclude group: "com.google.android.gms"
-        compile 'com.android.support:exifinterface:27.+'
-    }
-    implementation project(':react-native-firebase')
     implementation project(':react-native-background-timer')
     implementation project(':react-native-svg')
     implementation 'com.android.support:multidex:1.0.2'
@@ -245,9 +241,16 @@ dependencies {
     implementation project(':react-native-securerandom')
     implementation project(':react-native-webview-bridge')
     implementation project(':react-native-config')
-    implementation 'com.google.android.gms:play-services-base:15.0.0'
-    implementation 'com.google.firebase:firebase-core:15.0.2' //this decides your firebase SDK version
-    implementation 'com.google.firebase:firebase-messaging:15.0.2'
+    implementation project(':react-native-firebase')
+    compile ('com.google.android.gms:play-services-base:15.0.1') {
+        force = true
+    }
+    compile (project(':react-native-camera')) {
+        exclude group: "com.google.android.gms"
+        compile 'com.android.support:exifinterface:27.+'
+    }
+    implementation 'com.google.firebase:firebase-core:16.0.3' //this decides your firebase SDK version
+    implementation 'com.google.firebase:firebase-messaging:17.1.0'
     implementation project(':react-native-testfairy')
     implementation project(':react-native-keychain')
     implementation project(':instabug-reactnative')
@@ -282,3 +285,4 @@ preBuild.dependsOn hemroidBuild
 
 // Must be at bottom to avoid dependency collision
 apply plugin: "com.google.gms.google-services"
+com.google.gms.googleservices.GoogleServicesPlugin.config.disableVersionCheck = true
