@@ -7,7 +7,8 @@
   (.. dialogs
       (showPicker title nil (clj->js {:items        (mapv #(select-keys % [:label])
                                                           options)
-                                      :negativeText cancel-text}))
+                                      :negativeText cancel-text
+                                      :positiveText nil}))
       (then (fn [selected]
               (when-let [label (get-in (js->clj selected :keywordize-keys true)
                                        [:selectedItem :label])]
