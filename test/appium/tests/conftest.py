@@ -1,3 +1,4 @@
+import time
 import requests
 import pytest
 import re
@@ -144,16 +145,16 @@ def pytest_runtest_makereport(item, call):
         current_test = test_suite_data.current_test
         if report.failed:
             error = report.longreprtext
-            exception = re.findall('E.*:', error)
+            exception = re.findall('E.*Message:|E.*Error:|E.*Failed:', error)
             if exception:
-                error = error.replace(re.findall('E.*:', report.longreprtext)[0], '')
+                error = error.replace(re.findall('E.*Message:|E.*Error:|E.*Failed:', report.longreprtext)[0], '')
             current_test.testruns[-1].error = error
         if is_sauce_env:
             update_sauce_jobs(current_test.name, current_test.testruns[-1].jobs, report.passed)
 
 
 def update_sauce_jobs(test_name, job_ids, passed):
-    for job_id in job_ids:
+    for job_id in job_ids.keys():
         sauce.jobs.update_job(job_id, name=test_name, passed=passed)
 
 

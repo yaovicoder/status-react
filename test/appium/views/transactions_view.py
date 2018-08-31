@@ -27,7 +27,7 @@ class TransactionTable(BaseElement):
     def __init__(self, driver):
         super(TransactionTable, self).__init__(driver)
         self.driver = driver
-        self.locator = self.Locator.xpath_selector("//android.support.v4.view.ViewPager")
+        self.locator = self.Locator.xpath_selector("//android.widget.ScrollView")
 
     class TransactionElement(BaseButton):
         def __init__(self, driver):
@@ -93,7 +93,7 @@ class TransactionTable(BaseElement):
             except NoSuchElementException:
                 time.sleep(5)
                 self.refresh_transactions()
-        pytest.fail('Transaction was not found on Wallet/Transaction screen')
+        self.driver.fail('Transaction was not found on Wallet/Transaction screen')
 
     def refresh_transactions(self):
         self.driver.swipe(500, 500, 500, 1000)
@@ -101,7 +101,7 @@ class TransactionTable(BaseElement):
     def get_transactions_number(self):
         element = self.TransactionElement(self.driver)
         element.locator = element.Locator.xpath_selector('//android.view.ViewGroup[@content-desc="transaction-item"]')
-        return len(element.find_elements())
+        return len(element.wait_for_elements())
 
 
 class FiltersButton(BaseButton):

@@ -10,43 +10,61 @@
             [status-im.constants :as constants]
             [status-im.utils.identicon :as identicon]
             [status-im.utils.datetime :as time]
+            [status-im.utils.utils :as utils]
             [status-im.ui.components.react :as react]
             [status-im.ui.components.colors :as colors]
             [status-im.chat.views.message.datemark :as message.datemark]
             [status-im.ui.screens.desktop.main.tabs.profile.views :as profile.views]
             [status-im.ui.components.icons.vector-icons :as vector-icons]
             [status-im.ui.screens.desktop.main.chat.styles :as styles]
-            [status-im.i18n :as i18n]))
+            [status-im.utils.contacts :as utils.contacts]
+            [status-im.i18n :as i18n]
+            [status-im.ui.screens.desktop.main.chat.events :as chat.events]))
 
-(views/defview toolbar-chat-view []
-  (views/letsubs [{:keys [chat-id public-key public? group-chat color]} [:get-current-chat]
-                  {:keys [pending? whisper-identity photo-path]}                      [:get-current-chat-contact]
-                  current-chat-name                                                   [:get-current-chat-name]]
+(views/defview toolbar-chat-view [{:keys [chat-id color public-key public? group-chat]
+                                   :as current-chat}]
+  (views/letsubs [chat-name         [:get-current-chat-name]
+                  {:keys [pending? whisper-identity photo-path]} [:get-current-chat-contact]]
     [react/view {:style styles/toolbar-chat-view}
-     [react/view {:style {:flex-direction  :row
-                          :align-items :center}}
-
-      [react/view {:style styles/img-container}
-       (if public?
-         [react/view {:style (styles/topic-image color)}
-          [react/text {:style styles/topic-text}
-           (string/capitalize (first current-chat-name))]]
-         [react/image {:style styles/photo-style-toolbar
-                       :source {:uri photo-path}}])]
-
-      [react/view
-       [react/text {:style styles/toolbar-chat-name} current-chat-name]
-       (when pending?
-         [react/touchable-highlight
-          {:on-press #(re-frame/dispatch [:add-contact whisper-identity])}
-          [react/view {:style styles/add-contact}
-           [react/text {:style styles/add-contact-text}
-            (i18n/label :t/add-to-contacts)]]])]
+     [react/view {:style {:flex-direction :row
+                          :flex 1}}
+      (if public?
+        [react/view {:style (styles/topic-image color)}
+         [react/text {:style styles/topic-text}
+          (string/capitalize (second chat-name))]]
+        [react/image {:style styles/chat-icon
+                      :source {:uri photo-path}}])
+      [react/view {:style (styles/chat-title-and-type pending?)}
+       [react/text {:style styles/chat-title
+                    :font  :medium}
+        chat-name]
+       (cond pending?
+             [react/text {:style styles/add-contact-text
+                          :on-press #(re-frame/dispatch [:add-contact whisper-identity])}
+              (i18n/label :t/add-to-contacts)]
+             public?
+             [react/text {:style styles/public-chat-text}
+              (i18n/label :t/public-chat)])]]
+     [react/view
       (when (and (not group-chat) (not public?))
-        [react/text {:style {:position :absolute
-                             :right 20}
-                     :on-press #(re-frame/dispatch [:navigate-to :chat-profile])}
-         (i18n/label :t/view-profile)])]]))
+        [react/text {:style (styles/profile-actions-text colors/black)
+                     :on-press #(re-frame/dispatch [:show-profile-desktop whisper-identity])}
+         (i18n/label :t/view-profile)])
+
+      [react/text {:style (styles/profile-actions-text colors/red)
+                   :on-press (fn []
+                               (utils/show-confirmation (i18n/label :clear-history-confirmation)
+                                                        ""
+                                                        (i18n/label :clear-history-action)
+                                                        #(re-frame/dispatch [:clear-history])))}
+       (i18n/label :t/clear-history)]
+      [react/text {:style (styles/profile-actions-text colors/red)
+                   :on-press (fn []
+                               (utils/show-confirmation (i18n/label :delete-chat-confirmation)
+                                                        ""
+                                                        (i18n/label :delete-chat-action)
+                                                        #(re-frame/dispatch [:remove-chat-and-navigate-home chat-id])))}
+       (i18n/label :t/delete-chat)]]]))
 
 (views/defview message-author-name [{:keys [outgoing from] :as message}]
   (views/letsubs [current-account [:get-current-account]
@@ -56,9 +74,12 @@
        [react/text {:style styles/author} name]])))
 
 (views/defview member-photo [from]
-  [react/view
-   [react/image {:source {:uri (identicon/identicon from)}
-                 :style  styles/photo-style}]])
+  (letsubs [photo-path [:get-photo-path from]]
+    [react/touchable-highlight  {:on-press #(re-frame/dispatch [:show-profile-desktop from])}
+     [react/image {:source {:uri (if (string/blank? photo-path)
+                                   (identicon/identicon from)
+                                   photo-path)}
+                   :style  styles/photo-style}]]))
 
 (views/defview my-photo [from]
   (views/letsubs [account [:get-current-account]]
@@ -106,7 +127,7 @@
   (if (= type :datemark)
     ^{:key (str "datemark" message-id)}
     [message.datemark/chat-datemark value]
-    (when (= content-type constants/text-content-type)
+    (when (contains? constants/desktop-content-types content-type)
       (reagent.core/create-class
        {:component-did-mount
         #(when (and message-id
@@ -164,6 +185,7 @@
                           :multiline      true
                           :blur-on-submit true
                           :style          styles/chat-text-input
+                          :font           :default
                           :ref            #(reset! inp-ref %)
                           :on-key-press   (fn [e]
                                             (let [native-event (.-nativeEvent e)
@@ -188,36 +210,40 @@
 (views/defview chat-view []
   (views/letsubs [current-chat [:get-current-chat]]
     [react/view {:style styles/chat-view}
-     [toolbar-chat-view]
+     [toolbar-chat-view current-chat]
      [messages-view current-chat]
      [chat-text-input]]))
 
 (views/defview chat-profile []
-  (views/letsubs [{:keys [pending? whisper-identity public-key] :as contact} [:get-current-chat-contact]]
-    [react/view {:style styles/chat-profile-body}
-     [profile.views/profile-badge contact]
+  (letsubs [identity        [:get-current-contact-identity]
+            maybe-contact   [:get-current-contact]]
+
+    (let [contact (or maybe-contact (utils.contacts/whisper-id->new-contact identity))
+          {:keys [pending? whisper-identity public-key]} contact]
+      [react/view {:style styles/chat-profile-body}
+       [profile.views/profile-badge contact]
                   ;; for private chat, public key will be chat-id
-     [react/view
-      (if pending?
-        [react/touchable-highlight {:on-press #(re-frame/dispatch [:add-contact whisper-identity])}
+       [react/view
+        (if (or (nil? pending?) pending?)
+          [react/touchable-highlight {:on-press #(re-frame/dispatch [:add-contact whisper-identity])}
+           [react/view {:style styles/chat-profile-row}
+            [react/view {:style styles/chat-profile-icon-container
+                         :accessibility-label :add-contact-link}
+             [vector-icons/icon :icons/add {:style (styles/chat-profile-icon colors/blue)}]]
+            [react/text {:style (styles/contact-card-text colors/blue)} (i18n/label :t/add-to-contacts)]]]
+          [react/view {:style styles/chat-profile-row}
+           [react/view {:style styles/chat-profile-icon-container
+                        :accessibility-label :add-contact-link}
+            [vector-icons/icon :icons/add {:style (styles/chat-profile-icon colors/gray)}]]
+           [react/text {:style (styles/contact-card-text colors/gray)} (i18n/label :t/in-contacts)]])
+        [react/touchable-highlight {:on-press #(re-frame/dispatch [:navigate-to-chat public-key])}
          [react/view {:style styles/chat-profile-row}
           [react/view {:style styles/chat-profile-icon-container
-                       :accessibility-label :add-contact-link}
-           [vector-icons/icon :icons/add {:style (styles/chat-profile-icon colors/blue)}]]
-          [react/text {:style (styles/contact-card-text colors/blue)} (i18n/label :t/add-to-contacts)]]]
-        [react/view {:style styles/chat-profile-row}
-         [react/view {:style styles/chat-profile-icon-container
-                      :accessibility-label :add-contact-link}
-          [vector-icons/icon :icons/add {:style (styles/chat-profile-icon colors/gray)}]]
-         [react/text {:style (styles/contact-card-text colors/gray)} (i18n/label :t/in-contacts)]])
-      [react/touchable-highlight {:on-press #(re-frame/dispatch [:navigate-to-chat public-key])}
-       [react/view {:style styles/chat-profile-row}
-        [react/view {:style styles/chat-profile-icon-container
-                     :accessibility-label :send-message-link}
-         [vector-icons/icon :icons/chats {:style (styles/chat-profile-icon colors/blue)}]]
-        [react/text {:style (styles/contact-card-text colors/blue)}
-         (i18n/label :t/send-message)]]]
-      [react/text {:style styles/chat-profile-contact-code} (i18n/label :t/contact-code)]
-      [react/text {:style           {:font-size 14}
-                   :selectable      true
-                   :selection-color colors/hawkes-blue} public-key]]]))
+                       :accessibility-label :send-message-link}
+           [vector-icons/icon :icons/chats {:style (styles/chat-profile-icon colors/blue)}]]
+          [react/text {:style (styles/contact-card-text colors/blue)}
+           (i18n/label :t/send-message)]]]
+        [react/text {:style styles/chat-profile-contact-code} (i18n/label :t/contact-code)]
+        [react/text {:style           {:font-size 14}
+                     :selectable      true
+                     :selection-color colors/hawkes-blue} whisper-identity]]])))
