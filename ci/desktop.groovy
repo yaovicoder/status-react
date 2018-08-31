@@ -193,7 +193,7 @@ def bundleMacOS(type = 'nightly') {
             '-delete_rpath "/Users/administrator/qt/5.9.1/clang_64/lib" ' +
             'StatusIm.app/Contents/MacOS/reportApp'
     sh 'cp -f ../deployment/macos/Info.plist StatusIm.app/Contents'
-    sh 'cp -f ../deployment/macos/status-icon.icns StatusIm.app/Resources'
+    sh 'cp -f ../deployment/macos/status-icon.icns StatusIm.app/Contents/Resources'
     sh """
       macdeployqt StatusIm.app -verbose=1 \\
         -qmldir='${workspace}/node_modules/react-native/ReactQt/runtime/src/qml/'
