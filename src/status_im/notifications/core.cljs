@@ -1,10 +1,7 @@
 (ns status-im.notifications.core
   (:require [goog.object :as object]
             [re-frame.core :as re-frame]
-            [status-im.utils.handlers-macro :as handlers-macro]
-            [status-im.utils.handlers :as handlers]
             [status-im.react-native.js-dependencies :as rn]
-            [status-im.ui.components.react :refer [copy-to-clipboard]]
             [taoensso.timbre :as log]
             [status-im.utils.platform :as platform]))
 
@@ -121,6 +118,12 @@
         notifications
         (onNotificationOpened handle-notification-event)))
 
+  (defn init []
+    (on-refresh-fcm-token)
+    (on-notification)
+    (on-notification-opened)
+    (when platform/android?
+      (create-notification-channel)))
 
   (defn display-notification [{:keys [title body from to]}]
     (let [notification (firebase.notifications.Notification.)]
@@ -140,14 +143,7 @@
           notifications
           (displayNotification notification)
           (then #(log/debug "Display Notification" title body))
-          (then #(log/debug "Display Notification error" title body)))))
-
-  (defn init []
-    (on-refresh-fcm-token)
-    (on-notification)
-    (on-notification-opened)
-    (when platform/android?
-      (create-notification-channel))))
+          (then #(log/debug "Display Notification error" title body))))))
 
 (defn process-stored-event [address cofx]
   (when-not platform/desktop?
