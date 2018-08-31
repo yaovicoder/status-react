@@ -29,6 +29,10 @@ pipeline {
           /* Necessary to load methods */
           mobile = load 'ci/mobile.groovy'
           cmn    = load 'ci/common.groovy'
+          for (cause in currentBuild.rawBuild.getCauses()) {
+            print cause.getShortDescription()
+          }
+          error('test')
           mobile.prep(cmn.getBuildType())
         }
       }
