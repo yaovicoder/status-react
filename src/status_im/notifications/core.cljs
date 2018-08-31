@@ -121,27 +121,26 @@
         notifications
         (onNotificationOpened handle-notification-event)))
 
-  (def notification (firebase.notifications.Notification.))
 
-  ;; API reference https://rnfirebase.io/docs/v4.2.x/notifications/reference/AndroidNotification
   (defn display-notification [{:keys [title body from to]}]
-    (.. notification
-        (setTitle title)
-        (setBody body)
-        (setData (js/JSON.stringify #js {:from from
-                                         :to   to}))
-        (setSound sound-name)
-        (-android.setChannelId channel-id)
-        (-android.setAutoCancel true)
-        (-android.setPriority firebase.notifications.Android.Priority.Max)
-        (-android.setGroup group-id)
-        (-android.setGroupSummary true)
-        (-android.setSmallIcon icon))
-    (.. firebase
-        notifications
-        (displayNotification notification)
-        (then #(log/debug "Display Notification" title body))
-        (then #(log/debug "Display Notification error" title body))))
+    (let [notification (firebase.notifications.Notification.)]
+      (.. notification
+          (setTitle title)
+          (setBody body)
+          (setData (js/JSON.stringify #js {:from from
+                                           :to   to}))
+          (setSound sound-name)
+          (-android.setChannelId channel-id)
+          (-android.setAutoCancel true)
+          (-android.setPriority firebase.notifications.Android.Priority.Max)
+          (-android.setGroup group-id)
+          (-android.setGroupSummary true)
+          (-android.setSmallIcon icon))
+      (.. firebase
+          notifications
+          (displayNotification notification)
+          (then #(log/debug "Display Notification" title body))
+          (then #(log/debug "Display Notification error" title body)))))
 
   (defn init []
     (on-refresh-fcm-token)
