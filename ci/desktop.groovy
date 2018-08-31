@@ -179,7 +179,7 @@ def compileMacOS() {
 def bundleMacOS(type = 'nightly') {
   def pkg = common.pkgFilename(type, 'dmg')
   dir(packageFolder) {
-    sh 'curl -L -O "https://github.com/gnl/StatusAppFiles/raw/rename-status-im/Status.app.zip"'
+    sh 'curl -L -O "https://github.com/status-im/StatusAppFiles/raw/PR5702/Status.app.zip"'
     sh 'unzip Status.app.zip'
     sh 'cp -r assets/share/assets Status.app/Contents/Resources'
     sh 'ln -sf ../Resources/assets ../Resources/ubuntu-server ../Resources/node_modules ' +
