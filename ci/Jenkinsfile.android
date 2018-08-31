@@ -29,6 +29,10 @@ pipeline {
           /* Necessary to load methods */
           mobile = load 'ci/mobile.groovy'
           cmn    = load 'ci/common.groovy'
+          print build.getParent()
+          print build.getParent().getUpstreamProjects()
+          print build.getParent().getBuildVariables()
+          error('test')
           mobile.prep(cmn.getBuildType())
         }
       }
