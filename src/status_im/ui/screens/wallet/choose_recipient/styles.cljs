@@ -26,6 +26,9 @@
    :right    0
    :bottom   0})
 
+(def preview
+  {:flex 1})
+
 (def corner-dimensions
   {:position :absolute
    :width    40
