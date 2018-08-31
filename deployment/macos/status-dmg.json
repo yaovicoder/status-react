@@ -1,7 +1,6 @@
 {
-  "title": "StatusIm",
+  "title": "Status",
   "background": "dmg-background.png",
-  "icon": "status-icon.icns",
   "contents": [
     {
       "x": 385,
