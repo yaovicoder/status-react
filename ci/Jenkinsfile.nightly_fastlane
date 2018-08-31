@@ -30,7 +30,6 @@ timeout(90) {
       def apkUrl = ''
       def testApkUrl = ''
       def ipaUrl = ''
-      def testPassed = true
       def version
       def build_no
 
@@ -151,7 +150,10 @@ timeout(90) {
       }
 
       stage('Build (Android) for e2e tests') {
-        sh 'cd android && mv app/build/outputs/apk/release/app-release.apk app/build/outputs/apk/release/app-release.original.apk && ENVFILE=.env.e2e ./gradlew assembleRelease'
+        sh 'cd android && \
+        mv app/build/outputs/apk/release/app-release.apk \
+        app/build/outputs/apk/release/app-release.original.apk \
+        && ENVFILE=.env.e2e ./gradlew assembleRelease'
       }
 
       stage('Upload apk for e2e tests') {
@@ -170,8 +172,7 @@ timeout(90) {
       }
 
       stage('Slack Notification') {
-        def c = (testPassed ? 'good' : 'warning' )
-        slackSend color: c, message: 'Nightly build (develop) \nTests: ' + (testPassed ? ':+1:' : ':-1:') + ')\nAndroid: ' + apkUrl + '\n iOS: ' + ipaUrl + '\n Android for e2e: ' + testApkUrl
+        slackSend color: 'good', message: 'Nightly build (develop) \nAndroid: ' + apkUrl + '\n iOS: ' + ipaUrl + '\n Android for e2e: ' + testApkUrl
       }
 
       stage('Run extended e2e tests') {

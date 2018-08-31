@@ -1,4 +1,3 @@
-from tests import info
 import time
 from views.base_view import BaseView
 from views.base_element import BaseButton, BaseText
@@ -152,7 +151,7 @@ class AssetCheckBox(BaseButton):
 
     def click(self):
         self.scroll_to_element().click()
-        info('Click %s asset checkbox' % self.asset_name)
+        self.driver.info('Click %s asset checkbox' % self.asset_name)
 
 
 class TotalAmountText(BaseText):
@@ -211,12 +210,13 @@ class WalletView(BaseView):
 
     def get_usd_total_value(self):
         import re
-        return float(re.sub('[$,]', '', self.usd_total_value.text))
+        return float(re.sub('[~,]', '', self.usd_total_value.text))
 
     def get_eth_value(self):
         return float(self.eth_asset_value.text)
 
     def get_stt_value(self):
+        self.stt_asset_value.scroll_to_element()
         return float(self.stt_asset_value.text)
 
     def verify_currency_balance(self, expected_rate: int, errors: list):
@@ -227,21 +227,21 @@ class WalletView(BaseView):
         if percentage_diff > 2:
             errors.append('Difference between current (%s) and expected (%s) USD balance > 2%%!!' % (usd, expected_usd))
         else:
-            info('Current USD balance %s is ok' % usd)
+            self.driver.info('Current USD balance %s is ok' % usd)
 
     def wait_balance_changed_on_wallet_screen(self, expected_balance=0.1, wait_time=300):
         counter = 0
         while True:
             if counter >= wait_time:
-                info('Balance is not changed during %s seconds!' % wait_time)
+                self.driver.info('Balance is not changed during %s seconds!' % wait_time)
                 return
             elif self.get_eth_value() != expected_balance:
                 counter += 10
                 time.sleep(10)
                 self.swipe_down()
-                info('Waiting %s seconds for ETH update' % counter)
+                self.driver.info('Waiting %s seconds for ETH update' % counter)
             else:
-                info('Transaction received, balance updated!')
+                self.driver.info('Transaction received, balance updated!')
                 return
 
     def get_sign_in_phrase(self):

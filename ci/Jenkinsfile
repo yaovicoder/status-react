@@ -78,14 +78,8 @@ timeout(90) {
         // iOS
         stage('Build (iOS)') {
           withCredentials([
-              string(
-                credentialsId: "slave-pass-${env.NODE_NAME}",
-                variable: 'password'
-              ),
-              string(
-                credentialsId: 'fastlane-match-password',
-                variable:'KEYCHAIN_PASSWORD'
-              )]) {
+              string(credentialsId: "slave-pass-${env.NODE_NAME}", variable: 'KEYCHAIN_PASSWORD'),
+              string(credentialsId: 'fastlane-match-password', variable:'MATCH_PASSWORD')]) {
             sh 'fastlane ios adhoc'
           }
         }
@@ -107,7 +101,7 @@ timeout(90) {
 
         stage('Upload apk for e2e tests') {
           if (env.CHANGE_ID != null) {
-              env.SAUCE_LABS_APK = 'im.status.ethereum-e2e-' + env.CHANGE_ID + '.apk'
+              env.SAUCE_LABS_APK = env.CHANGE_ID + '.apk'
               withCredentials([
                   string(credentialsId: 'SAUCE_ACCESS_KEY', variable: 'SAUCE_ACCESS_KEY'),
                   string(credentialsId: 'SAUCE_USERNAME', variable: 'SAUCE_USERNAME'),

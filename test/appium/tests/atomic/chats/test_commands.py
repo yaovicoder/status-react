@@ -3,7 +3,7 @@ from _pytest.outcomes import Failed
 from decimal import Decimal as d
 from selenium.common.exceptions import TimeoutException
 
-from tests import marks, transaction_users, common_password, group_chat_users, transaction_users_wallet
+from tests import marks, transaction_users, common_password, group_chat_users, transaction_users_wallet, unique_password
 from tests.base_test_case import MultipleDeviceTestCase, SingleDeviceTestCase
 from views.sign_in_view import SignInView
 
@@ -328,7 +328,7 @@ class TestCommandsMultipleDevices(MultipleDeviceTestCase):
         chat_2 = home_2.get_chat_with_user(sender['username']).click()
         self.network_api.wait_for_confirmation_of_transaction(recipient['address'], amount)
         if not chat_2.chat_element_by_text(amount).contains_text('Confirmed', 60):
-            pytest.fail('Transaction state is not updated on the recipient side')
+            chat_2.driver.fail('Status "Confirmed" is not shown under transaction for the recipient')
 
 
 @marks.chat
@@ -357,14 +357,14 @@ class TestCommandsSingleDevices(SingleDeviceTestCase):
     def test_logcat_send_transaction_in_1_1_chat(self):
         sender = transaction_users['C_USER']
         sign_in = SignInView(self.driver)
-        home = sign_in.recover_access(passphrase=sender['passphrase'], password=sender['password'])
+        home = sign_in.recover_access(passphrase=sender['passphrase'], password=unique_password)
         wallet = home.wallet_button.click()
         wallet.set_up_wallet()
         wallet.home_button.click()
         chat = home.add_contact(transaction_users['D_USER']['public_key'])
         amount = chat.get_unique_amount()
-        chat.send_transaction_in_1_1_chat('ETH', amount, sender['password'])
-        chat.check_no_values_in_logcat(password=sender['password'])
+        chat.send_transaction_in_1_1_chat('ETH', amount, unique_password)
+        chat.check_no_values_in_logcat(password=unique_password)
 
     @marks.testrail_id(3736)
     @marks.smoke_1
@@ -410,7 +410,7 @@ class TestCommandsSingleDevices(SingleDeviceTestCase):
         chat.send_transaction_in_1_1_chat('ETH', amount, sender['password'])
         self.network_api.wait_for_confirmation_of_transaction(sender['address'], amount)
         if not chat.chat_element_by_text(amount).contains_text('Confirmed', wait_time=90):
-            pytest.fail('Transaction state is not updated on the sender side')
+            pytest.fail('Status "Confirmed" is not shown under transaction for the sender')
 
     @marks.testrail_id(3790)
     def test_insufficient_funds_1_1_chat_0_balance(self):
@@ -466,6 +466,7 @@ class TestCommandsSingleDevices(SingleDeviceTestCase):
         send_transaction.back_button.click()
         chat_view.commands_button.click()
         chat_view.send_command.click()
+        chat_view.asset_by_name('STT').scroll_to_element()
         chat_view.asset_by_name('STT').click()
         chat_view.send_as_keyevent(str(round(stt_value + 1)))
         chat_view.send_message_button.click()

@@ -23,6 +23,7 @@ import java.io.FileInputStream;
 import java.io.OutputStream;
 import java.io.FileOutputStream;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -31,9 +32,13 @@ import org.json.JSONObject;
 import org.json.JSONException;
 import com.instabug.library.Instabug;
 
+import javax.annotation.Nullable;
+
 class StatusModule extends ReactContextBaseJavaModule implements LifecycleEventListener, ConnectorHandler {
 
     private static final String TAG = "StatusModule";
+
+    private final static int TESTNET_NETWORK_ID = 3;
 
     private HashMap<String, Callback> callbacks = new HashMap<>();
 
@@ -43,6 +48,7 @@ class StatusModule extends ReactContextBaseJavaModule implements LifecycleEventL
     private boolean debug;
     private boolean devCluster;
     private String logLevel;
+    private ReactApplicationContext reactContext;
 
     StatusModule(ReactApplicationContext reactContext, boolean debug, boolean devCluster, String logLevel) {
         super(reactContext);
@@ -52,6 +58,7 @@ class StatusModule extends ReactContextBaseJavaModule implements LifecycleEventL
         this.debug = debug;
         this.devCluster = devCluster;
         this.logLevel = logLevel;
+        this.reactContext = reactContext;
         reactContext.addLifecycleEventListener(this);
     }
 
@@ -110,7 +117,7 @@ class StatusModule extends ReactContextBaseJavaModule implements LifecycleEventL
         this.getReactApplicationContext().getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class).emit("gethEvent", params);
     }
 
-    private String prepareLogsFile() {
+    private static String prepareLogsFile() {
         String gethLogFileName = "geth.log";
         File pubDirectory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
         File logFile = new File(pubDirectory, gethLogFileName);
@@ -146,12 +153,96 @@ class StatusModule extends ReactContextBaseJavaModule implements LifecycleEventL
         return null;
     }
 
-    private void doStartNode(final String defaultConfig) {
+    private String generateConfig(final String dataDir, final int networkId, final String keystoreDir, final String fleet, final Object upstreamConfig) throws JSONException {
+
+            JSONObject jsonConfig = new JSONObject(
+                    Statusgo.GenerateConfig(dataDir, fleet, networkId));
+
+            jsonConfig.put("NetworkId", networkId);
+            jsonConfig.put("DataDir", dataDir);
+            jsonConfig.put("KeyStoreDir", keystoreDir);
+
+            if (upstreamConfig != null) {
+                Log.d(TAG, "UpstreamConfig is not null");
+                jsonConfig.put("UpstreamConfig", upstreamConfig);
+            }
+
+            final String gethLogFilePath = TextUtils.isEmpty(this.logLevel) ? null : prepareLogsFile();
+            final boolean logsEnabled = (gethLogFilePath != null);
+
+            jsonConfig.put("LogEnabled", logsEnabled);
+            jsonConfig.put("LogFile", gethLogFilePath);
+            jsonConfig.put("LogLevel", TextUtils.isEmpty(this.logLevel) ? "ERROR" : this.logLevel.toUpperCase());
+
+
+            // Setting up whisper config
+            JSONObject whisperConfig = jsonConfig.optJSONObject("WhisperConfig");
+            if (whisperConfig == null) {
+                whisperConfig = new JSONObject();
+            }
+            whisperConfig.put("LightClient", true);
+            jsonConfig.put("WhisperConfig", whisperConfig);
+
+
+            // Setting up cluster config
+            JSONObject clusterConfig = jsonConfig.optJSONObject("ClusterConfig");
+            if (clusterConfig != null) {
+                Log.d(TAG, "ClusterConfig is not null");
+                clusterConfig.put("Fleet", fleet);
+                jsonConfig.put("ClusterConfig", clusterConfig);
+            } else {
+                Log.w(TAG, "ClusterConfig: Cannot find ClusterConfig: doesn't exist or not a JSON object");
+                Log.w(TAG, "ClusterConfig: Fleet will be set to defaults");
+            }
+
+            return jsonConfig.toString();
+    }
+
+
+    private String generateConfigFromDefaultConfig(final String root, final String keystoreDir, final String fleet, final String defaultConfig) {
+        try {
+            JSONObject customConfig = new JSONObject(defaultConfig);
+
+            // parameters from config
+            final String dataDir = root + customConfig.get("DataDir");
+            final int networkId = customConfig.getInt("NetworkId");
+            final Object upstreamConfig = customConfig.opt("UpstreamConfig");
+
+            return generateConfig(dataDir, networkId, keystoreDir, fleet, upstreamConfig);
+
+        } catch (JSONException e) {
+            Log.d(TAG, "Something went wrong " + e.getMessage());
+            Log.d(TAG, "Default configuration will be used: ropsten, beta fleet");
+            return Statusgo.GenerateConfig(this.getTestnetDataDir(root), "eth.beta", TESTNET_NETWORK_ID);
+        }
+    }
+
+    private static void prettyPrintConfig(final String config) {
+        Log.d(TAG, "startNode() with config (see below)");
+        String configOutput = config;
+        final int maxOutputLen = 4000;
+        Log.d(TAG, "********************** NODE CONFIG ****************************");
+        while (!configOutput.isEmpty()) {
+            Log.d(TAG, "Node config:" + configOutput.substring(0, Math.min(maxOutputLen, configOutput.length())));
+            if (configOutput.length() > maxOutputLen) {
+                configOutput = configOutput.substring(maxOutputLen);
+            } else {
+                break;
+            }
+        }
+        Log.d(TAG, "******************* ENDOF NODE CONFIG *************************");
+    }
+
+    private String getTestnetDataDir(final String root) {
+        return root + "/ethereum/testnet";
+    }
+
+    private void doStartNode(final String defaultConfig, final String fleet) {
 
         Activity currentActivity = getCurrentActivity();
 
-        String root = currentActivity.getApplicationInfo().dataDir;
-        String dataFolder = root + "/ethereum/testnet";
+        final String root = currentActivity.getApplicationInfo().dataDir;
+        final String dataFolder = this.getTestnetDataDir(root);
         Log.d(TAG, "Starting Geth node in folder: " + dataFolder);
 
         try {
@@ -182,8 +273,7 @@ class StatusModule extends ReactContextBaseJavaModule implements LifecycleEventL
         }
 
 
-        int testnetNetworkId = 3;
-        String testnetDataDir = root + "/ethereum/testnet";
+        String testnetDataDir = dataFolder;
         String oldKeystoreDir = testnetDataDir + "/keystore";
         String newKeystoreDir = root + "/keystore";
         final File oldKeystore = new File(oldKeystoreDir);
@@ -204,73 +294,9 @@ class StatusModule extends ReactContextBaseJavaModule implements LifecycleEventL
             }
         }
 
-        String config;
-        try {
-            JSONObject customConfig = new JSONObject(defaultConfig);
+        final String config = this.generateConfigFromDefaultConfig(root, newKeystoreDir, fleet, defaultConfig);
 
-            String dataDir = root + customConfig.get("DataDir");
-
-            config = Statusgo.GenerateConfig(dataDir, customConfig.getInt("NetworkId"));
-
-            JSONObject jsonConfig = new JSONObject(config);
-
-            String gethLogFilePath = TextUtils.isEmpty(this.logLevel) ? null : prepareLogsFile();
-            boolean logsEnabled = (gethLogFilePath != null);
-
-            jsonConfig.put("LogEnabled", logsEnabled);
-            jsonConfig.put("LogFile", gethLogFilePath);
-            jsonConfig.put("LogLevel", TextUtils.isEmpty(this.logLevel) ? "ERROR" : this.logLevel.toUpperCase());
-            jsonConfig.put("DataDir", dataDir);
-            jsonConfig.put("NetworkId", customConfig.get("NetworkId"));
-            try {
-                Object upstreamConfig = customConfig.get("UpstreamConfig");
-                if (upstreamConfig != null) {
-                    Log.d(TAG, "UpstreamConfig is not null");
-                    jsonConfig.put("UpstreamConfig", upstreamConfig);
-                }
-            } catch (Exception e) {
-
-            }
-            try {
-                JSONObject whisperConfig = (JSONObject) jsonConfig.get("WhisperConfig");
-                if (whisperConfig == null) {
-                    whisperConfig = new JSONObject();
-                }
-                whisperConfig.put("LightClient", true);
-                jsonConfig.put("WhisperConfig", whisperConfig);
-            } catch (Exception e) {
-
-            }
-            try {
-                Object clusterConfig = customConfig.get("ClusterConfig");
-                if (clusterConfig != null) {
-                    Log.d(TAG, "ClusterConfig is not null");
-                    jsonConfig.put("ClusterConfig", clusterConfig);
-                }
-            } catch (Exception e) {
-              Log.w(TAG, "Something went wrong parsing cluster config" + e.getMessage());
-            }
-
-
-            jsonConfig.put("KeyStoreDir", newKeystoreDir);
-
-            config = jsonConfig.toString();
-        } catch (JSONException e) {
-            config = Statusgo.GenerateConfig(testnetDataDir, testnetNetworkId);
-            Log.d(TAG, "Something went wrong " + e.getMessage());
-            Log.d(TAG, "Default configuration will be used");
-        }
-
-        String configOutput = config;
-        final int maxOutputLen = 4000;
-        while (!configOutput.isEmpty()) {
-            Log.d(TAG, "Node config:" + configOutput.substring(0, Math.min(maxOutputLen, configOutput.length())));
-            if (configOutput.length() > maxOutputLen) {
-                configOutput = configOutput.substring(maxOutputLen);
-            } else {
-                break;
-            }
-        }
+        prettyPrintConfig(config);
 
         String res = Statusgo.StartNode(config);
         if (res.startsWith("{\"error\":\"\"")) {
@@ -364,7 +390,7 @@ class StatusModule extends ReactContextBaseJavaModule implements LifecycleEventL
     }
 
     @ReactMethod
-    public void startNode(final String config) {
+    public void startNode(final String config, final String fleet) {
         Log.d(TAG, "startNode");
         if (!checkAvailability()) {
             return;
@@ -373,7 +399,7 @@ class StatusModule extends ReactContextBaseJavaModule implements LifecycleEventL
         Runnable r = new Runnable() {
             @Override
             public void run() {
-                doStartNode(config);
+                doStartNode(config, fleet);
             }
         };
 
@@ -499,8 +525,8 @@ class StatusModule extends ReactContextBaseJavaModule implements LifecycleEventL
     }
 
     @ReactMethod
-    public void approveSignRequest(final String id, final String password, final Callback callback) {
-        Log.d(TAG, "approveSignRequest");
+    public void sendTransaction(final String txArgsJSON, final String password, final Callback callback) {
+        Log.d(TAG, "sendTransaction");
         if (!checkAvailability()) {
             callback.invoke(false);
             return;
@@ -509,7 +535,7 @@ class StatusModule extends ReactContextBaseJavaModule implements LifecycleEventL
         Runnable r = new Runnable() {
             @Override
             public void run() {
-                String res = Statusgo.ApproveSignRequest(id, password);
+                String res = Statusgo.SendTransaction(txArgsJSON, password);
                 callback.invoke(res);
             }
         };
@@ -518,8 +544,8 @@ class StatusModule extends ReactContextBaseJavaModule implements LifecycleEventL
     }
 
     @ReactMethod
-    public void approveSignRequestWithArgs(final String id, final String password, final String gas, final String gasPrice, final Callback callback) {
-        Log.d(TAG, "approveSignRequestWithArgs");
+    public void signMessage(final String rpcParams, final Callback callback) {
+        Log.d(TAG, "signMessage");
         if (!checkAvailability()) {
             callback.invoke(false);
             return;
@@ -528,26 +554,8 @@ class StatusModule extends ReactContextBaseJavaModule implements LifecycleEventL
         Runnable r = new Runnable() {
             @Override
             public void run() {
-                String res = Statusgo.ApproveSignRequestWithArgs(id, password, Long.parseLong(gas), Long.parseLong(gasPrice));
+                String res = Statusgo.SignMessage(rpcParams);
                 callback.invoke(res);
-            }
-        };
-
-        StatusThreadPoolExecutor.getInstance().execute(r);
-    }
-
-
-    @ReactMethod
-    public void discardSignRequest(final String id) {
-        Log.d(TAG, "discardSignRequest");
-        if (!checkAvailability()) {
-            return;
-        }
-
-        Runnable r = new Runnable() {
-            @Override
-            public void run() {
-                Statusgo.DiscardSignRequest(id);
             }
         };
 
@@ -662,7 +670,7 @@ class StatusModule extends ReactContextBaseJavaModule implements LifecycleEventL
     }
 
     @ReactMethod
-    public void sendWeb3Request(final String payload, final Callback callback) {
+    public void callRPC(final String payload, final Callback callback) {
         Runnable r = new Runnable() {
             @Override
             public void run() {
@@ -675,7 +683,7 @@ class StatusModule extends ReactContextBaseJavaModule implements LifecycleEventL
     }
 
     @ReactMethod
-    public void sendWeb3PrivateRequest(final String payload, final Callback callback) {
+    public void callPrivateRPC(final String payload, final Callback callback) {
         Runnable r = new Runnable() {
             @Override
             public void run() {
@@ -703,7 +711,7 @@ class StatusModule extends ReactContextBaseJavaModule implements LifecycleEventL
         Log.d(TAG, "AppStateChange: " + type);
         Statusgo.AppStateChange(type);
     }
-
+    
     private static String uniqueID = null;
     private static final String PREF_UNIQUE_ID = "PREF_UNIQUE_ID";
 
@@ -722,4 +730,17 @@ class StatusModule extends ReactContextBaseJavaModule implements LifecycleEventL
         }
         callback.invoke(uniqueID);
     }
+
+  private Boolean is24Hour() {
+    return android.text.format.DateFormat.is24HourFormat(this.reactContext.getApplicationContext());
+  }
+
+  @Override
+  public @Nullable
+  Map<String, Object> getConstants() {
+    HashMap<String, Object> constants = new HashMap<String, Object>();
+
+    constants.put("is24Hour", this.is24Hour());
+    return constants;
+  }
 }

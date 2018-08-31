@@ -25,28 +25,6 @@
 (defn network-with-upstream-rpc? [network]
   (get-in network [:config :UpstreamConfig :Enabled]))
 
-(defn passphrase->words [s]
-  (when s
-    (-> (string/trim s)
-        (string/replace-all #"\s+" " ")
-        (string/split #" "))))
-
-(defn words->passphrase [v]
-  (string/join " " v))
-
-(def valid-word-counts #{12 15 18 21 24})
-
-(defn valid-word-counts? [v]
-  (boolean (valid-word-counts (count v))))
-
-(defn- valid-word? [s]
-  (re-matches #"^[A-z]+$" s))
-
-(defn valid-words? [v]
-  (and
-   (valid-word-counts? v)
-   (every? valid-word? v)))
-
 (def hex-prefix "0x")
 
 (defn normalized-address [address]
@@ -54,6 +32,10 @@
     (if (string/starts-with? address hex-prefix)
       address
       (str hex-prefix address))))
+
+(defn naked-address [s]
+  (when s
+    (string/replace s hex-prefix "")))
 
 (defn address? [s]
   (when s

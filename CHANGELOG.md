@@ -6,10 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [0.9.26 - Unreleased]
 ### Added
-
+- Allow user to remove custom avatar
 ### Fixed
 
 ### Changed
+- Improved validation in account recovery. We now show a warning if any words are not from our mnemonic dictionary.
 
 ## [0.9.25 - Unreleased]
 ### Added

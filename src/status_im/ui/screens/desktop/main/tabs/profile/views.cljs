@@ -10,6 +10,7 @@
             [status-im.ui.components.icons.vector-icons :as vector-icons]
             [taoensso.timbre :as log]
             [clojure.string :as string]
+            [status-im.ui.screens.offline-messaging-settings.views :as offline-messaging.views]
             [status-im.ui.components.qr-code-viewer.views :as qr-code-viewer]
             [status-im.ui.screens.desktop.main.tabs.profile.styles :as styles]
             [status-im.ui.screens.profile.user.views :as profile]))
@@ -19,6 +20,7 @@
    [react/image {:source {:uri photo-path}
                  :style  styles/profile-photo}]
    [react/text {:style           styles/profile-user-name
+                :font           :medium
                 :number-of-lines 1}
     name]])
 
@@ -37,7 +39,8 @@
                   tooltip-opacity      [:get-in [:tooltips :qr-copied]]]
     [react/view
      [react/view {:style styles/qr-code-container}
-      [react/text {:style styles/qr-code-title}
+      [react/text {:style styles/qr-code-title
+                   :font  :medium}
        (string/replace (i18n/label :qr-code-public-key-hint) "\n" "")]
       [react/view {:style styles/qr-code}
        [qr-code-viewer/qr-code {:value public-key :size 130}]]
@@ -55,6 +58,22 @@
         [react/text {:style styles/qr-code-copy-text}
          (i18n/label :copy-qr)]]]]]))
 
+(views/defview advanced-settings []
+  (views/letsubs [current-wnode-id [:settings/current-wnode]
+                  wnodes           [:settings/network-wnodes]]
+    (let [render-fn (offline-messaging.views/render-row current-wnode-id)]
+      [react/view
+       [react/text {:style styles/advanced-settings-title
+                    :font  :medium}
+        (i18n/label :advanced-settings)]
+       [react/view {:style styles/title-separator}]
+       [react/text {:style styles/mailserver-title} (i18n/label :offline-messaging)]
+       [react/view
+        (for [node (vals wnodes)]
+          ^{:key (:id node)}
+          [react/view {:style {:margin-vertical 8}}
+           [render-fn node]])]])))
+
 (defn share-contact-code []
   [react/touchable-highlight {:on-press #(re-frame/dispatch [:navigate-to :qr-code])}
    [react/view {:style styles/share-contact-code}
@@ -66,13 +85,22 @@
      [vector-icons/icon :icons/qr {:style {:tint-color colors/blue}}]]]])
 
 (views/defview profile [user]
-  [react/view styles/profile-view
-   [profile-badge user]
-   [share-contact-code]
-   [react/view {:style styles/logout-row}
-    [react/touchable-highlight {:on-press #(re-frame/dispatch [:logout])}
-     [react/text {:style (styles/logout-row-text colors/red)} (i18n/label :t/logout)]]
-    [react/view [react/text {:style (styles/logout-row-text colors/gray)} "V" build/version " (" build/commit-sha ")"]]]])
+  (views/letsubs [current-view-id [:get :view-id]]
+    (let [adv-settings-open? (= current-view-id :advanced-settings)]
+      [react/view styles/profile-view
+       [profile-badge user]
+       [share-contact-code]
+       [react/touchable-highlight {:style  (styles/profile-row adv-settings-open?)
+                                   :on-press #(re-frame/dispatch [:navigate-to (if adv-settings-open? :home :advanced-settings)])}
+        [react/view {:style styles/adv-settings}
+         [react/text {:style (styles/profile-row-text colors/black)
+                      :font  (if adv-settings-open? :medium :default)}
+          (i18n/label :t/advanced-settings)]
+         [vector-icons/icon :icons/forward {:style {:tint-color colors/gray}}]]]
+       [react/view {:style (styles/profile-row false)}
+        [react/touchable-highlight {:on-press #(re-frame/dispatch [:logout])}
+         [react/text {:style (styles/profile-row-text colors/red)} (i18n/label :t/logout)]]
+        [react/view [react/text {:style (styles/profile-row-text colors/gray)} "V" build/version " (" build/commit-sha ")"]]]])))
 
 (views/defview profile-data []
   (views/letsubs

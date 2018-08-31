@@ -26,8 +26,8 @@
             last-message            [:get-last-message chat-id]]
     (let [name (or chat-name
                    (gfycat/generate-gfy public-key))
-          [unviewed-messages-label large?] (if (< 99 unviewed-messages-count)
-                                             ["99+" true]
+          [unviewed-messages-label large?] (if (< 9 unviewed-messages-count)
+                                             ["9+" true]
                                              [unviewed-messages-count false])]
       [react/view {:style (styles/chat-list-item (= current-chat-id chat-id))}
        [react/view {:style styles/img-container}
@@ -48,7 +48,8 @@
            [icons/icon :icons/public-chat])
          [react/text {:ellipsize-mode  :tail
                       :number-of-lines 1
-                      :style           (styles/chat-name (= current-chat-id chat-id))}
+                      :style           styles/chat-name
+                      :font            (if (= current-chat-id chat-id) :medium :default)}
           name]]
         [react/text {:ellipsize-mode  :tail
                      :number-of-lines 1
