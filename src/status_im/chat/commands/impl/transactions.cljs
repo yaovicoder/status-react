@@ -12,6 +12,7 @@
             [status-im.ui.components.chat-preview :as chat-preview]
             [status-im.ui.components.list.views :as list]
             [status-im.ui.components.animation :as animation]
+            [status-im.ui.components.svgimage :as svgimage]
             [status-im.i18n :as i18n]
             [status-im.constants :as constants]
             [status-im.utils.ethereum.core :as ethereum]
@@ -95,6 +96,32 @@
    {:id          :amount
     :type        :number
     :placeholder "Amount"}])
+
+(defview choose-nft-token [selected-event-creator]
+  (letsubs [{:keys [input-params]} [:selected-chat-command]
+            collectibles           [:collectibles]]
+    (let [collectible-tokens (get collectibles (keyword (:symbol input-params)))]
+      [react/view {:flex-direction   :row
+                   :align-items      :center
+                   :padding-vertical 11}
+       (map
+        (fn [[id {:keys [name image_url]}]]
+          [react/touchable-highlight
+           {:key      id
+            :on-press #(re-frame/dispatch (selected-event-creator (str id)))}
+           [react/view {:flex-direction  :column
+                        :align-items     :center
+                        :margin-left     10
+                        :border-radius   2
+                        :border-width    1
+                        :border-color    colors/gray}
+            [svgimage/svgimage {:style    transactions-styles/nft-token-icon
+                                :source   {:uri image_url}}]
+            [react/text {} name]]])
+        collectible-tokens)])))
+
+(defn choose-nft-token-suggestion [selected-event-creator]
+  [choose-nft-token selected-event-creator])
 
 ;;TODO(goranjovic): currently we only allow tokens which are enabled in Manage assets here
 ;; because balances are only fetched for them. Revisit this decision with regard to battery/network consequences
