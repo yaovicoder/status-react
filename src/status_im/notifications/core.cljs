@@ -1,4 +1,3 @@
-
 (ns status-im.notifications.core
   (:require [goog.object :as object]
             [re-frame.core :as re-frame]
