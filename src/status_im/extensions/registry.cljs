@@ -12,7 +12,8 @@
 (def components
   {'view           react/view
    'text           react/text
-   'asset-selector transactions/choose-nft-asset-suggestion})
+   'asset-selector transactions/choose-nft-asset-suggestion
+   'token-selector transactions/choose-nft-token-suggestion})
 
 (def app-hooks #{commands/command-hook})
 
