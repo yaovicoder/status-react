@@ -14,7 +14,6 @@
 (defn add-contact-and-open-chat [whisper-id cofx]
   (handlers-macro/merge-fx
    cofx
-   (navigation/navigate-to-cofx :home {})
    (models.contact/add-contact whisper-id)
    (chat.events/start-chat whisper-id {:navigation-replace? true})))
 
