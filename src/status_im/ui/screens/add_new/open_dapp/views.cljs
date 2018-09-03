@@ -62,9 +62,7 @@
                                     :icon                :icons/address
                                     :icon-opts           {:color colors/blue}
                                     :accessibility-label :open-dapp-button
-                                    :on-press            #(do
-                                                            (re-frame/dispatch [:navigate-to :home])
-                                                            (re-frame/dispatch [:open-url-in-browser dapp-url]))}]
+                                    :on-press            #(re-frame/dispatch [:open-url-in-browser dapp-url])}]
       [components/separator {:margin-left 72}]]
      [react/view styles/description-container
       [react/i18n-text {:style styles/gray-label :key :description}]
