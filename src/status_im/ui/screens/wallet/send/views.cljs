@@ -63,7 +63,16 @@
    (when advanced?
      [advanced-cartouche transaction])])
 
-(defview password-input-panel [message-label spinning?]
+;; "Cancel" and "Sign Transaction >" or "Sign >" buttons, signing with password
+(defn enter-password-buttons [spinning? sign-handler]
+  [react/view {:flex 1}
+   [button/secondary-button {:style              styles/password-button
+                             :on-press            sign-handler
+                             :disabled?           spinning?
+                             :accessibility-label :sign-transaction-button}
+    (i18n/label :t/command-button-send)]])
+
+(defview password-input-panel [transaction spinning?]
   (letsubs [account         [:get-current-account]
             wrong-password? [:wallet.send/wrong-password?]
             signing-phrase  (:signing-phrase @account)
@@ -71,45 +80,36 @@
             opacity-value   (animation/create-value 0)]
     {:component-did-mount #(send.animations/animate-sign-panel opacity-value bottom-value)}
     [react/animated-view {:style (styles/animated-sign-panel bottom-value)}
-     (when wrong-password?
-       [tooltip/tooltip (i18n/label :t/wrong-password) styles/password-error-tooltip])
      [react/animated-view {:style (styles/sign-panel opacity-value)}
       [react/view styles/spinner-container
        (when spinning?
          [react/activity-indicator {:animating true
                                     :size      :large}])]
-      [react/view styles/signing-phrase-container
-       [react/text {:style               styles/signing-phrase
-                    :accessibility-label :signing-phrase-text}
-        signing-phrase]]
-      [react/i18n-text {:style styles/signing-phrase-description :key message-label}]
-      [react/view {:style                       styles/password-container
-                   :important-for-accessibility :no-hide-descendants}
-       [react/text-input
-        {:auto-focus             true
-         :secure-text-entry      true
-         :placeholder            (i18n/label :t/enter-password)
-         :placeholder-text-color components.styles/color-gray4
-         :on-change-text         #(re-frame/dispatch [:wallet.send/set-password (security/mask-data %)])
-         :style                  styles/password
-         :accessibility-label    :enter-password-input
-         :auto-capitalize        :none}]]]]))
-
-;; "Cancel" and "Sign Transaction >" or "Sign >" buttons, signing with password
-(defview enter-password-buttons [spinning? cancel-handler sign-handler sign-label]
-  (letsubs [sign-enabled? [:wallet.send/sign-password-enabled?]]
-    [bottom-buttons/bottom-buttons
-     styles/sign-buttons
-     [button/button {:style               components.styles/flex
-                     :on-press            cancel-handler
-                     :accessibility-label :cancel-button}
-      (i18n/label :t/cancel)]
-     [button/button {:style               (wallet.styles/button-container sign-enabled?)
-                     :on-press            sign-handler
-                     :disabled?           (or spinning? (not sign-enabled?))
-                     :accessibility-label :sign-transaction-button}
-      (i18n/label sign-label)
-      [vector-icons/icon :icons/forward {:color :white}]]]))
+      [react/view {:style {:flex-direction :column
+                           :align-items :center
+                           :justify-content :center
+                           :padding-horizontal 15}}
+       [react/view styles/signing-phrase-container
+        [react/text {:style               styles/signing-phrase
+                     :accessibility-label :signing-phrase-text}
+         signing-phrase]]
+       [react/text {:style styles/transaction-amount}
+        (str "Send " (:amount-text transaction) " " (name (:symbol transaction)))]
+       [react/view {:style                       styles/password-container
+                    :important-for-accessibility :no-hide-descendants}
+        [react/text-input
+         {:auto-focus             true
+          :secure-text-entry      true
+          :placeholder            "Enter your login password..." #_(i18n/label :t/enter-password)
+          :placeholder-text-color components.styles/color-gray4
+          :on-change-text         #(re-frame/dispatch [:wallet.send/set-password (security/mask-data %)])
+          :style                  styles/password
+          :accessibility-label    :enter-password-input
+          :auto-capitalize        :none}]]
+       [enter-password-buttons spinning?
+        #(re-frame/dispatch [:wallet/cancel-entering-password])
+        #(re-frame/dispatch [:wallet/send-transaction])]]]
+     [tooltip/tooltip "Only send the transaction if you recognize your three emoji's" styles/emojis-tooltip]]))
 
 ;; "Sign Transaction >" button
 (defn- sign-transaction-button [amount-error to amount sufficient-funds? sufficient-gas? modal?]
@@ -135,42 +135,50 @@
   (let [{:keys [amount amount-text amount-error asset-error show-password-input? to to-name sufficient-funds?
                 sufficient-gas? in-progress? from-chat? symbol]} transaction
         {:keys [decimals] :as token} (tokens/asset-for (ethereum/network->chain-keyword network) symbol)]
-    [wallet.components/simple-screen {:avoid-keyboard? (not modal?)
-                                      :status-bar-type (if modal? :modal-wallet :wallet)}
-     [toolbar modal? (i18n/label :t/send-transaction)]
-     [react/view components.styles/flex
-      [common/network-info {:text-color :white}]
-      [react/scroll-view {:keyboard-should-persist-taps :always
-                          :ref                          #(reset! scroll %)
-                          :on-content-size-change       #(when (and (not modal?) scroll @scroll)
-                                                           (.scrollToEnd @scroll))}
-       [react/view styles/send-transaction-form
-        [components/recipient-selector {:disabled? (or from-chat? modal?)
-                                        :address   to
-                                        :name      to-name
-                                        :modal?    modal?}]
-        [components/asset-selector {:disabled? (or from-chat? modal?)
-                                    :error     asset-error
-                                    :type      :send
-                                    :symbol    symbol}]
-        [components/amount-selector {:disabled?     (or from-chat? modal?)
-                                     :error         (or amount-error
-                                                        (when-not sufficient-funds? (i18n/label :t/wallet-insufficient-funds))
-                                                        (when-not sufficient-gas? (i18n/label :t/wallet-insufficient-gas)))
-                                     :amount        amount
-                                     :amount-text   amount-text
-                                     :input-options {:on-change-text #(re-frame/dispatch [:wallet.send/set-and-validate-amount % symbol decimals])
-                                                     :ref            (partial reset! amount-input)}} token]
-        [advanced-options advanced? transaction scroll]]]
-      (if show-password-input?
-        [enter-password-buttons in-progress?
-         #(re-frame/dispatch [:wallet/cancel-entering-password])
-         #(re-frame/dispatch [:wallet/send-transaction])
-         :t/transactions-sign-transaction]
-        [sign-transaction-button amount-error to amount sufficient-funds? sufficient-gas? modal?])
-      (when show-password-input?
-        [password-input-panel :t/signing-phrase-description in-progress?])
-      (when in-progress? [react/view styles/processing-view])]]))
+    [react/view {:flex 1
+                 :flex-direction :row}
+
+     [react/keyboard-avoiding-view styles/send-transaction-form-container
+      [status-bar/status-bar {:type :wallet}]
+      [toolbar modal? (i18n/label :t/send-transaction)]
+      [react/view components.styles/flex
+       [common/network-info {:text-color :white}]
+       [react/scroll-view {:keyboard-should-persist-taps :always
+                           :ref                          #(reset! scroll %)
+                           :on-content-size-change       #(when (and (not modal?) scroll @scroll)
+                                                            (.scrollToEnd @scroll))}
+        [react/view styles/send-transaction-form
+         [components/recipient-selector {:disabled? (or from-chat? modal?)
+                                         :address   to
+                                         :name      to-name
+                                         :modal?    modal?}]
+         [components/asset-selector {:disabled? (or from-chat? modal?)
+                                     :error     asset-error
+                                     :type      :send
+                                     :symbol    symbol}]
+         [components/amount-selector {:disabled?     (or from-chat? modal?)
+                                      :error         (or amount-error
+                                                         (when-not sufficient-funds? (i18n/label :t/wallet-insufficient-funds))
+                                                         (when-not sufficient-gas? (i18n/label :t/wallet-insufficient-gas)))
+                                      :amount        amount
+                                      :amount-text   amount-text
+                                      :input-options {:on-change-text #(re-frame/dispatch [:wallet.send/set-and-validate-amount % symbol decimals])
+                                                      :ref            (partial reset! amount-input)}} token]
+         [advanced-options advanced? transaction scroll]]]
+       [sign-transaction-button amount-error to amount sufficient-funds? sufficient-gas? modal?]]]
+     (when show-password-input?
+       [react/view {:flex 1
+                    :background-color :black
+                    :opacity          0.9
+                    :position :absolute
+                    :top 0
+                    :left 0
+                    :right 0
+                    :bottom 0
+                    :z-index 2}])
+     (when show-password-input?
+       [password-input-panel transaction in-progress?])
+     (when in-progress? [react/view styles/processing-view])]))
 
 ;; MAIN SEND TRANSACTION VIEW
 (defn- send-transaction-view [{:keys [scroll] :as opts}]
@@ -218,6 +226,15 @@
   (letsubs [{:keys [data in-progress?]} [:wallet.send/transaction]]
     [wallet.components/simple-screen {:status-bar-type :modal-wallet}
      [toolbar true (i18n/label :t/sign-message)]
+     #_[react/view {:flex             1
+                    :background-color :black
+                    :opacity          0.5
+                    :position :absolute
+                    :top 0
+                    :left 0
+                    :right 0
+                    :bottom 0
+                    :z-index 5}]
      [react/view components.styles/flex
       [react/scroll-view
        [react/view styles/send-transaction-form
