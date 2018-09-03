@@ -13,6 +13,14 @@
                                     :BootNodes bootnodes})
       config)))
 
+(defn- add-log-level [config log-level]
+  (if (empty? log-level)
+    (assoc config
+           :LogEnabled false)
+    (assoc config
+           :LogLevel log-level
+           :LogEnabled true)))
+
 (defn get-account-network [db address]
   (get-in db [:accounts/accounts address :network]))
 
@@ -22,16 +30,21 @@
                 settings
                 bootnodes
                 networks]} (get accounts address)
-        use-custom-bootnodes (get-in settings [:bootnodes network])]
+        use-custom-bootnodes (get-in settings [:bootnodes network])
+        log-level (or (:log-level settings)
+                      config/log-level-status-go)]
     (cond-> (get-in networks [network :config])
       (and
        config/bootnodes-settings-enabled?
        use-custom-bootnodes)
       (add-custom-bootnodes network bootnodes)
 
-      (:log-level settings)
-      (assoc :LogLevel (:log-level settings)
-             :LogEnabled (not (nil? (:log-level settings)))))))
+      :always
+      (add-log-level log-level))))
+
+(defn get-node-config [db network]
+  (-> (get-in (:networks/networks db) [network :config])
+      (add-log-level config/log-level-status-go)))
 
 (defn start
   ([cofx]
@@ -42,10 +55,9 @@
                        (:network db))
          node-config (if address
                        (get-account-node-config db address)
-                       (get-in (:networks/networks db) [network :config]))
+                       (get-node-config db network))
          node-config-json (types/clj->json node-config)]
-     {:db              (assoc db
-                              :network network)
+     {:db         (assoc db :network network)
       :node/start node-config-json})))
 
 (defn restart
