@@ -88,7 +88,7 @@
        [react/text-input
         {:auto-focus             true
          :secure-text-entry      true
-         :placeholder            (i18n/label :t/enter-password)
+         :placeholder            "Enter your login password..." #_(i18n/label :t/enter-password)
          :placeholder-text-color components.styles/color-gray4
          :on-change-text         #(re-frame/dispatch [:wallet.send/set-password (security/mask-data %)])
          :style                  styles/password

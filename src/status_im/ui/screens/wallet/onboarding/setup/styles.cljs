@@ -12,27 +12,56 @@
 (def signing-phrase
   {:background-color colors/white
    :border-radius    8
-   :margin-left      16
-   :margin-right     16
+   :margin-left      34
+   :margin-right     34
    :flex-direction   :row})
 
-(def signing-word
+(def signing-emoji-container
   {:flex            1
-   :height          52
+   :height          68
    :align-items     :center
    :justify-content :center})
 
-(def signing-word-text
-  {:font-size      15
+(def signing-emoji-container-left-border
+  {:border-left-color colors/gray-border
+   :border-left-width 1})
+
+(def signing-emoji
+  {:font-size      24
    :letter-spacing -0.2})
+
+(def super-safe-transactions
+  {:margin-top 40
+   :font-size 22
+   :text-align :center
+   :color colors/white
+   :font-weight :bold})
 
 (def description
   {:font-size      14
-   :letter-spacing -0.2
+   :font-style :normal
+   :letter-spacing -0.17
+   :line-height 21
+   :opacity 0.6
    :color          colors/white
    :margin-left    24
    :margin-right   24
    :margin-top     16
+   :text-align     :center})
+
+(def warning
+  {:border-color colors/white
+   :border-width 1
+   :border-radius 8
+   :font-size      14
+   :font-style :normal
+   :letter-spacing -0.17
+   :line-height 21
+   :opacity 0.6
+   :color          colors/white
+   :margin-left    57
+   :margin-right   57
+   :margin-top     28
    :text-align     :center})
 
 (def bottom-buttons
