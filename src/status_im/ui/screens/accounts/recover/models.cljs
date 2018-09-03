@@ -82,7 +82,8 @@
                     :mnemonic ""}]
 
     (handlers-macro/merge-fx cofx
-                             {:db (assoc-in db [:accounts/recover :processing?] false)}
+                             {:db                                  (assoc-in db [:accounts/recover :processing?] false)
+                              :notifications/request-notifications nil}
                              (accounts.models/on-account-created account password true))))
 
 (defn recover-account [{:keys [db]}]
