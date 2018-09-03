@@ -1,7 +1,8 @@
 (ns status-im.node.models
   (:require [status-im.utils.config :as config]
             [status-im.utils.types :as types]
-            [clojure.string :as str]))
+            [clojure.string :as str]
+            [taoensso.timbre :as log]))
 
 (defn- add-custom-bootnodes [config network all-bootnodes]
   (let [bootnodes (as-> all-bootnodes $
@@ -57,6 +58,7 @@
                        (get-account-node-config db address)
                        (get-node-config db network))
          node-config-json (types/clj->json node-config)]
+     (log/info "Node config: " node-config-json)
      {:db         (assoc db :network network)
       :node/start node-config-json})))
 

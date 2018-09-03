@@ -20,8 +20,8 @@
  :change-log-level
  (fn [{:keys [db]} [_ log-level]]
    {:show-confirmation {:title               (i18n/label :t/close-app-title)
-                        :content             (i18n/label :t/connect-wnode-content
-                                                         {:name log-level})
+                        :content             (i18n/label :t/change-log-level
+                                                         {:log-level log-level})
                         :confirm-button-text (i18n/label :t/close-app-button)
                         :on-accept           #(re-frame/dispatch [::save-log-level log-level])
                         :on-cancel           nil}}))
