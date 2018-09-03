@@ -35,7 +35,7 @@
 
 (def log-levels
   [{:name "DISABLED"
-    :value nil}
+    :value ""}
    {:name "INFO"
     :value "info"}
    {:name "DEBUG"
