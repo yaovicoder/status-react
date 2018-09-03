@@ -291,24 +291,23 @@
                                   :wallet-send-transaction-chat
                                   :wallet-onboarding-setup)]
       (handlers-macro/merge-fx
-       (assoc
-        cofx
-        :db (-> db
-                (update-in [:wallet :send-transaction]
-                           assoc
-                           :amount (money/formatted->internal value symbol decimals)
-                           :amount-text amount
-                           :amount-error error)
-                (choose-recipient.events/fill-request-details
-                 (transaction-details recipient-contact symbol))
-                (update-in [:wallet :send-transaction]
-                           dissoc :id :password :wrong-password?))
+       cofx
+       {:db               (-> db
+                              (update-in [:wallet :send-transaction]
+                                         assoc
+                                         :amount (money/formatted->internal value symbol decimals)
+                                         :amount-text amount
+                                         :amount-error error)
+                              (choose-recipient.events/fill-request-details
+                               (transaction-details recipient-contact symbol))
+                              (update-in [:wallet :send-transaction]
+                                         dissoc :id :password :wrong-password?))
         ;; TODO(janherich) - refactor wallet send events, updating gas price
         ;; is generic thing which shouldn't be defined in wallet.send, then
         ;; we can include the utility helper without running into circ-dep problem
         :update-gas-price {:web3          (:web3 db)
                            :success-event :wallet/update-gas-price-success
-                           :edit?         false})
+                           :edit?         false}}
        (navigation/navigate-to-cofx next-view-id {}))))
   protocol/EnhancedParameters
   (enhance-parameters [_ parameters cofx]
