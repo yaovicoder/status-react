@@ -36,12 +36,16 @@
 (def log-levels
   [{:name "DISABLED"
     :value ""}
+   {:name "ERROR"
+    :value "ERROR"}
+   {:name "WARN"
+    :value "WARN"}
    {:name "INFO"
-    :value "info"}
+    :value "INFO"}
    {:name "DEBUG"
-    :value "debug"}
+    :value "DEBUG"}
    {:name "TRACE"
-    :value "trace"}])
+    :value "TRACE"}])
 
 (views/defview log-level-settings []
   (views/letsubs [current-log-level [:settings/current-log-level]]
