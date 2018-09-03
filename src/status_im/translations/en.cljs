@@ -681,6 +681,7 @@
    :network-settings                     "Network settings"
    :log-level                            "Log level"
    :log-level-settings                   "Log level settings"
+   :change-log-level                     "Change log level to {{log-level}}"
    :offline-messaging                    "Mailserver"
    :offline-messaging-settings           "Mailserver settings"
    :edit-network-warning                 "Be careful! Editing the network data may disable this network for you"
