@@ -4,18 +4,18 @@
             [status-im.ui.screens.wallet.components.styles :as wallet.components.styles]))
 
 (def send-transaction-form
-  {:flex           1
-   :padding-bottom 60})
+  {:padding-bottom 60})
 
 (defn animated-sign-panel [bottom-value]
   {:position           :absolute
-   :left               12
-   :right              12
-   :bottom             bottom-value})
+   :left               0
+   :right              0
+   :bottom             0})
 
 (defn sign-panel [opacity-value]
   {:opacity            opacity-value
-   :border-radius      8
+   :border-top-left-radius      8
+   :border-top-right-radius      8
    :background-color   colors/white
    :padding-top        12
    :padding-horizontal 12})
@@ -29,15 +29,18 @@
    :justify-content :center})
 
 (def signing-phrase-container
-  {:border-radius    8
+  {:border-radius    200
+   :border-width     1
    :height           36
+   :margin-horizontal 100
+   :padding-vertical 25
    :align-items      :center
    :justify-content  :center
-   :background-color colors/gray-lighter})
+   :border-color colors/gray-light})
 
 (def signing-phrase
-  {:font-size      15
-   :letter-spacing -0.2
+  {:font-size      22
+   :letter-spacing 10
    :color          colors/black})
 
 (def signing-phrase-description
@@ -45,7 +48,11 @@
 
 (def password-container
   {:flex             1
-   :padding-vertical 20})
+   :padding-vertical 17
+   :padding-horizontal 14
+
+   :border-radius 8
+   :background-color colors/gray-lighter})
 
 (def password
   {:padding        0
