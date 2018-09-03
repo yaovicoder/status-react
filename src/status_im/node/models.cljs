@@ -28,6 +28,8 @@
        use-custom-bootnodes)
       (add-custom-bootnodes network bootnodes)
 
+      :LogEnabled (not (nil? (:log-level settings)))
+
       (:log-level settings)
       (assoc :LogLevel (:log-level settings)))))
 
