@@ -21,6 +21,14 @@
      :icon                :icons/newchat
      :icon-opts           {:color colors/blue}
      :on-press            #(re-frame/dispatch [:navigate-to :new-chat])}]
+   [action-button/action-button
+    {:label               (i18n/label :t/scan-qr)
+     :accessibility-label :scan-qr-code-button
+     :icon                :icons/qr
+     :icon-opts           {:color colors/blue}
+     :on-press            #(re-frame/dispatch [:scan-qr-code
+                                               {:toolbar-title (i18n/label :t/scan-qr)}
+                                               :handle-qr-code])}]
    [action-button/action-separator]
    ;; Hide behind flag (false by default), till everything is fixed in group chats
    (when config/group-chats-enabled?
