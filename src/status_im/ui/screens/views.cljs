@@ -129,11 +129,12 @@
     [react/view [react/text (str "Unknown modal view: " modal-view)]]))
 
 (defview main-modal []
-  (letsubs [modal-view [:get :modal]]
+  (letsubs [modal-view [:get :modal]
+            signing? [:get-in [:wallet :send-transaction :show-password-input?]]]
     (when modal-view
       [view common-styles/modal
        [modal {:animation-type   :slide
-               :transparent      true
+               :transparent      (not signing?)
                :on-request-close (fn []
                                    (cond
                                      (#{:wallet-send-transaction-modal
