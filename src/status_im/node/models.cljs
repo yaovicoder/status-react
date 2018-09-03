@@ -1,6 +1,7 @@
 (ns status-im.node.models
   (:require [status-im.utils.config :as config]
-            [status-im.utils.types :as types]))
+            [status-im.utils.types :as types]
+            [clojure.string :as str]))
 
 (defn- add-custom-bootnodes [config network all-bootnodes]
   (let [bootnodes (as-> all-bootnodes $
@@ -29,7 +30,8 @@
       (add-custom-bootnodes network bootnodes)
 
       (:log-level settings)
-      (assoc :LogLevel (:log-level settings)))))
+      (assoc :LogLevel (:log-level settings)
+             :LogEnabled (not (nil? (:log-level settings)))))))
 
 (defn start
   ([cofx]
