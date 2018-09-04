@@ -24,12 +24,14 @@ pipeline {
     }
     stage('Build') {
       parallel {
-        stage('MacOS') { steps { script {
-          when { expression { cmn.getBuildType() != 'release' } } 
+        stage('MacOS') { 
+        when { expression { cmn.getBuildType() != 'release' } } 
+        steps { script {
           osx = cmn.buildBranch('status-react/combined/desktop-macos', cmn.getBuildType())
         } } }
-        stage('Linux') { steps { script {
-          when { expression { cmn.getBuildType() != 'release' } } 
+        stage('Linux') { 
+        when { expression { cmn.getBuildType() != 'release' } } 
+        steps { script {
           nix = cmn.buildBranch('status-react/combined/desktop-linux', cmn.getBuildType())
         } } }
         stage('iOS') { steps { script {
