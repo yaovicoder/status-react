@@ -5,7 +5,8 @@
             [status-im.utils.ethereum.ens :as ens]))
 
 (defn is-valid-name? [ens-name]
-  (string/ends-with? ens-name ".stateofus.eth"))
+  (and ens-name
+       (string/ends-with? ens-name ".stateofus.eth")))
 
 (defn addr [web3 registry ens-name cb]
   {:pre [(is-valid-name? ens-name)]}
