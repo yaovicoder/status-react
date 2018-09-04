@@ -58,8 +58,17 @@
             ethereum/default-transaction-gas))
 
 (handlers/register-handler-fx
+ :wallet.send/set-recipient
+ (fn [{:keys [db]} [_ s]]
+   (if (ethereum/address? s)
+     {:db       (assoc-in db [:wallet :send-transaction :to] s)
+      :dispatch [:navigate-back]}
+     {:show-error (i18n/label :t/wallet-invalid-address {:data s})})))
+
+(handlers/register-handler-fx
  :wallet/fill-request-from-url
  (fn [{{:keys [network] :as db} :db} [_ data origin]]
+   (js/alert data)
    (let [current-chain-id                       (get-in constants/default-networks [network :config :NetworkId])
          {:keys [address chain-id] :as details} (extract-details data current-chain-id)
          valid-network?                         (boolean (= current-chain-id chain-id))
