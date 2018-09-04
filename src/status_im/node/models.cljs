@@ -57,10 +57,12 @@
          node-config (if address
                        (get-account-node-config db address)
                        (get-node-config db network))
-         node-config-json (types/clj->json node-config)]
+         node-config-json (types/clj->json node-config)
+         fleet       (or (get-in db [:accounts/accounts address :settings :fleet])
+                         config/fleet)]
      (log/info "Node config: " node-config-json)
      {:db         (assoc db :network network)
-      :node/start node-config-json})))
+      :node/start [node-config-json fleet]})))
 
 (defn restart
   []
