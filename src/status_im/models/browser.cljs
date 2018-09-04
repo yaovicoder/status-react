@@ -1,11 +1,11 @@
 (ns status-im.models.browser
-  (:require [status-im.data-store.browser :as browser-store]
+  (:require [re-frame.core :as re-frame]
+            [status-im.constants :as constants]
+            [status-im.data-store.browser :as browser-store]
             [status-im.data-store.dapp-permissions :as dapp-permissions]
             [status-im.i18n :as i18n]
-            [status-im.constants :as constants]
             [status-im.ui.screens.browser.default-dapps :as default-dapps]
-            [status-im.utils.http :as http]
-            [re-frame.core :as re-frame]))
+            [status-im.utils.http :as http]))
 
 (defn get-current-url [{:keys [history history-index]}]
   (when (and history-index history)
@@ -78,14 +78,17 @@
           {:db (assoc-in db [:browser/options :show-permission] {:requested-permission requested-permission
                                                                  :params               params})})
         {:dispatch [:next-dapp-permission params]}))
-    (assoc (update-dapp-permissions-fx cofx {:dapp        dapp-name
-                                             :permissions (vec (set (concat (keys permissions-allowed)
-                                                                            user-permissions)))})
-           :send-to-bridge-fx [{:type constants/status-api-success
-                                :data permissions-allowed
-                                :keys (keys permissions-allowed)}
-                               (:webview-bridge db)]
-           :dispatch [:check-permissions-queue])))
+    (cond-> (update-dapp-permissions-fx cofx {:dapp        dapp-name
+                                              :permissions (vec (set (concat (keys permissions-allowed)
+                                                                             user-permissions)))})
+      (not (zero? (count permissions-allowed)))
+      (assoc :send-to-bridge-fx [{:type constants/status-api-success
+                                  :data permissions-allowed
+                                  :keys (keys permissions-allowed)}
+                                 (:webview-bridge db)])
+
+      true
+      (assoc :dispatch [:check-permissions-queue]))))
 
 (defn next-permission [{:keys [params permission permissions-data]} cofx]
   (request-permission
@@ -108,3 +111,13 @@
                                       :messageId message-id
                                       :error     %1
                                       :result    %2}])]}))
+
+(defn initialize-browsers
+  [{:keys [db all-stored-browsers]}]
+  (let [browsers (into {} (map #(vector (:browser-id %) %) all-stored-browsers))]
+    {:db (assoc db :browser/browsers browsers)}))
+
+(defn  initialize-dapp-permissions
+  [{:keys [db all-dapp-permissions]}]
+  (let [dapp-permissions (into {} (map #(vector (:dapp %) %) all-dapp-permissions))]
+    {:db (assoc db :dapps/permissions dapp-permissions)}))

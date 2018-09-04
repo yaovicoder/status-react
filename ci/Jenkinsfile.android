@@ -3,9 +3,9 @@ pipeline {
 
   options {
     buildDiscarder(logRotator(
-      numToKeepStr: '20',
+      numToKeepStr: '40',
       daysToKeepStr: '30',
-      artifactNumToKeepStr: '10',
+      artifactNumToKeepStr: '40',
     ))
   }
   
@@ -28,8 +28,14 @@ pipeline {
           print "Running ${params.BUILD_TYPE} build!"
           /* Necessary to load methods */
           mobile = load 'ci/mobile.groovy'
-          mobile.prep(params.BUILD_TYPE)
+          cmn    = load 'ci/common.groovy'
+          mobile.prep(cmn.getBuildType())
         }
+      }
+    }
+    stage('Lint') {
+      steps {
+        script { mobile.runLint() }
       }
     }
     stage('Tests') {
@@ -39,12 +45,12 @@ pipeline {
     }
     stage('Build') {
       steps {
-        script { mobile.leinBuild() }
+        script { mobile.leinBuild('android') }
       }
     }
     stage('Compile') {
       steps {
-        script { apk = mobile.android.compile(params.BUILD_TYPE) }
+        script { apk = mobile.android.compile(cmn.getBuildType()) }
       }
     }
     stage('Archive') {
@@ -53,21 +59,18 @@ pipeline {
       }
     }
     stage('Upload') {
-      when { expression { params.BUILD_TYPE == 'release' } }
       steps {
-        script { mobile.android.uploadToPlayStore() }
+        script {
+          switch (cmn.getBuildType()) {
+            case 'release':
+              mobile.android.uploadToPlayStore(); break;
+            case 'nightly':
+              env.DIAWI_URL = mobile.android.uploadToDiawi()
+            case 'e2e':
+              env.SAUCE_URL = mobile.android.uploadToSauceLabs()
+          } 
+        }
       }
-    }
-    stage('Run e2e') {
-      when { expression { params.BUILD_TYPE == 'e2e' } }
-      steps { script {
-        mobile.android.uploadToDiawi()
-        apk = mobile.android.uploadToSauceLabs() 
-        build(
-          job: 'end-to-end-tests/status-app-nightly', wait: false,
-          parameters: [string(name: 'apk', value: "--apk=${apk}")]
-        )
-      } }
     }
   }
 }
