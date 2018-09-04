@@ -4,11 +4,16 @@
             [status-im.utils.ethereum.core :as ethereum]
             [status-im.utils.ethereum.ens :as ens]))
 
+(defn is-valid-eth-name? [ens-name]
+  (and ens-name
+       (string/ends-with? ens-name ".eth")))
+
 (defn is-valid-name? [ens-name]
-  (string/ends-with? ens-name ".stateofus.eth"))
+  (and ens-name
+       (string/ends-with? ens-name ".stateofus.eth")))
 
 (defn addr [web3 registry ens-name cb]
-  {:pre [(is-valid-name? ens-name)]}
+  {:pre [(is-valid-eth-name? ens-name)]}
   (ens/resolver web3
                 registry
                 ens-name
