@@ -48,7 +48,7 @@
     "react-native-keychain": "3.0.0",
     "react-native-level-fs": "3.0.1",
     "react-native-os": "https://github.com/status-im/react-native-os.git#1.1.0-1",
-    "react-native-qrcode": "0.2.6",
+    "react-native-qrcode": "0.2.7",
     "react-native-randombytes": "3.5.0",
     "react-native-securerandom": "https://github.com/status-im/react-native-securerandom#0.1.1-1",
     "react-native-splash-screen": "3.1.1",
