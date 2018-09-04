@@ -374,7 +374,6 @@
             network             [:network-name]
             prices              [:prices]]
     (let [{:keys [amount asset fiat-amount currency] request-network :network} (:params content)
-          recipient-name    (get-in content [:params :bot-db :public :recipient])
           network-mismatch? (and request-network (not= request-network network))
           command           (get id->command ["send" #{:personal-chats}])
           on-press-handler  (cond
@@ -406,12 +405,6 @@
           [react/view transactions-styles/command-request-fiat-amount-row
            [react/text {:style transactions-styles/command-request-fiat-amount-text}
             (str "~ " fiat-amount " " (or currency (i18n/label :usd-currency)))]]
-          (when (and group-chat recipient-name)
-            [react/text {:style transactions-styles/command-request-recipient-text}
-             (str
-              (i18n/label :request-requesting-from)
-              " "
-              recipient-name)])
           (when network-mismatch?
             [react/text {:style transactions-styles/command-request-network-text}
              (str (i18n/label :on) " " request-network)])
