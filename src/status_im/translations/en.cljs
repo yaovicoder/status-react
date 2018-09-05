@@ -753,4 +753,5 @@
    :allowing-authorizes-this-dapp        "Allowing authorizes this DApp to retrieve your wallet address and enable Web3"
    :manage-permissions                   "Manage permissions"
    :deny                                 "Deny"
-   :allow                                "Allow"})
+   :allow                                "Allow"
+   :web3-opt-in                          "Opt-in web3 provider access"})
