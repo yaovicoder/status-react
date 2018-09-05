@@ -16,6 +16,7 @@
 (defmethod invalid-send-parameter? :gas-price [_ value]
   (cond
     (not value) :invalid-number
+    (-> (money/->wei :gwei value) .decimalPlaces pos?) :invalid-number
     (< (money/->wei :gwei value) min-gas-price-wei) :not-enough-wei))
 
 (defmethod invalid-send-parameter? :default [_ value]
