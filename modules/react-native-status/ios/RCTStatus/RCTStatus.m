@@ -404,7 +404,7 @@ RCT_EXPORT_METHOD(getDeviceUUID:(RCTResponseSenderBlock)callback) {
 
 + (BOOL)requiresMainQueueSetup
 {
-    return YES;
+    return NO;
 }
 
 @end
