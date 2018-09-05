@@ -1,5 +1,10 @@
 pipeline {
-  agent { label 'linux-new' }
+  agent { 
+    docker {
+      label 'linux-new'
+      image 'statusteam/linux-desktop-ubuntu:12.04'
+    }
+  }
 
   options {
     buildDiscarder(logRotator(
