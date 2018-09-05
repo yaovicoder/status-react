@@ -1,5 +1,31 @@
 pipeline {
-  agent { label 'linux-new' }
+  environment {
+    LANG = 'en_US.UTF-8'
+    LANGUAGE = 'en_US.UTF-8'
+    LC_ALL = 'en_US.UTF-8'
+    NPM_CONFIG_CACHE = '/var/tmp/npm'
+    LEIN_HOME = '/var/tmp/lein'
+    /* path for QT installation binaries */
+    PATH = (
+      '/opt/qt59/bin:'+
+      '/usr/local/sbin:'+
+      '/usr/local/bin:'+
+      '/usr/sbin:/usr/bin:'+
+      '/sbin:/bin'
+    )
+  }
+  
+  agent { 
+    docker {
+      label 'linux-new'
+      image 'statusteam/linux-desktop-ubuntu:16.04'
+      args (
+        "-v /var/tmp/lein:/var/tmp/lein:rw "+
+        "-v /var/tmp/npm:/var/tmp/npm:rw "+
+        "-v /opt/StatusImAppImage.zip:/opt/StatusImAppImage.zip:ro"
+      )
+    }
+  }
 
   options {
     buildDiscarder(logRotator(
@@ -9,12 +35,6 @@ pipeline {
     ))
   }
   
-  environment {
-    LANG = 'en_US.UTF-8'
-    LANGUAGE = 'en_US.UTF-8'
-    LC_ALL = 'en_US.UTF-8'
-  }
-  
   stages {
     stage('Prep') {
       steps {
@@ -22,6 +42,7 @@ pipeline {
           /* Necessary to load methods */
           desktop = load 'ci/desktop.groovy'
           cmn     = load 'ci/common.groovy'
+          sh 'env'
           desktop.prepDeps()
         }
       }
