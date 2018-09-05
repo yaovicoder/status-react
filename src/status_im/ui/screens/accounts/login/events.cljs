@@ -15,8 +15,8 @@
 
 (re-frame/reg-fx
  :data-store/change-account
- (fn [address]
-   (models/change-account! address)))
+ (fn [[address password]]
+   (models/change-account! address password)))
 
 ;;;; Handlers
 (handlers/register-handler-fx
