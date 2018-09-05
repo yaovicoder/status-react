@@ -1,5 +1,11 @@
 pipeline {
-  agent { label 'linux-new' }
+  agent { 
+    docker {
+      label 'linux-new'
+      image 'statusteam/linux-desktop-ubuntu:16.04'
+      args "-v /tmp/linux-build:/tmp"
+    }
+  }
 
   options {
     buildDiscarder(logRotator(
@@ -13,6 +19,8 @@ pipeline {
     LANG = 'en_US.UTF-8'
     LANGUAGE = 'en_US.UTF-8'
     LC_ALL = 'en_US.UTF-8'
+    NPM_CONFIG_CACHE = '/tmp/npm'
+    LEIN_HOME = '/tmp/lein'
   }
   
   stages {
