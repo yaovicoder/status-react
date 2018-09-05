@@ -25,12 +25,11 @@
 (defn clear-web-data! []
   (status/clear-web-data))
 
-(defn change-account! [address]
+(defn change-account! [address password]
   ;; No matter what is the keychain we use, as checks are done on decrypting base
   (.. (keychain/safe-get-encryption-key)
-      (then (fn [encryption-key]
-              (data-store/change-account address encryption-key)
-              (re-frame/dispatch [:init/initialize-account address])))
+      (then #(data-store/change-account address password %))
+      (then #(re-frame/dispatch [:init/initialize-account address]))
       (catch (fn [error]
                ;; If all else fails we fallback to showing initial error
                (re-frame/dispatch [:init/initialize-app "" :decryption-failed])))))
@@ -52,7 +51,7 @@
     (if success
       (let [{:keys [address password save-password?]} (credentials cofx)]
         (merge {:clear-web-data            nil
-                :data-store/change-account address}
+                :data-store/change-account [address password]}
                (when save-password?
                  {:save-user-password [address password]})))
       {:db (update db :accounts/login assoc
