@@ -3,7 +3,8 @@
             status-im.ui.screens.accounts.create.navigation
             [status-im.ui.screens.accounts.models :as models]
             [status-im.ui.screens.accounts.utils :as accounts.utils]
-            [status-im.utils.handlers :as handlers]))
+            [status-im.utils.handlers :as handlers]
+            [status-im.ui.screens.accounts.models :as accounts.models]))
 
 ;;;; COFX
 
@@ -68,6 +69,14 @@
           (if dev-mode?
             {:dev-server/start nil}
             {:dev-server/stop nil}))))
+
+(handlers/register-handler-fx
+ :switch-web3-opt-in-mode
+ (fn [{:keys [db] :as cofx} [_ opt-in]]
+   (let [settings (get-in db [:account/account :settings])]
+     (accounts.models/update-settings
+      (assoc settings :web3-opt-in? opt-in)
+      cofx))))
 
 (handlers/register-handler-fx
  :wallet-set-up-passed
