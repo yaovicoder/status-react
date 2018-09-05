@@ -41,10 +41,3 @@ if (WIN32)
 else()
   set(RUN_SCRIPT_FILE_NAME "run-app.sh")
 endif()
-
-configure_file(
-  ${RUN_SCRIPT_FILE_NAME}.in
-  ${CMAKE_CURRENT_BINARY_DIR}/${RUN_SCRIPT_FILE_NAME}
-  @ONLY
-)
-
