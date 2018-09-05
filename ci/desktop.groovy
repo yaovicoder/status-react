@@ -30,7 +30,7 @@ def cleanupBuild() {
 def cleanupAndDeps() {
   cleanupBuild()
   sh 'cp .env.jenkins .env'
-  sh 'lein deps'
+  sh 'lein deps --silent'
   common.installJSDeps('desktop')
 }
 
