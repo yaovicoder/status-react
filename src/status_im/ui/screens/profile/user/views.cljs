@@ -178,6 +178,11 @@
         {:label-kw            :t/bootnodes
          :action-fn           #(re-frame/dispatch [:navigate-to :bootnodes-settings])
          :accessibility-label :bootnodes-settings-button}])
+     (when dev-mode?
+       [profile.components/settings-switch-item
+        {:label-kw  :t/web3-opt-in
+         :value     (:web3-opt-in? settings)
+         :action-fn #(re-frame/dispatch [:switch-web3-opt-in-mode %])}])
      [profile.components/settings-item-separator]
      [profile.components/settings-switch-item
       {:label-kw  :t/dev-mode
