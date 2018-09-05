@@ -28,9 +28,8 @@
 (defn change-account! [address password]
   ;; No matter what is the keychain we use, as checks are done on decrypting base
   (.. (keychain/safe-get-encryption-key)
-      (then (fn [encryption-key]
-              (data-store/change-account address password encryption-key)
-              (re-frame/dispatch [:init/initialize-account address])))
+      (then #(data-store/change-account address password %))
+      (then #(re-frame/dispatch [:init/initialize-account address]))
       (catch (fn [error]
                ;; If all else fails we fallback to showing initial error
                (re-frame/dispatch [:init/initialize-app "" :decryption-failed])))))
