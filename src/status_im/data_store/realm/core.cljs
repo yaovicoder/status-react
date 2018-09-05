@@ -11,7 +11,7 @@
             [status-im.utils.ethereum.core :as utils.ethereum]
             [cognitect.transit :as transit]
             [status-im.react-native.js-dependencies :as rn-dependencies]
-            [status-im.utils.utils :as utils]))
+            [status-im.js-dependencies :as js-dependencies]))
 
 (defn to-buffer [key]
   (when key
@@ -111,6 +111,29 @@
     (close migrated-realm))
   (open-realm (last schemas) file-name encryption-key))
 
+(defn keccak512-array [key]
+  (.array (.-keccak512 (js/require "js-sha3")) key))
+
+(defn merge-Uint8Arrays [arr1 arr2]
+  (let [arr1-length (.-length arr1)
+        arr2-length (.-length arr2)
+        arr         (js/Uint8Array. (+ arr1-length arr2-length))]
+    (.set arr arr1)
+    (.set arr arr2 arr1-length)
+    arr))
+
+#_(defn uint8-array [coll]
+    (let [length (count coll)
+          arr    (js/Uint8Array. length)]
+      (.set arr (clj->js coll))
+      arr))
+
+(defn db-encryption-key [password encryption-key]
+  (let [password-array (.encode
+                        (new (.-TextEncoder js-dependencies/text-encoding))
+                        password)]
+    (keccak512-array (merge-Uint8Arrays encryption-key password-array))))
+
 (defn migrate-realm
   "Migrate realm if is a compatible version or reset the database"
   [file-name schemas encryption-key]
@@ -125,8 +148,8 @@
 (defn- index-entity-schemas [all-schemas]
   (into {} (map (juxt :name identity)) (-> all-schemas last :schema)))
 
-(def base-realm (atom nil))
-(def account-realm (atom nil))
+(defonce base-realm (atom nil))
+(defonce account-realm (atom nil))
 
 (def entity->schemas (merge (index-entity-schemas base/schemas)
                             (index-entity-schemas account/schemas)))
@@ -144,10 +167,11 @@
   (reset! base-realm (open-migrated-realm base-realm-path base/schemas encryption-key))
   (log/debug "Created @base-realm"))
 
-(defn change-account [address encryption-key]
-  (let [path (str accounts-realm-dir (utils.ethereum/sha3 address))]
+(defn change-account [address password encryption-key]
+  (let [path (str accounts-realm-dir (utils.ethereum/sha3 address))
+        account-db-key (db-encryption-key password encryption-key)]
     (close-account-realm)
-    (reset! account-realm (open-migrated-realm path account/schemas encryption-key))))
+    (reset! account-realm (open-migrated-realm path account/schemas account-db-key))))
 
 (declare realm-obj->clj)
 
