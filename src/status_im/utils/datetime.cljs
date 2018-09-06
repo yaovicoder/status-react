@@ -46,7 +46,7 @@
     fromdev
     (is24Hour-locsym locsym)))
 
-;; time formats 
+;; time formats
 (defn- short-time-format [locsym] (if (is24Hour locsym) "HH:mm" "h:mm a"))
 (defn- time-format [locsym] (if (is24Hour locsym) "HH:mm:ss" "h:mm:ss a"))
 
@@ -141,6 +141,11 @@
 
 (defn timestamp []
   (inst-ms (js/Date.)))
+
+(re-frame/reg-cofx
+ :now
+ (fn [coeffects _]
+   (assoc coeffects :now (timestamp))))
 
 (defn format-date [format date]
   (let [local (plus (from-date date) time-zone-offset)]

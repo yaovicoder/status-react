@@ -17,3 +17,13 @@
 (defn seeded-rand-nth
   [gen coll]
   (nth coll (seeded-rand-int gen (count coll))))
+
+(re-frame/reg-cofx
+ :random-id
+ (fn [coeffects _]
+   (assoc coeffects :random-id (id))))
+
+(re-frame/reg-cofx
+ :random-id-seq
+ (fn [coeffects _]
+   (assoc coeffects :random-id-seq (repeatedly id))))

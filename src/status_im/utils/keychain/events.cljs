@@ -18,3 +18,8 @@
    (.. (keychain/get-encryption-key)
        (then #(re-frame/dispatch (conj event %)))
        (catch (partial handle-key-error event)))))
+
+(handlers/register-handler-fx
+ :keychain.callback/can-save-user-password?-success
+ (fn [{:keys [db]} [_ can-save-user-password?]]
+   {:db (assoc-in db [:accounts/login :can-save-password?] can-save-user-password?)}))

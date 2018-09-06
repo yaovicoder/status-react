@@ -1,8 +1,8 @@
-(ns status-im.ui.screens.accounts.utils
-  (:require [status-im.transport.message.core :as transport]
-            [status-im.utils.handlers-macro :as handlers-macro]
+(ns status-im.accounts.update.core
+  (:require [status-im.data-store.accounts :as accounts-store]
+            [status-im.transport.message.core :as transport]
             [status-im.transport.message.v1.contact :as message.contact]
-            [status-im.data-store.accounts :as accounts-store]))
+            [status-im.utils.handlers-macro :as handlers-macro]))
 
 (defn account-update
   "Takes effects (containing :db) + new account fields, adds all effects necessary for account update.
@@ -32,3 +32,15 @@
   (account-update {:seed-backed-up? true
                    :mnemonic        nil}
                   cofx))
+
+(defn  update-sign-in-time
+  [{db :db now :now :as cofx}]
+  (account-update {:last-sign-in now} cofx))
+
+(defn update-settings
+  ([settings cofx] (update-settings settings nil cofx))
+  ([settings success-event {{:keys [account/account] :as db} :db :as cofx}]
+   (let [new-account (assoc account :settings settings)]
+     {:db                 (assoc db :account/account new-account)
+      :data-store/base-tx [{:transaction   (accounts-store/save-account-tx new-account)
+                            :success-event success-event}]})))
