@@ -1,12 +1,14 @@
-(ns status-im.ui.screens.accounts.login.models
+(ns status-im.accounts.login.core
   (:require [re-frame.core :as re-frame]
+            [status-im.accounts.db :as accounts.db]
             [status-im.data-store.core :as data-store]
             [status-im.native-module.core :as status]
-            [status-im.node.models :as node]
+            [status-im.node.core :as node]
             [status-im.ui.screens.navigation :as navigation]
             [status-im.utils.handlers-macro :as handlers-macro]
             [status-im.utils.keychain.core :as keychain]
-            [status-im.utils.types :as types]))
+            [status-im.utils.types :as types]
+            [taoensso.timbre :as log]))
 
 ;; login flow:
 ;;
@@ -14,13 +16,10 @@
 ;; - node is initialized with user config or default config
 ;; - `node.started` signal is received, applying `:login` fx
 ;; - `:callback/login` event is dispatched, account is changed in datastore, web-data is cleared
-;; - `:init/initialize-account` event is dispatched
-
-(defn credentials [cofx]
-  (select-keys (get-in cofx [:db :accounts/login]) [:address :password :save-password?]))
+;; - `:init.callback/account-change-success` event is dispatched
 
 (defn login! [address password save-password?]
-  (status/login address password #(re-frame/dispatch [:callback/login %])))
+  (status/login address password #(re-frame/dispatch [:accounts.login.callback/login-success %])))
 
 (defn clear-web-data! []
   (status/clear-web-data))
@@ -30,15 +29,16 @@
   (.. (keychain/safe-get-encryption-key)
       (then (fn [encryption-key]
               (data-store/change-account address encryption-key)
-              (re-frame/dispatch [:init/initialize-account address])))
+              (re-frame/dispatch [:init.callback/account-change-success address])))
       (catch (fn [error]
+               (log/warn "Could not change account" error)
                ;; If all else fails we fallback to showing initial error
-               (re-frame/dispatch [:init/initialize-app "" :decryption-failed])))))
+               (re-frame/dispatch [:init.callback/account-change-error])))))
 
 ;;;; Handlers
 (defn login [cofx]
-  (let [{:keys [address password save-password?]} (credentials cofx)]
-    {:login [address password save-password?]}))
+  (let [{:keys [address password save-password?]} (accounts.db/credentials cofx)]
+    {:accounts.login/login [address password save-password?]}))
 
 (defn user-login [{:keys [db] :as cofx}]
   (handlers-macro/merge-fx cofx
@@ -50,11 +50,11 @@
         error   (:error data)
         success (empty? error)]
     (if success
-      (let [{:keys [address password save-password?]} (credentials cofx)]
-        (merge {:clear-web-data            nil
+      (let [{:keys [address password save-password?]} (accounts.db/credentials cofx)]
+        (merge {:accounts.login/clear-web-data nil
                 :data-store/change-account address}
                (when save-password?
-                 {:save-user-password [address password]})))
+                 {:keychain/save-user-password [address password]})))
       {:db (update db :accounts/login assoc
                    :error error
                    :processing false)})))
@@ -68,9 +68,9 @@
            (update :accounts/login dissoc
                    :error
                    :password))
-   :can-save-user-password? nil
-   :get-user-password [address
-                       #(re-frame/dispatch [:callback/open-login %])]})
+   :keychain/can-save-user-password? nil
+   :keychain/get-user-password [address
+                                #(re-frame/dispatch [:accounts.login.callback/get-user-password-success %])]})
 
 (defn open-login-callback
   [password {:keys [db] :as cofx}]
@@ -80,3 +80,17 @@
                              (navigation/navigate-to-cofx :progress nil)
                              (user-login))
     (navigation/navigate-to-cofx :login nil cofx)))
+
+(re-frame/reg-fx
+ :accounts.login/login
+ (fn [[address password save-password?]]
+   (login! address password save-password?)))
+
+(re-frame/reg-fx
+ :accounts.login/clear-web-data
+ clear-web-data!)
+
+(re-frame/reg-fx
+ :data-store/change-account
+ (fn [address]
+   (change-account! address)))
