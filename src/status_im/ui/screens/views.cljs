@@ -13,7 +13,7 @@
 
             [status-im.ui.screens.progress.views :refer [progress]]
 
-            [status-im.chat.screen :refer [chat]]
+            [status-im.chat.screen :refer [chat chat-modal]]
             [status-im.ui.screens.add-new.views :refer [add-new]]
             [status-im.ui.screens.add-new.new-chat.views :refer [new-chat]]
             [status-im.ui.screens.add-new.new-public-chat.view :refer [new-public-chat]]
@@ -155,7 +155,10 @@
           :initialRouteName "home"}}
 
         :wallet-modal
-        (wrap-modal :wallet-modal wallet.main/wallet-modal)
+        [:modal wallet.main/wallet-modal]
+
+        :chat-modal
+        [:modal wallet.main/wallet-modal]
 
         :wallet-send-modal-stack
         {:screens
