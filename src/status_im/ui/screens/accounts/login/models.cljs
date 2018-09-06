@@ -6,7 +6,8 @@
             [status-im.ui.screens.navigation :as navigation]
             [status-im.utils.handlers-macro :as handlers-macro]
             [status-im.utils.keychain.core :as keychain]
-            [status-im.utils.types :as types]))
+            [status-im.utils.types :as types]
+            [taoensso.timbre :as log]))
 
 ;; login flow:
 ;;
@@ -14,7 +15,7 @@
 ;; - node is initialized with user config or default config
 ;; - `node.started` signal is received, applying `:login` fx
 ;; - `:callback/login` event is dispatched, account is changed in datastore, web-data is cleared
-;; - `:init/initialize-account` event is dispatched
+;; - `:init.callback/account-change-success` event is dispatched
 
 (defn credentials [cofx]
   (select-keys (get-in cofx [:db :accounts/login]) [:address :password :save-password?]))
@@ -30,10 +31,11 @@
   (.. (keychain/safe-get-encryption-key)
       (then (fn [encryption-key]
               (data-store/change-account address encryption-key)
-              (re-frame/dispatch [:init/initialize-account address])))
+              (re-frame/dispatch [:init.callback/account-change-success address])))
       (catch (fn [error]
+               (log/warn "Could not change account" error)
                ;; If all else fails we fallback to showing initial error
-               (re-frame/dispatch [:init/initialize-app "" :decryption-failed])))))
+               (re-frame/dispatch [:init.callback/account-change-error])))))
 
 ;;;; Handlers
 (defn login [cofx]
