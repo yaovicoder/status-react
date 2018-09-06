@@ -250,6 +250,12 @@
                         "chat-stack"
                         "intro-login-stack")}))
 
+(defn get-main-component [view-id]
+  (case view-id
+    :new-group new-group
+    :add-participants-toggle-list add-participants-toggle-list
+    :contact-toggle-list contact-toggle-list
+    :group-chat-profile profile.group-chat/group-chat-profile
     :contact-code contact-code
     [react/view [react/text (str "Unknown view: " view-id)]]))
 
