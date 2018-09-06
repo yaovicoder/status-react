@@ -327,8 +327,7 @@
 
 (handlers/register-handler-db
  :set-swipe-position
- [re-frame/trim-v]
- (fn [db [item-id value]]
+ (fn [db [_ item-id value]]
    (assoc-in db [:chat-animations item-id :delete-swiped] value)))
 
 (handlers/register-handler-db
@@ -519,8 +518,7 @@
 
 (handlers/register-handler-fx
  :extension/install
- [re-frame/trim-v]
- (fn [cofx [extension-data]]
+ (fn [cofx [_ extension-data]]
    (let [extension-key (get-in extension-data ['meta :name])]
      (handlers-macro/merge-fx cofx
                               {:ui/show-confirmation {:title     (i18n/label :t/success)
@@ -532,28 +530,24 @@
 
 (handlers/register-handler-db
  :extension/edit-address
- [re-frame/trim-v]
- (fn [db [address]]
+ (fn [db [_ address]]
    (assoc db :extension-url address)))
 
 (handlers/register-handler-db
  :extension/stage
- [re-frame/trim-v]
- (fn [db [extension-data]]
+ (fn [db [_ extension-data]]
    (-> db
        (assoc :staged-extension extension-data)
        (navigation/navigate-to :show-extension))))
 
 (handlers/register-handler-fx
  :extension/show
- [re-frame/trim-v]
- (fn [cofx [uri]]
+ (fn [cofx [_ uri]]
    {:extension/load [uri :extension/stage]}))
 
 (handlers/register-handler-fx
  :extension/toggle-activation
- [re-frame/trim-v]
- (fn [cofx [id state]]
+ (fn [cofx [_ id state]]
    (when-let [toggle-fn (get {true  registry/activate
                               false registry/deactivate}
                              state)]
@@ -561,8 +555,7 @@
 
 (handlers/register-handler-db
  :extensions/toggle-activation
- [re-frame/trim-v]
- (fn [db [id m]]
+ (fn [db [_ id m]]
    nil))
 
 (handlers/register-handler-fx
@@ -902,8 +895,7 @@
 
 (handlers/register-handler-fx
  :show-group-chat-profile
- [re-frame/trim-v]
- (fn [{:keys [db]} [chat-id]]
+ (fn [{:keys [db]} [_ chat-id]]
    {:db (-> db
             (assoc :new-chat-name (get-in db [:chats chat-id :name])
                    :group/group-type :chat-group)
@@ -928,8 +920,8 @@
 
 (handlers/register-handler-fx
  :remove-group-chat-participants
- [re-frame/trim-v (re-frame/inject-cofx :random-id)]
- (fn [{{:keys [current-chat-id] :as db} :db now :now message-id :random-id :as cofx} [removed-participants]]
+ [(re-frame/inject-cofx :random-id)]
+ (fn [{{:keys [current-chat-id] :as db} :db now :now message-id :random-id :as cofx} [_ removed-participants]]
    (let [participants               (remove removed-participants (get-in db [:chats current-chat-id :contacts]))
          contacts                   (:contacts/contacts db)
          removed-participants-names (map #(get-in contacts [% :name]) removed-participants)]
