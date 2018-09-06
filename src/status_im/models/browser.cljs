@@ -182,7 +182,20 @@
   (let [browsers (into {} (map #(vector (:browser-id %) %) all-stored-browsers))]
     {:db (assoc db :browser/browsers browsers)}))
 
-(defn  initialize-dapp-permissions
+(defn initialize-dapp-permissions
   [{:keys [db all-dapp-permissions]}]
   (let [dapp-permissions (into {} (map #(vector (:dapp %) %) all-dapp-permissions))]
     {:db (assoc db :dapps/permissions dapp-permissions)}))
+
+(defn filter-letters-numbers-and-replace-dot-on-dash [value]
+  (let [cc (.charCodeAt value 0)]
+    (cond (or (and (> cc 96) (< cc 123))
+              (and (> cc 64) (< cc 91))
+              (and (> cc 47) (< cc 58)))
+          value
+          (= cc 46)
+          "-")))
+
+(defn open-chat-from-browser [host cofx]
+  (let [topic (string/lower-case (apply str (map filter-letters-numbers-and-replace-dot-on-dash host)))]
+    {:dispatch [:create-new-public-chat topic true]}))
