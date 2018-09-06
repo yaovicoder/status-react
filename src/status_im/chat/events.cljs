@@ -134,15 +134,19 @@
 
 (defn- navigate-to-chat
   "Takes coeffects map and chat-id, returns effects necessary for navigation and preloading data"
-  [chat-id {:keys [navigation-replace?]} {:keys [db] :as cofx}]
-  (if navigation-replace?
+  [chat-id {:keys [modal? navigation-replace?]} {:keys [db] :as cofx}]
+  (if modal?
     (handlers-macro/merge-fx cofx
-                             (navigation/replace-view :chat)
+                             {:dispatch [:navigate-to-modal :chat-modal]}
                              (preload-chat-data chat-id))
-    (handlers-macro/merge-fx cofx
-                             ;; TODO janherich - refactor `navigate-to` so it can be used with `merge-fx` macro
-                             {:db (navigation/navigate-to db :chat)}
-                             (preload-chat-data chat-id))))
+    (if navigation-replace?
+      (handlers-macro/merge-fx cofx
+                               (navigation/replace-view :chat)
+                               (preload-chat-data chat-id))
+      (handlers-macro/merge-fx cofx
+                               ;; TODO janherich - refactor `navigate-to` so it can be used with `merge-fx` macro
+                               {:db (navigation/navigate-to db :chat)}
+                               (preload-chat-data chat-id)))))
 
 (handlers/register-handler-fx
  :navigate-to-chat
@@ -230,18 +234,22 @@
                         :confirm-button-text (i18n/label :t/clear)
                         :on-accept           #(re-frame/dispatch [:clear-history])}}))
 
-(defn create-new-public-chat [topic {:keys [db now] :as cofx}]
+(defn navigate-to-clean-home [modal? cofx]
+  (if modal?
+    {}
+    (navigation/navigate-to-clean :home cofx)))
+
+(defn create-new-public-chat [topic modal? cofx]
   (handlers-macro/merge-fx cofx
                            (models/add-public-chat topic)
-                           (navigation/navigate-to-clean :home)
-                           (navigate-to-chat topic {})
+                           (navigate-to-clean-home modal?)
+                           (navigate-to-chat topic {:modal? modal?})
                            (public-chat/join-public-chat topic)))
 
 (handlers/register-handler-fx
  :create-new-public-chat
- [re-frame/trim-v]
- (fn [cofx [topic]]
-   (create-new-public-chat topic cofx)))
+ (fn [cofx [_ topic modal?]]
+   (create-new-public-chat topic modal? cofx)))
 
 (defn- group-name-from-contacts [selected-contacts all-contacts username]
   (->> selected-contacts
