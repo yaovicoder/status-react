@@ -1,4 +1,4 @@
-(ns status-im.ui.screens.accounts.models
+(ns status-im.accounts.core
   (:require [clojure.string :as str]
             [re-frame.core :as re-frame]
             [status-im.constants :as constants]
@@ -19,6 +19,8 @@
             [status-im.utils.types :as types]
             [status-im.utils.utils :as utils]
             [taoensso.timbre :as log]))
+
+(def account-update accounts.utils/account-update)
 
 ;;;; COFX
 
@@ -101,7 +103,7 @@
       (utils/show-popup
        (i18n/label :mainnet-is-default-alert-title)
        (i18n/label :mainnet-is-default-alert-text)
-       #(re-frame/dispatch [:accounts.ui/mainnet-warning-shown])))))
+       #(re-frame/dispatch [:accounts.ui/update-mainnet-warning-shown])))))
 
 (defn reset-account-creation [{db :db}]
   {:db (update db :accounts/create assoc :step :enter-password :password nil :password-confirm nil :error nil)})
@@ -118,9 +120,28 @@
                                     :dispatch [:navigate-to :wallet-send-transaction-chat]}
           :else {:db (navigation/navigate-back db)})))
 
-(defn wallet-set-up-passed [modal? {:keys [db] :as cofx}]
+(defn confirm-wallet-set-up [modal? {:keys [db] :as cofx}]
   (handlers-macro/merge-fx
    cofx
    (continue-after-wallet-onboarding db modal?)
    (wallet.settings.models/wallet-autoconfig-tokens)
-   (accounts.utils/account-update {:wallet-set-up-passed? true})))
+   (account-update {:wallet-set-up-passed? true})))
+
+(defn next-step [step password password-confirm {:keys [db] :as cofx}]
+  (case step
+    :enter-password {:db (assoc-in db [:accounts/create :step] :confirm-password)}
+    :confirm-password (if (= password password-confirm)
+                        (create-account cofx)
+                        {:db (assoc-in db [:accounts/create :error] (i18n/label :t/password_error1))})
+    :enter-name (account-set-name cofx)))
+
+(defn step-back [step cofx]
+  (case step
+    :enter-password (navigation/navigate-back cofx)
+    :confirm-password (reset-account-creation cofx)))
+
+(defn switch-dev-mode [dev-mode? cofx]
+  (merge (account-update {:dev-mode? dev-mode?} cofx)
+         (if dev-mode?
+           {:dev-server/start nil}
+           {:dev-server/stop nil})))
