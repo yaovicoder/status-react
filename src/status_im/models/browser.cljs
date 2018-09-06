@@ -75,16 +75,24 @@
                                :cb       ens-multihash-callback}}
       {})))
 
-(defn update-new-browser-and-navigate [host browser {:keys [db] :as cofx}]
+(defn navigate-to-browser
+  [{{:keys [view-id]} :db :as cofx}]
+  (if (= view-id :dapp-description)
+    (navigation/navigate-reset
+     {:index   1
+      :actions [{:routeName :home}
+                {:routeName :browser}]}
+     cofx)
+    (navigation/navigate-to :browser cofx)))
+
+(defn update-new-browser-and-navigate
+  [host browser {:keys [db] :as cofx}]
   (handlers-macro/merge-fx
    cofx
    {:db (assoc db :browser/options
                {:browser-id (:browser-id browser)
                 :resolving? (ens? host)})}
-   (navigation/navigate-reset
-    {:index   1
-     :actions [{:routeName :home}
-               {:routeName :browser}]})
+   (navigate-to-browser)
    (update-browser-fx browser)
    (resolve-multihash-fx host false false)))
 

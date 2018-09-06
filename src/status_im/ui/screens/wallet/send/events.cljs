@@ -163,7 +163,7 @@
    (if-let [send-command (and chat-id (get-in db [:id->command ["send" #{:personal-chats}]]))]
      (handlers-macro/merge-fx cofx
                               (commands-sending/send chat-id send-command params)
-                              (navigation/replace-view :wallet-transaction-sent))
+                              (navigation/navigate-to-clean :wallet-transaction-sent-modal))
      (handlers-macro/merge-fx cofx
                               (navigation/replace-view :wallet-transaction-sent)))))
 

@@ -117,7 +117,7 @@
       {:dispatch [:navigate-to-clean :wallet-send-transaction-modal]}
       (if-not (chat-send? transaction)
         (navigation/navigate-to-clean :wallet cofx)
-        (navigation/navigate-to-cofx :wallet-send-transaction-chat nil cofx)))))
+        (navigation/navigate-to-cofx :wallet-send-transaction-modal nil cofx)))))
 
 (defn wallet-set-up-passed [modal? {:keys [db] :as cofx}]
   (handlers-macro/merge-fx
