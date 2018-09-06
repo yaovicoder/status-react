@@ -59,57 +59,65 @@
 ;; status-im.ui.screens.accounts.create.navigation
 
 
-;; Try to decrypt the database, move on if successful otherwise go back to
-;; initial state
 (re-frame/reg-fx
  :init/init-store
- (fn [encryption-key]
-   (.. (data-store/init encryption-key)
-       (then #(re-frame/dispatch [:init/after-decryption]))
-       (catch (fn [error]
-                (log/warn "Could not decrypt database" error)
-                (re-frame/dispatch [:init/initialize-app encryption-key :decryption-failed]))))))
+ init/init-store!)
 
 (re-frame/reg-fx
  :init/status-module-initialized
- (fn [_]
-   (status/module-initialized!)))
+ status/module-initialized!)
 
 (re-frame/reg-fx
  :init/testfairy-alert
- (fn [_]
-   (when config/testfairy-enabled?
-     (utils/show-popup
-      (i18n/label :testfairy-title)
-      (i18n/label :testfairy-message)))))
+ init/testfairy-alert!)
 
 (re-frame/reg-fx
- :init/init-device-UUID
+ :init/get-device-UUID
  (fn []
-   (status/get-device-UUID #(re-frame/dispatch [:init/set-device-UUID %]))))
+   (status/get-device-UUID #(re-frame/dispatch [:init.callback/get-device-UUID-success %]))))
 
-;; Entrypoint, fetches the key from the keychain and initialize the app
+(re-frame/reg-fx
+ :init/reset-data
+ init/reset-data!)
+
 (handlers/register-handler-fx
- :init/initialize-keychain
+ :init.ui/data-reset-accepted
+ (fn [cofx _]
+   {:init/reset-data nil}))
+
+(handlers/register-handler-fx
+ :init.ui/data-reset-cancelled
+ (fn [cofx [_ encryption-key]]
+   (init/initialize-app encryption-key cofx)))
+
+(handlers/register-handler-fx
+ :init/app-started
  (fn [cofx _]
    (init/initialize-keychain cofx)))
 
-;; Check the key is valid, shows options if not, otherwise continues loading
-;; the database
 (handlers/register-handler-fx
- :init/initialize-app
- (fn [cofx [_ encryption-key error]]
-   (init/initialize-app encryption-key error cofx)))
+ :init.callback/get-encryption-key-success
+ (fn [cofx [_ encryption-key]]
+   (init/initialize-app encryption-key cofx)))
 
-;; DB has been decrypted, load accounts, initialize geth, etc
 (handlers/register-handler-fx
- :init/after-decryption
+ :init.callback/get-device-UUID-success
+ (fn [cofx [_ device-uuid]]
+   (init/set-device-uuid device-uuid cofx)))
+
+(handlers/register-handler-fx
+ :init.callback/init-store-success
  [(re-frame/inject-cofx :data-store/get-all-accounts)]
  (fn [cofx _]
-   (init/after-decryption cofx)))
+   (init/load-accounts-and-initialize-views cofx)))
 
 (handlers/register-handler-fx
- :init/initialize-account
+ :init.callback/init-store-error
+ (fn [cofx [_ encryption-key error]]
+   (init/handle-init-store-error encryption-key cofx)))
+
+(handlers/register-handler-fx
+ :init.callback/account-change-success
  [(re-frame/inject-cofx :web3/get-web3)
   (re-frame/inject-cofx :get-default-contacts)
   (re-frame/inject-cofx :get-default-dapps)
@@ -129,9 +137,14 @@
    (init/initialize-account address cofx)))
 
 (handlers/register-handler-fx
- :init/set-device-UUID
- (fn [cofx [_ device-uuid]]
-   (init/set-device-uuid device-uuid cofx)))
+ :init.callback/account-change-error
+ (fn [cofx _]
+   (init/handle-change-account-error cofx)))
+
+(handlers/register-handler-fx
+ :init.callback/keychain-reset
+ (fn [cofx _]
+   (init/initialize-keychain cofx)))
 
 ;; accounts module
 
@@ -285,11 +298,11 @@
   [{:keys [db] :as cofx}]
   (let [{:transport/keys [chats]} db]
     (handlers-macro/merge-fx cofx
-                             {:dispatch            [:init/initialize-keychain]
-                              :clear-user-password (get-in db [:account/account :address])
+                             {:clear-user-password (get-in db [:account/account :address])
                               :dev-server/stop     nil}
                              (navigation/navigate-to-clean nil)
-                             (transport/stop-whisper))))
+                             (transport/stop-whisper)
+                             (init/initialize-keychain))))
 
 (handlers/register-handler-fx
  :logout
