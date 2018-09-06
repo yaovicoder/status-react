@@ -182,7 +182,7 @@
      [profile.components/settings-switch-item
       {:label-kw  :t/dev-mode
        :value     dev-mode?
-       :action-fn #(re-frame/dispatch [:switch-dev-mode %])}]]))
+       :action-fn #(re-frame/dispatch [:accounts.ui/dev-mode-switched %])}]]))
 
 (defview advanced [params on-show]
   (letsubs [advanced? [:get :my-profile/advanced?]]

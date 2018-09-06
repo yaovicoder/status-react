@@ -30,6 +30,7 @@
             [status-im.ui.components.permissions :as permissions]
             [status-im.ui.components.react :as react]
             [status-im.ui.screens.accounts.models :as accounts.models]
+            [status-im.accounts.core :as accounts]
             [status-im.ui.screens.accounts.utils :as accounts.utils]
             [status-im.ui.screens.add-new.new-chat.db :as new-chat.db]
             [status-im.ui.screens.browser.default-dapps :as default-dapps]
@@ -132,74 +133,62 @@
  (fn [cofx [_ device-uuid]]
    (init/set-device-uuid device-uuid cofx)))
 
+;; accounts module
+
 ;;;; COFX
 
 (re-frame/reg-cofx
- :get-signing-phrase
+ :accounts/get-signing-phrase
  (fn [cofx _]
-   (accounts.models/get-signing-phrase cofx)))
+   (accounts/get-signing-phrase cofx)))
 
 (re-frame/reg-cofx
- :get-status
+ :accounts/get-status
  (fn [cofx _]
-   (accounts.models/get-status cofx)))
+   (accounts/get-status cofx)))
 
 ;;;; FX
 
 (re-frame/reg-fx
- :create-account
- accounts.models/create-account!)
+ :accounts/create-account
+ accounts/create-account!)
 
 ;;;; Handlers
 
 (handlers/register-handler-fx
- :create-account
- (fn [cofx _]
-   (accounts.models/create-account cofx)))
-
-(handlers/register-handler-fx
- :account-created
- [(re-frame/inject-cofx :get-signing-phrase) (re-frame/inject-cofx :get-status)]
+ :accounts.callback/account-created
+ [(re-frame/inject-cofx :accounts/get-signing-phrase) (re-frame/inject-cofx :accounts/get-status)]
  (fn [cofx [_ result password]]
-   (accounts.models/on-account-created result password false cofx)))
+   (accounts/on-account-created result password false cofx)))
 
 (handlers/register-handler-fx
- :account-set-name
- (fn [cofx _]
-   (accounts.models/account-set-name cofx)))
+ :accounts.ui/next-step-pressed
+ (fn [cofx [_ step password password-confirm]]
+   (accounts/next-step step password password-confirm cofx)))
 
 (handlers/register-handler-fx
- :account-set-input-text
+ :accounts.ui/step-back-pressed
+ (fn [cofx [_ step password password-confirm]]
+   (accounts/step-back step cofx)))
+
+(handlers/register-handler-fx
+ :accounts.ui/input-text-changed
  (fn [cofx [_ input-key text]]
-   (accounts.models/account-set-input-text input-key text cofx)))
+   (accounts/account-set-input-text input-key text cofx)))
 
 (handlers/register-handler-fx
- :update-mainnet-warning-shown
+ :accounts.ui/mainnet-warning-shown
  (fn [cofx _]
-   (accounts.utils/account-update {:mainnet-warning-shown? true} cofx)))
+   (accounts/account-update {:mainnet-warning-shown? true} cofx)))
 
 (handlers/register-handler-fx
- :show-mainnet-is-default-alert
- (fn [cofx]
-   (accounts.models/show-mainnet-is-default-alert cofx)))
-
-(handlers/register-handler-fx
- :reset-account-creation
- (fn [cofx _]
-   (accounts.models/reset-account-creation cofx)))
-
-(handlers/register-handler-fx
- :switch-dev-mode
+ :accounts.ui/dev-mode-switched
  (fn [cofx [_ dev-mode?]]
-   (merge (accounts.utils/account-update {:dev-mode? dev-mode?} cofx)
-          (if dev-mode?
-            {:dev-server/start nil}
-            {:dev-server/stop nil}))))
+   (accounts/switch-dev-mode dev-mode? cofx)))
 
 (handlers/register-handler-fx
- :wallet-set-up-passed
+ :accounts.ui/wallet-set-up-confirmed
  (fn [cofx [_ modal?]]
-   (accounts.models/wallet-set-up-passed modal? cofx)))
 
 ;;;; COFX
 
@@ -207,6 +196,7 @@
  :now
  (fn [coeffects _]
    (assoc coeffects :now (time/timestamp))))
+   (accounts/confirm-wallet-set-up modal? cofx)))
 
 (re-frame/reg-cofx
  :random-id

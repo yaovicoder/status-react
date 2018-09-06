@@ -35,7 +35,8 @@
 
 (handlers/register-handler-fx
  :account-recovered
- [(re-frame/inject-cofx :get-signing-phrase) (re-frame/inject-cofx :get-status)]
+ [(re-frame/inject-cofx :accounts/get-signing-phrase)
+  (re-frame/inject-cofx :accounts/get-status)]
  (fn [cofx [_ result password]]
    (models/on-account-recovered result password cofx)))
 
