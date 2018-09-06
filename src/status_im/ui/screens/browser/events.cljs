@@ -65,15 +65,17 @@
 
 (handlers/register-handler-fx
  :open-url-in-browser
- (fn [cofx [_ url]]
+ (fn [{:keys [db] :as cofx} [_ url]]
    (let [normalized-url (http/normalize-and-decode-url url)
          host (http/url-host normalized-url)]
-     (model/update-new-browser-and-navigate
-      host
-      {:browser-id    (or host (random/id))
-       :history-index 0
-       :history       [normalized-url]}
-      cofx))))
+     (handlers-macro/merge-fx
+      cofx
+      {:db (assoc db :modal nil)}
+      (model/update-new-browser-and-navigate
+       host
+       {:browser-id    (or host (random/id))
+        :history-index 0
+        :history       [normalized-url]})))))
 
 (handlers/register-handler-fx
  :send-to-bridge
@@ -167,3 +169,8 @@
                            :permission       permission
                            :permissions-data permissions-data}
                           cofx)))
+
+(handlers/register-handler-fx
+ :open-modal-chat-from-browser-url
+ (fn [cofx [_ host]]
+   (model/open-chat-from-browser host cofx)))
