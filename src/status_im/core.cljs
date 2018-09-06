@@ -10,8 +10,10 @@
             [goog.object :as object]
             cljs.core.specs.alpha))
 
+(def yellow-box (.-YellowBox js-dependencies/react-native))
+
 (when js/goog.DEBUG
-  (object/set js/console "ignoredYellowBox" #js ["re-frame: overwriting"]))
+  (.ignoreWarnings yellow-box #js ["re-frame: overwriting"]))
 
 (defn init [app-root]
   (log/set-level! config/log-level)
