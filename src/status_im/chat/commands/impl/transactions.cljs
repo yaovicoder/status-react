@@ -290,7 +290,7 @@
           {:keys [decimals]}    (tokens/asset-for chain symbol)
           {:keys [value error]} (wallet.db/parse-amount amount decimals)
           next-view-id          (if (:wallet-set-up-passed? sender-account)
-                                  :wallet-send-transaction-chat
+                                  :wallet-send-transaction-modal
                                   :wallet-onboarding-setup)]
       (handlers-macro/merge-fx
        cofx

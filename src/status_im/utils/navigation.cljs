@@ -44,26 +44,14 @@
   (when (can-be-called?)
     (.navigate navigation-actions (clj->js params))))
 
-(defn get-available-routes []
-  (let [routes (.. @navigator-ref
-                   -state -nav -routes)]
-    (->> routes
-         js->clj
-         (map #(keyword (get % "key")))
-         set)))
-
 (defn navigate-reset [state]
   (when (can-be-called?)
-    (let [state'     (mapv navigate state)
-          {:keys [index actions]} state
-          route-name (get-in actions [index :routeName])]
-      (if (contains? (get-available-routes) route-name)
-        (.dispatch
-         @navigator-ref
-         (.reset
-          stack-actions
-          (clj->js state')))
-        (navigate-to route-name)))))
+    (let [state' (update state :actions #(mapv navigate %))]
+      (.dispatch
+       @navigator-ref
+       (.reset
+        stack-actions
+        (clj->js state'))))))
 
 (defn navigate-back []
   (when (can-be-called?)

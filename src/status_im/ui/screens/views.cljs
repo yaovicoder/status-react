@@ -197,13 +197,13 @@
 
        :wallet-transaction-fee
        {:screen (nav-reagent/stack-screen
-                 (wrap :wallet-transaction-fee
-                       wallet.transaction-fee/transaction-fee))}
+                 (wrap-modal :wallet-transaction-fee
+                             wallet.transaction-fee/transaction-fee))}
 
        :wallet-transactions-filter
        {:screen (nav-reagent/stack-screen
-                 (wrap :wallet-transactions-filter
-                       wallet-transactions/filter-history))}}
+                 (wrap-modal :wallet-transactions-filter
+                             wallet-transactions/filter-history))}}
 
       {:mode             "modal"
        :headerMode       "none"
