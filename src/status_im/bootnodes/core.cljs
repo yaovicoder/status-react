@@ -1,6 +1,9 @@
-(ns status-im.models.bootnode
+(ns status-im.bootnodes.core
   (:require [clojure.string :as string]
-            [status-im.ui.screens.accounts.utils :as accounts.utils]
+            [re-frame.core :as re-frame]
+            [status-im.accounts.update.core :as accounts.update]
+            [status-im.i18n :as i18n]
+            [status-im.ui.screens.navigation :as navigation]
             [status-im.utils.handlers-macro :as handlers-macro]))
 
 (def address-regex #"enode://[a-zA-Z0-9]+:?(.*)\@\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b:(\d{1,5})")
@@ -49,10 +52,10 @@
   (let [network     (:network db)
         new-account (update-in account [:bootnodes network] dissoc id)]
     (handlers-macro/merge-fx {:db (assoc db :account/account new-account)}
-                             (accounts.utils/account-update
+                             (accounts.update/account-update
                               (select-keys new-account [:bootnodes])
                               (when (custom-bootnodes-in-use? cofx)
-                                [:logout])))))
+                                [:accounts.update.callback/save-settings-success])))))
 
 (defn upsert [{{:bootnodes/keys [manage] :account/keys [account] :as db} :db :as cofx}]
   (let [{:keys [name
@@ -73,7 +76,30 @@
      cofx
      {:db       (dissoc db :bootnodes/manage)
       :dispatch [:navigate-back]}
-     (accounts.utils/account-update
+     (accounts.update/account-update
       {:bootnodes new-bootnodes}
       (when (custom-bootnodes-in-use? cofx)
-        [:logout])))))
+        [:accounts.update.callback/save-settings-success])))))
+
+(defn toggle-custom-bootnodes [value {:keys [db] :as cofx}]
+  (let [network  (get-in db [:account/account :network])
+        settings (get-in db [:account/account :settings])]
+    (handlers-macro/merge-fx cofx
+                             (accounts.update/update-settings
+                              (assoc-in settings [:bootnodes network] value)
+                              [:accounts.update.callback/save-settings-success]))))
+
+(defn set-bootnodes-from-qr [url cofx]
+  (assoc (set-input :url url cofx)
+         :dispatch [:navigate-back]))
+
+(defn show-delete-bootnode-confirmation [bootnode-id]
+  {:ui/show-confirmation {:title (i18n/label :t/delete-bootnode-title)
+                          :content (i18n/label :t/delete-bootnode-are-you-sure)
+                          :confirm-button-text (i18n/label :t/delete-bootnode)
+                          :on-accept #(re-frame/dispatch [:bootnodes.ui/delete-confirmed bootnode-id])}})
+
+(defn delete-bootnode [bootnode-id cofx]
+  (handlers-macro/merge-fx cofx
+                           (delete bootnode-id)
+                           (navigation/navigate-back)))
