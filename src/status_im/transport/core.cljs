@@ -5,7 +5,6 @@
             [status-im.data-store.transport :as transport-store]
             [status-im.transport.handlers :as transport.handlers]
             [status-im.transport.inbox :as inbox]
-            status-im.transport.filters
             [status-im.transport.utils :as transport.utils]
             [status-im.utils.handlers :as handlers]
             [status-im.utils.handlers-macro :as handlers-macro]
