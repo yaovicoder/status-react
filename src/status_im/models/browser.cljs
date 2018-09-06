@@ -153,7 +153,18 @@
   (let [browsers (into {} (map #(vector (:browser-id %) %) all-stored-browsers))]
     {:db (assoc db :browser/browsers browsers)}))
 
-(defn  initialize-dapp-permissions
+(defn initialize-dapp-permissions
   [{:keys [db all-dapp-permissions]}]
   (let [dapp-permissions (into {} (map #(vector (:dapp %) %) all-dapp-permissions))]
     {:db (assoc db :dapps/permissions dapp-permissions)}))
+
+(defn open-chat-from-browser [host cofx]
+  (let [topic (apply str (map #(let [cc (.charCodeAt % 0)]
+                                 (cond (or (and (> cc 96) (< cc 123))
+                                           (and (> cc 64) (< cc 91))
+                                           (and (> cc 47) (< cc 58)))
+                                       %
+                                       (= cc 46)
+                                       "-"))
+                              host))]
+    {:dispatch [:create-new-public-chat topic true]}))
