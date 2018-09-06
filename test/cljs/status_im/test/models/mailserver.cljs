@@ -1,6 +1,6 @@
 (ns status-im.test.models.mailserver
   (:require [cljs.test :refer-macros [deftest is testing]]
-            [status-im.models.mailserver :as model]))
+            [status-im.mailserver.core :as model]))
 
 (def enode-id "1da276e34126e93babf24ec88aac1a7602b4cbb2e11b0961d0ab5e989ca9c261aa7f7c1c85f15550a5f1e5a5ca2305b53b9280cf5894d5ecf7d257b173136d40")
 (def password "password")
@@ -255,5 +255,5 @@
       (testing "it logs the user out if connected to the current mailserver"
         (let [actual (model/upsert (assoc-in cofx
                                              [:db :inbox/current-id] "a"))]
-          (is (= [:logout]
+          (is (= [:accounts.create.ui/logout-confirmed]
                  (-> actual :data-store/tx first :success-event))))))))

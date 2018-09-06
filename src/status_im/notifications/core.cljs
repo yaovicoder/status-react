@@ -78,7 +78,7 @@
                                                  first)]
       (when address
         {:db       (assoc-in db [:push-notifications/stored to] from)
-         :dispatch [:ui/open-login address photo-path name]})))
+         :dispatch [:notifications.callback/stored-notification-handled address photo-path name]})))
 
   (defn handle-push-notification [{:keys [from to] :as event} {:keys [db] :as cofx}]
     (let [current-public-key (get-in cofx [:db :current-public-key])]
@@ -155,4 +155,3 @@
         (handle-push-notification {:from from
                                    :to   to}
                                   cofx)))))
-
