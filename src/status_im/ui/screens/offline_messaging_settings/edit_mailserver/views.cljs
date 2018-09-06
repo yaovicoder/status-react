@@ -15,14 +15,8 @@
    [status-im.ui.components.text-input.view :as text-input]
    [status-im.ui.screens.offline-messaging-settings.edit-mailserver.styles :as styles]))
 
-(defn handle-delete [id]
-  (utils/show-confirmation (i18n/label :t/delete-mailserver-title)
-                           (i18n/label :t/delete-mailserver-are-you-sure)
-                           (i18n/label :t/delete-mailserver)
-                           #(re-frame/dispatch [:delete-mailserver id])))
-
 (defn connect-button [id]
-  [react/touchable-highlight {:on-press #(re-frame/dispatch [:connect-wnode id])}
+  [react/touchable-highlight {:on-press #(re-frame/dispatch [:mailserver.ui/connect-pressed id])}
    [react/view styles/button-container
     [react/view {:style               styles/connect-button
                  :accessibility-label :mailserver-connect-button}
@@ -31,7 +25,7 @@
       (i18n/label :t/connect)]]]])
 
 (defn delete-button [id]
-  [react/touchable-highlight {:on-press #(handle-delete id)}
+  [react/touchable-highlight {:on-press #(re-frame/dispatch [:mailserver.ui/delete-pressed id])}
    [react/view styles/button-container
     [react/view {:style               styles/delete-button
                  :accessibility-label :mailserver-delete-button}

@@ -94,7 +94,7 @@
   (let [{:keys [passphrase]} (:accounts/recover db)]
     (if (mnemonic/status-generated-phrase? passphrase)
       (recover-account cofx)
-      {:show-confirmation {:title               (i18n/label :recovery-typo-dialog-title)
-                           :content             (i18n/label :recovery-typo-dialog-description)
-                           :confirm-button-text (i18n/label :recovery-confirm-phrase)
-                           :on-accept           #(re-frame/dispatch [:recover-account])}})))
+      {:ui/show-confirmation {:title               (i18n/label :recovery-typo-dialog-title)
+                              :content             (i18n/label :recovery-typo-dialog-description)
+                              :confirm-button-text (i18n/label :recovery-confirm-phrase)
+                              :on-accept           #(re-frame/dispatch [:recover-account])}})))

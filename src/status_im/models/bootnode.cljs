@@ -52,7 +52,7 @@
                              (accounts.utils/account-update
                               (select-keys new-account [:bootnodes])
                               (when (custom-bootnodes-in-use? cofx)
-                                [:logout])))))
+                                [:accounts.ui/logout-confirmed])))))
 
 (defn upsert [{{:bootnodes/keys [manage] :account/keys [account] :as db} :db :as cofx}]
   (let [{:keys [name
@@ -76,4 +76,4 @@
      (accounts.utils/account-update
       {:bootnodes new-bootnodes}
       (when (custom-bootnodes-in-use? cofx)
-        [:logout])))))
+        [:accounts.ui/logout-confirmed])))))

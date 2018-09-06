@@ -58,6 +58,58 @@
 
 ;; status-im.ui.screens.accounts.create.navigation
 
+;; utils module
+
+(re-frame/reg-cofx
+ :now
+ (fn [coeffects _]
+   (assoc coeffects :now (time/timestamp))))
+
+(re-frame/reg-cofx
+ :random-id
+ (fn [coeffects _]
+   (assoc coeffects :random-id (random/id))))
+
+(re-frame/reg-cofx
+ :random-id-seq
+ (fn [coeffects _]
+   (assoc coeffects :random-id-seq (repeatedly random/id))))
+
+(defn- http-get [{:keys [url response-validator success-event-creator failure-event-creator timeout-ms]}]
+  (let [on-success #(re-frame/dispatch (success-event-creator %))
+        on-error   #(re-frame/dispatch (failure-event-creator %))
+        opts       {:valid-response? response-validator
+                    :timeout-ms      timeout-ms}]
+    (http/get url on-success on-error opts)))
+
+(re-frame/reg-fx
+ :http-get
+ http-get)
+
+(re-frame/reg-fx
+ :http-get-n
+ (fn [calls]
+   (doseq [call calls]
+     (http-get call))))
+
+(defn- http-post [{:keys [url data response-validator success-event-creator failure-event-creator timeout-ms opts]}]
+  (let [on-success #(re-frame/dispatch (success-event-creator %))
+        on-error   #(re-frame/dispatch (failure-event-creator %))
+        all-opts   (assoc opts
+                          :valid-response? response-validator
+                          :timeout-ms      timeout-ms)]
+    (http/post url data on-success on-error all-opts)))
+
+(re-frame/reg-fx
+ :http-post
+ http-post)
+
+(re-frame/reg-fx
+ :request-permissions-fx
+ (fn [options]
+   (permissions/request-permissions options)))
+
+;; init module
 
 (re-frame/reg-fx
  :init/init-store
@@ -202,60 +254,22 @@
 (handlers/register-handler-fx
  :accounts.ui/wallet-set-up-confirmed
  (fn [cofx [_ modal?]]
-
-;;;; COFX
-
-(re-frame/reg-cofx
- :now
- (fn [coeffects _]
-   (assoc coeffects :now (time/timestamp))))
    (accounts/confirm-wallet-set-up modal? cofx)))
 
-(re-frame/reg-cofx
- :random-id
- (fn [coeffects _]
-   (assoc coeffects :random-id (random/id))))
+(handlers/register-handler-fx
+ :account.ui/logout-confirmed
+ (fn [cofx _]
+   (accounts/logout cofx)))
 
-(re-frame/reg-cofx
- :random-id-seq
- (fn [coeffects _]
-   (assoc coeffects :random-id-seq (repeatedly random/id))))
+(handlers/register-handler-fx
+ :accounts.ui/logout-pressed
+ (fn [cofx _]
+   (accounts/show-logout-confirmation)))
+
+;; UI module events
+
 
 ;;;; FX
-
-(defn- http-get [{:keys [url response-validator success-event-creator failure-event-creator timeout-ms]}]
-  (let [on-success #(re-frame/dispatch (success-event-creator %))
-        on-error   #(re-frame/dispatch (failure-event-creator %))
-        opts       {:valid-response? response-validator
-                    :timeout-ms      timeout-ms}]
-    (http/get url on-success on-error opts)))
-
-(re-frame/reg-fx
- :http-get
- http-get)
-
-(re-frame/reg-fx
- :http-get-n
- (fn [calls]
-   (doseq [call calls]
-     (http-get call))))
-
-(defn- http-post [{:keys [url data response-validator success-event-creator failure-event-creator timeout-ms opts]}]
-  (let [on-success #(re-frame/dispatch (success-event-creator %))
-        on-error   #(re-frame/dispatch (failure-event-creator %))
-        all-opts   (assoc opts
-                          :valid-response? response-validator
-                          :timeout-ms      timeout-ms)]
-    (http/post url data on-success on-error all-opts)))
-
-(re-frame/reg-fx
- :http-post
- http-post)
-
-(re-frame/reg-fx
- :request-permissions-fx
- (fn [options]
-   (permissions/request-permissions options)))
 
 (re-frame/reg-fx
  :ui/listen-to-window-dimensions-change
@@ -263,12 +277,12 @@
    (dimensions/add-event-listener)))
 
 (re-frame/reg-fx
- :show-error
+ :ui/show-error
  (fn [content]
    (utils/show-popup "Error" content)))
 
 (re-frame/reg-fx
- :show-confirmation
+ :ui/show-confirmation
  (fn [{:keys [title content confirm-button-text on-accept on-cancel]}]
    (utils/show-confirmation title content confirm-button-text on-accept on-cancel)))
 
@@ -293,21 +307,6 @@
  :set-in
  (fn [db [_ path v]]
    (assoc-in db path v)))
-
-(defn logout
-  [{:keys [db] :as cofx}]
-  (let [{:transport/keys [chats]} db]
-    (handlers-macro/merge-fx cofx
-                             {:clear-user-password (get-in db [:account/account :address])
-                              :dev-server/stop     nil}
-                             (navigation/navigate-to-clean nil)
-                             (transport/stop-whisper)
-                             (init/initialize-keychain))))
-
-(handlers/register-handler-fx
- :logout
- (fn [cofx _]
-   (logout cofx)))
 
 (defn app-state-change [state {:keys [db] :as cofx}]
   (let [app-coming-from-background? (= state "active")]
@@ -400,10 +399,19 @@
    (models.mailserver/edit mailserver-id cofx)))
 
 (handlers/register-handler-fx
- :delete-mailserver
+ :mailserver.ui/delete-confirmed
  (fn [cofx [_ mailserver-id]]
    (assoc (models.mailserver/delete mailserver-id cofx)
           :dispatch [:navigate-back])))
+
+(handlers/register-handler-fx
+ :mailserver.ui/delete-pressed
+ (fn [cofx [_ mailserver-id]]
+   {:ui/show-confirmation
+    {:title               (i18n/label :t/delete-mailserver-title)
+     :content             (i18n/label :t/delete-mailserver-are-you-sure)
+     :confirm-button-text (i18n/label :t/delete-mailserver)
+     :on-accept           #(re-frame/dispatch [:mailserver.ui/delete-confirmed mailserver-id])}}))
 
 (handlers/register-handler-fx
  :set-mailserver-from-qr
@@ -412,24 +420,25 @@
           :dispatch [:navigate-back])))
 
 (handlers/register-handler-fx
- ::save-wnode
+ :mailserver.ui/connect-confirmed
  (fn [{:keys [db now] :as cofx} [_ current-fleet wnode]]
    (let [settings (get-in db [:account/account :settings])]
      (handlers-macro/merge-fx cofx
                               (accounts.models/update-settings
                                (assoc-in settings [:wnode current-fleet] wnode)
-                               [:logout])))))
+                               [:accounts.ui/logout-confirmed])))))
 
 (handlers/register-handler-fx
- :connect-wnode
+ :mailserver.ui/connect-pressed
  (fn [{:keys [db]} [_ wnode]]
    (let [current-fleet (fleet/current-fleet db)]
-     {:show-confirmation {:title               (i18n/label :t/close-app-title)
-                          :content             (i18n/label :t/connect-wnode-content
-                                                           {:name (get-in db [:inbox/wnodes  current-fleet wnode :name])})
-                          :confirm-button-text (i18n/label :t/close-app-button)
-                          :on-accept           #(re-frame/dispatch [::save-wnode current-fleet wnode])
-                          :on-cancel           nil}})))
+     {:ui/show-confirmation
+      {:title               (i18n/label :t/close-app-title)
+       :content             (i18n/label :t/connect-wnode-content
+                                        {:name (get-in db [:inbox/wnodes  current-fleet wnode :name])})
+       :confirm-button-text (i18n/label :t/close-app-button)
+       :on-accept           #(re-frame/dispatch [:mailserver.ui/connect-confirmed current-fleet wnode])
+       :on-cancel           nil}})))
 
 (handlers/register-handler-fx
  :save-new-network
@@ -491,17 +500,17 @@
                                (if fleet
                                  (assoc settings :fleet fleet)
                                  (dissoc settings :fleet))
-                               [:logout])))))
+                               [:accounts.ui/logout-confirmed])))))
 
 (handlers/register-handler-fx
  :change-fleet
  (fn [{:keys [db]} [_ fleet]]
-   {:show-confirmation {:title               (i18n/label :t/close-app-title)
-                        :content             (i18n/label :t/change-fleet
-                                                         {:fleet fleet})
-                        :confirm-button-text (i18n/label :t/close-app-button)
-                        :on-accept           #(re-frame/dispatch [::save-fleet (keyword fleet)])
-                        :on-cancel           nil}}))
+   {:ui/show-confirmation {:title               (i18n/label :t/close-app-title)
+                           :content             (i18n/label :t/change-fleet
+                                                            {:fleet fleet})
+                           :confirm-button-text (i18n/label :t/close-app-button)
+                           :on-accept           #(re-frame/dispatch [::save-fleet (keyword fleet)])
+                           :on-cancel           nil}}))
 
 (re-frame/reg-fx
  :extension/load
@@ -514,10 +523,10 @@
  (fn [cofx [extension-data]]
    (let [extension-key (get-in extension-data ['meta :name])]
      (handlers-macro/merge-fx cofx
-                              {:show-confirmation {:title     (i18n/label :t/success)
-                                                   :content   (i18n/label :t/extension-installed)
-                                                   :on-accept #(re-frame/dispatch [:navigate-to-clean :home])
-                                                   :on-cancel nil}}
+                              {:ui/show-confirmation {:title     (i18n/label :t/success)
+                                                      :content   (i18n/label :t/extension-installed)
+                                                      :on-accept #(re-frame/dispatch [:navigate-to-clean :home])
+                                                      :on-cancel nil}}
                               (registry/add extension-data)
                               (registry/activate extension-key)))))
 
@@ -782,7 +791,7 @@
     (handlers-macro/merge-fx cofx
                              (accounts.models/update-settings
                               (assoc-in settings [:bootnodes network] value)
-                              [:logout]))))
+                              [:accounts.ui/logout-confirmed]))))
 
 (handlers/register-handler-fx
  :toggle-custom-bootnodes
@@ -806,10 +815,19 @@
    (models.bootnode/edit bootnode-id cofx)))
 
 (handlers/register-handler-fx
- :delete-bootnode
+ :bootnodes-settings.ui/delete-confirmed
  (fn [cofx [_ bootnode-id]]
-   (assoc (models.bootnode/delete bootnode-id cofx)
-          :dispatch [:navigate-back])))
+   (handlers-macro/merge-fx cofx
+                            (models.bootnode/delete bootnode-id)
+                            (navigation/navigate-back))))
+
+(handlers/register-handler-fx
+ :bootnodes-settings.ui/delete-pressed
+ (fn [_ [_ id]]
+   {:ui/show-confirmation {:title (i18n/label :t/delete-bootnode-title)
+                           :content (i18n/label :t/delete-bootnode-are-you-sure)
+                           :confirm-button-text (i18n/label :t/delete-bootnode)
+                           :on-accept #(re-frame/dispatch [:bootnodes-settings.ui/delete-confirmed id])}}))
 
 (handlers/register-handler-fx
  :set-bootnode-from-qr
@@ -826,7 +844,7 @@
                                (if log-level
                                  (assoc settings :log-level log-level)
                                  (dissoc settings :log-level))
-                               [:logout])))))
+                               [:accounts.ui/logout-confirmed])))))
 
 (handlers/register-handler-fx
   :change-log-level
@@ -837,6 +855,30 @@
                          :confirm-button-text (i18n/label :t/close-app-button)
                          :on-accept           #(re-frame/dispatch [::save-log-level value])
                          :on-cancel           nil}}))
+
+(handlers/register-handler-fx
+ :chat.ui/clear-history-pressed
+ (fn [_ _]
+   {:ui/show-confirmation {:title (i18n/label :t/clear-history-title)
+                           :content (i18n/label :t/clear-history-confirmation-content)
+                           :confirm-button-text (i18n/label :t/clear-history-action)
+                           :on-accept #(re-frame/dispatch [:clear-history])}}))
+
+(handlers/register-handler-fx
+ :chat.ui/delete-chat-pressed
+ (fn [_ [_ chat-id]]
+   {:ui/show-confirmation {:title (i18n/label :t/delete-chat-confirmation)
+                           :content ""
+                           :confirm-button-text (i18n/label :t/delete-chat-action)
+                           :on-accept #(re-frame/dispatch [:remove-chat-and-navigate-home chat-id])}}))
+
+(handlers/register-handler-fx
+ :group-chat.ui/leave-group-pressed
+ (fn [_ [_ chat-id]]
+   {:ui/show-confirmation {:title (i18n/label :t/leave-group-title)
+                           :content (i18n/label :t/leave-group-confirmation)
+                           :confirm-button-text (i18n/label :t/leave-group-action)
+                           :on-accept #(re-frame/dispatch [:remove-chat-and-navigate-home chat-id])}}))
 
 (handlers/register-handler-db
  :deselect-contact

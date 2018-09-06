@@ -255,5 +255,5 @@
       (testing "it logs the user out if connected to the current mailserver"
         (let [actual (model/upsert (assoc-in cofx
                                              [:db :inbox/current-id] "a"))]
-          (is (= [:logout]
+          (is (= [:accounts.ui/logout-confirmed]
                  (-> actual :data-store/tx first :success-event))))))))

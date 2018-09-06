@@ -94,12 +94,12 @@
                                  (action-handler on-success network)
                                  (accounts.utils/account-update {:network      network
                                                                  :last-updated now}
-                                                                [:logout]))
-        (handlers-macro/merge-fx {:show-confirmation {:title               (i18n/label :t/close-app-title)
-                                                      :content             (i18n/label :t/close-app-content)
-                                                      :confirm-button-text (i18n/label :t/close-app-button)
-                                                      :on-accept           #(re-frame/dispatch [::save-network network])
-                                                      :on-cancel           nil}}
+                                                                [:accounts.ui/logout-confirmed]))
+        (handlers-macro/merge-fx {:ui/show-confirmation {:title               (i18n/label :t/close-app-title)
+                                                         :content             (i18n/label :t/close-app-content)
+                                                         :confirm-button-text (i18n/label :t/close-app-button)
+                                                         :on-accept           #(re-frame/dispatch [::save-network network])
+                                                         :on-cancel           nil}}
                                  (action-handler on-success network))))
     (action-handler on-failure)))
 
@@ -107,11 +107,11 @@
   (let [current-network? (= (:network account) network)]
     (if (or current-network?
             (not (get-in account [:networks network])))
-      (handlers-macro/merge-fx {:show-error (i18n/label :t/delete-network-error)}
+      (handlers-macro/merge-fx {:ui/show-error (i18n/label :t/delete-network-error)}
                                (action-handler on-failure network))
-      (handlers-macro/merge-fx {:show-confirmation {:title               (i18n/label :t/delete-network-title)
-                                                    :content             (i18n/label :t/delete-network-confirmation)
-                                                    :confirm-button-text (i18n/label :t/delete)
-                                                    :on-accept           #(re-frame/dispatch [::remove-network network])
-                                                    :on-cancel           nil}}
+      (handlers-macro/merge-fx {:ui/show-confirmation {:title               (i18n/label :t/delete-network-title)
+                                                       :content             (i18n/label :t/delete-network-confirmation)
+                                                       :confirm-button-text (i18n/label :t/delete)
+                                                       :on-accept           #(re-frame/dispatch [::remove-network network])
+                                                       :on-cancel           nil}}
                                (action-handler on-success network)))))

@@ -120,6 +120,6 @@
   (let [new-cofx (models/recover-account-with-checks {:db {:accounts/recover
                                                            {:passphrase "game buzz method pretty zeus fat quit display velvet unveil marine crater"
                                                             :password   "thisisapaswoord"}}})]
-    (is (= (i18n/label :recovery-typo-dialog-title) (-> new-cofx :show-confirmation :title)))
-    (is (= (i18n/label :recovery-typo-dialog-description) (-> new-cofx :show-confirmation :content)))
-    (is (= (i18n/label :recovery-confirm-phrase) (-> new-cofx :show-confirmation :confirm-button-text)))))
+    (is (= (i18n/label :recovery-typo-dialog-title) (-> new-cofx :ui/show-confirmation :title)))
+    (is (= (i18n/label :recovery-typo-dialog-description) (-> new-cofx :ui/show-confirmation :content)))
+    (is (= (i18n/label :recovery-confirm-phrase) (-> new-cofx :ui/show-confirmation :confirm-button-text)))))

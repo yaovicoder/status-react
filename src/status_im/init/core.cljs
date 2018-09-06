@@ -93,7 +93,7 @@
 
 (defn handle-change-account-error
   [cofx]
-  {:show-confirmation
+  {:ui/show-confirmation
    {:title               (i18n/label :invalid-key-title)
     :content             (i18n/label :invalid-key-content)
     :confirm-button-text (i18n/label :invalid-key-confirm)
@@ -104,7 +104,7 @@
 
 (defn handle-init-store-error
   [encryption-key cofx]
-  {:show-confirmation
+  {:ui/show-confirmation
    {:title               (i18n/label :decryption-failed-title)
     :content             (i18n/label :decryption-failed-content)
     :confirm-button-text (i18n/label :decryption-failed-confirm)
