@@ -4,7 +4,9 @@
             [status-im.constants :as constants]
             [status-im.data-store.accounts :as accounts-store]
             [status-im.i18n :as i18n]
+            [status-im.init.core :as init]
             [status-im.native-module.core :as status]
+            [status-im.transport.core :as transport]
             [status-im.ui.screens.accounts.login.models :as login.models]
             [status-im.ui.screens.accounts.statuses :as statuses]
             [status-im.ui.screens.accounts.utils :as accounts.utils]
@@ -145,3 +147,20 @@
          (if dev-mode?
            {:dev-server/start nil}
            {:dev-server/stop nil})))
+
+(defn logout
+  [{:keys [db] :as cofx}]
+  (let [{:transport/keys [chats]} db]
+    (handlers-macro/merge-fx cofx
+                             {:clear-user-password (get-in db [:account/account :address])
+                              :dev-server/stop     nil}
+                             (navigation/navigate-to-clean nil)
+                             (transport/stop-whisper)
+                             (init/initialize-keychain))))
+
+(defn show-logout-confirmation []
+  {:ui/show-confirmation {:title               (i18n/label :t/logout-title)
+                          :content             (i18n/label :t/logout-are-you-sure)
+                          :confirm-button-text (i18n/label :t/logout)
+                          :on-accept           #(re-frame/dispatch [:accounts.ui/logout-confirmed])
+                          :on-cancel           nil}})

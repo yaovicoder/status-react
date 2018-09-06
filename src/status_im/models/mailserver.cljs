@@ -146,5 +146,5 @@
                                                        :fleet
                                                        current-fleet))
                       ;; we naively logout if the user is connected to the edited mailserver
-                      :success-event (when current [:logout])}]
+                      :success-event (when current [:accounts.ui/logout-confirmed])}]
      :dispatch [:navigate-back]}))

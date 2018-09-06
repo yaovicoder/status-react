@@ -14,14 +14,8 @@
    [status-im.ui.components.text-input.view :as text-input]
    [status-im.ui.screens.bootnodes-settings.edit-bootnode.styles :as styles]))
 
-(defn handle-delete [id]
-  (utils/show-confirmation (i18n/label :t/delete-bootnode-title)
-                           (i18n/label :t/delete-bootnode-are-you-sure)
-                           (i18n/label :t/delete-bootnode)
-                           #(re-frame/dispatch [:delete-bootnode id])))
-
 (defn delete-button [id]
-  [react/touchable-highlight {:on-press #(handle-delete id)}
+  [react/touchable-highlight {:on-press #(re-frame/dispatch [:bootnodes-settings.ui/delete-pressed id])}
    [react/view styles/button-container
     [react/view {:style               styles/delete-button
                  :accessibility-label :bootnode-delete-button}
