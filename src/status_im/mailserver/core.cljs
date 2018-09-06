@@ -1,9 +1,11 @@
-(ns status-im.models.mailserver
+(ns status-im.mailserver.core
   (:require [clojure.string :as string]
+            [re-frame.core :as re-frame]
             [status-im.data-store.mailservers :as data-store.mailservers]
-            [status-im.utils.ethereum.core :as ethereum]
-            [status-im.utils.handlers-macro :as handlers-macro]
-            [status-im.models.fleet :as fleet]))
+            [status-im.i18n :as i18n]
+            [status-im.fleet.core :as fleet]
+            [status-im.accounts.update.core :as accounts.update]
+            [status-im.utils.handlers-macro :as handlers-macro]))
 
 (def enode-address-regex #"enode://[a-zA-Z0-9]+\@\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b:(\d{1,5})")
 (def enode-url-regex #"enode://[a-zA-Z0-9]+:(.+)\@\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b:(\d{1,5})")
@@ -46,7 +48,7 @@
 
 (defn- build [id mailserver-name address]
   (assoc (address->mailserver address)
-         :id (string/replace id "-" "")
+         :id (keyword (string/replace id "-" ""))
          :name mailserver-name))
 
 (defn connected? [id {:keys [db]}]
@@ -94,11 +96,12 @@
 (def default? (comp not :user-defined fetch))
 
 (defn delete [id {:keys [db] :as cofx}]
-  (when-not (or
-             (default? id cofx)
-             (connected? id cofx))
-    {:db            (update-in db [:inbox/wnodes (fleet/current-fleet db)] dissoc id)
-     :data-store/tx [(data-store.mailservers/delete-tx id)]}))
+  (merge (when-not (or
+                    (default? id cofx)
+                    (connected? id cofx))
+           {:db            (update-in db [:inbox/wnodes (fleet/current-fleet db)] dissoc id)
+            :data-store/tx [(data-store.mailservers/delete-tx id)]})
+         {:dispatch [:navigate-back]}))
 
 (defn set-current-mailserver [{:keys [db] :as cofx}]
   {:db (assoc db :inbox/current-id (selected-or-random-id cofx))})
@@ -146,5 +149,37 @@
                                                        :fleet
                                                        current-fleet))
                       ;; we naively logout if the user is connected to the edited mailserver
-                      :success-event (when current [:logout])}]
+                      :success-event (when current [:accounts.logout.ui/logout-confirmed])}]
      :dispatch [:navigate-back]}))
+
+(defn show-connection-confirmation
+  [mailserver-id {:keys [db]}]
+  (let [current-fleet (fleet/current-fleet db)]
+    {:ui/show-confirmation
+     {:title               (i18n/label :t/close-app-title)
+      :content             (i18n/label :t/connect-wnode-content
+                                       {:name (get-in db [:inbox/wnodes  current-fleet mailserver-id :name])})
+      :confirm-button-text (i18n/label :t/close-app-button)
+      :on-accept           #(re-frame/dispatch [:mailserver.ui/connect-confirmed current-fleet mailserver-id])
+      :on-cancel           nil}}))
+
+(defn show-delete-confirmation
+  [mailserver-id {:keys [db]}]
+  {:ui/show-confirmation
+   {:title               (i18n/label :t/delete-mailserver-title)
+    :content             (i18n/label :t/delete-mailserver-are-you-sure)
+    :confirm-button-text (i18n/label :t/delete-mailserver)
+    :on-accept           #(re-frame/dispatch [:mailserver.ui/delete-confirmed mailserver-id])}})
+
+(defn save-settings
+  [current-fleet mailserver-id {:keys [db] :as cofx}]
+  (let [settings (get-in db [:account/account :settings])]
+    (handlers-macro/merge-fx cofx
+                             (accounts.update/update-settings
+                              (assoc-in settings [:wnode current-fleet] mailserver-id)
+                              [:accounts.update.callback/save-settings-success]))))
+
+(defn set-url-from-qr
+  [url cofx]
+  (assoc (set-input :url url cofx)
+         :dispatch [:navigate-back]))

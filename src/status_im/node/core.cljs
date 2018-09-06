@@ -1,9 +1,10 @@
-(ns status-im.node.models
-  (:require [status-im.utils.config :as config]
+(ns status-im.node.core
+  (:require [re-frame.core :as re-frame]
+            [status-im.fleet.core :as fleet]
+            [status-im.native-module.core :as status]
+            [status-im.utils.config :as config]
             [status-im.utils.types :as types]
-            [clojure.string :as str]
-            [taoensso.timbre :as log]
-            [status-im.models.fleet :as fleet]))
+            [taoensso.timbre :as log]))
 
 (defn- add-custom-bootnodes [config network all-bootnodes]
   (let [bootnodes (as-> all-bootnodes $
@@ -73,3 +74,13 @@
   (if (not status-node-started?)
     (start address cofx)
     (restart)))
+
+(re-frame/reg-fx
+ :node/start
+ (fn [[config fleet]]
+   (status/start-node config fleet)))
+
+(re-frame/reg-fx
+ :node/stop
+ (fn []
+   (status/stop-node)))

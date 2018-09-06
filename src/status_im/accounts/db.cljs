@@ -1,10 +1,14 @@
-(ns status-im.ui.screens.accounts.db
-  (:require-macros [status-im.utils.db :refer [allowed-keys]])
+(ns status-im.accounts.db
   (:require [cljs.spec.alpha :as spec]
-            status-im.utils.db
-            status-im.ui.screens.network-settings.db
-            status-im.ui.screens.bootnodes-settings.db
-            [status-im.constants :as const]))
+            [status-im.constants :as const])
+  (:require-macros [status-im.utils.db :refer [allowed-keys]]))
+
+(defn logged-in? [cofx]
+  (boolean
+   (get-in cofx [:db :account/account])))
+
+(defn credentials [cofx]
+  (select-keys (get-in cofx [:db :accounts/login]) [:address :password :save-password?]))
 
 (defn valid-length? [password]
   (>= (count password) const/min-password-length))
