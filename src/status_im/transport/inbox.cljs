@@ -17,7 +17,7 @@
             [status-im.data-store.core :as data-store]
             [status-im.mailserver.core :as mailserver]
             [status-im.data-store.transport :as transport-store]
-            [status-im.models.fleet :as fleet]))
+            [status-im.fleet.core :as fleet]))
 
 ;; How does offline inboxing work ?
 ;;

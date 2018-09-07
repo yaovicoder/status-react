@@ -3,7 +3,7 @@
             [re-frame.core :as re-frame]
             [status-im.data-store.mailservers :as data-store.mailservers]
             [status-im.i18n :as i18n]
-            [status-im.models.fleet :as fleet]
+            [status-im.fleet.core :as fleet]
             [status-im.transport.inbox :as inbox]
             [status-im.ui.screens.accounts.models :as accounts.models]
             [status-im.utils.handlers-macro :as handlers-macro]))

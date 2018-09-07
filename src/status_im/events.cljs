@@ -14,7 +14,7 @@
             [status-im.models.bootnode :as models.bootnode]
             [status-im.models.browser :as browser.models]
             [status-im.models.contact :as models.contact]
-            [status-im.models.fleet :as fleet]
+            [status-im.fleet.core :as fleet]
             [status-im.models.protocol :as protocol]
             [status-im.native-module.core :as status]
             [status-im.network.net-info :as net-info]
@@ -370,26 +370,16 @@
 
 ;; fleet module
 (handlers/register-handler-fx
- ::save-fleet
- (fn [{:keys [db now] :as cofx} [_ fleet]]
-   (let [settings (get-in db [:account/account :settings])]
-     (handlers-macro/merge-fx cofx
-                              (accounts.models/update-settings
-                               (if fleet
-                                 (assoc settings :fleet fleet)
-                                 (dissoc settings :fleet))
-                               [:accounts.ui/logout-confirmed])))))
+ :fleet.ui/save-fleet-confirmed
+ (fn [cofx [_ fleet]]
+   (fleet/save fleet cofx)))
 
 (handlers/register-handler-fx
- :change-fleet
- (fn [{:keys [db]} [_ fleet]]
-   {:ui/show-confirmation {:title               (i18n/label :t/close-app-title)
-                           :content             (i18n/label :t/change-fleet
-                                                            {:fleet fleet})
-                           :confirm-button-text (i18n/label :t/close-app-button)
-                           :on-accept           #(re-frame/dispatch [::save-fleet (keyword fleet)])
-                           :on-cancel           nil}}))
+ :fleet.ui/fleet-selected
+ (fn [cofx [_ fleet]]
+   (fleet/show-save-confirmation fleet cofx)))
 
+;; extension module
 (re-frame/reg-fx
  :extension/load
  (fn [[url follow-up-event]]
