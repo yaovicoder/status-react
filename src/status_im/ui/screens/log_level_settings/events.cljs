@@ -18,10 +18,10 @@
 
 (handlers/register-handler-fx
  :change-log-level
- (fn [{:keys [db]} [_ log-level]]
+ (fn [{:keys [db]} [_ {:keys [name value] :as log-level}]]
    {:show-confirmation {:title               (i18n/label :t/close-app-title)
                         :content             (i18n/label :t/change-log-level
-                                                         {:log-level log-level})
+                                                         {:log-level name})
                         :confirm-button-text (i18n/label :t/close-app-button)
-                        :on-accept           #(re-frame/dispatch [::save-log-level log-level])
+                        :on-accept           #(re-frame/dispatch [::save-log-level value])
                         :on-cancel           nil}}))

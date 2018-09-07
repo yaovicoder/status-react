@@ -22,10 +22,10 @@
   (re-frame/dispatch [:change-log-level log-level]))
 
 (defn render-row [current-log-level]
-  (fn [{:keys [name value]}]
+  (fn [{:keys [name value] :as log-level}]
     (let [current? (= value current-log-level)]
       [react/touchable-highlight
-       {:on-press #(change-log-level value)
+       {:on-press #(change-log-level log-level)
         :accessibility-label :log-level-item}
        [react/view styles/log-level-item
         [log-level-icon current?]
