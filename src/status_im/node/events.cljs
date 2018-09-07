@@ -1,12 +1,11 @@
 (ns status-im.node.events
   (:require [re-frame.core :as re-frame]
-            [status-im.native-module.core :as status]
-            [status-im.utils.config :as config]))
+            [status-im.native-module.core :as status]))
 
 (re-frame/reg-fx
  :node/start
- (fn [[config fleet]]
-   (status/start-node config fleet)))
+ (fn [[config]]
+   (status/start-node config)))
 
 (re-frame/reg-fx
  :node/stop
