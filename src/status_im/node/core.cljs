@@ -3,8 +3,9 @@
             [status-im.fleet.core :as fleet]
             [status-im.native-module.core :as status]
             [status-im.utils.config :as config]
-            [status-im.utils.types :as types]
-            [taoensso.timbre :as log]))
+            [taoensso.timbre :as log]
+            [status-im.utils.platform :as platform]
+            [status-im.utils.types :as types]))
 
 (defn- add-custom-bootnodes [config network all-bootnodes]
   (let [bootnodes (as-> all-bootnodes $
@@ -71,9 +72,9 @@
 
 (defn initialize
   [address {{:keys [status-node-started?] :as db} :db :as cofx}]
-  (if (not status-node-started?)
-    (start address cofx)
-    (restart)))
+  (if (or status-node-started? platform/desktop?)
+    (restart)
+    (start address cofx)))
 
 (re-frame/reg-fx
  :node/start
