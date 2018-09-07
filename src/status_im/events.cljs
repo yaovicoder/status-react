@@ -257,7 +257,7 @@
    (accounts/confirm-wallet-set-up modal? cofx)))
 
 (handlers/register-handler-fx
- :account.ui/logout-confirmed
+ :accounts.ui/logout-confirmed
  (fn [cofx _]
    (accounts/logout cofx)))
 
