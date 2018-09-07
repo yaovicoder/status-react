@@ -71,31 +71,35 @@ void RCTStatus::getDeviceUUID(double callbackId) {
 }
 
 
-void RCTStatus::startNode(QString configString, QString fleet) {
+void RCTStatus::startNode(QString configString) {
     Q_D(RCTStatus);
     qDebug() << "call of RCTStatus::startNode with param configString:" << configString;
 
     QJsonParseError jsonError;
-    QJsonDocument jsonDoc = QJsonDocument::fromJson(configString.toUtf8(), &jsonError);
+    const QJsonDocument& jsonDoc = QJsonDocument::fromJson(configString.toUtf8(), &jsonError);
     if (jsonError.error != QJsonParseError::NoError){
         qDebug() << jsonError.errorString();
     }
 
-    qDebug() << " RCTStatus::startNode configString: " << jsonDoc.toVariant().toMap();
     QVariantMap configJSON = jsonDoc.toVariant().toMap();
+    qDebug() << " RCTStatus::startNode configString: " << configJSON;
 
     int networkId = configJSON["NetworkId"].toInt();
-    QString dataDir = configJSON["DataDir"].toString();
+    QString relativeDataDirPath = configJSON["DataDir"].toString();
+    if (!relativeDataDirPath.startsWith("/"))
+        relativeDataDirPath.prepend("/");
 
-    QString rootDirPath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/";
-    QString networkDir = rootDirPath + dataDir;
-    QString keyStoreDir = rootDirPath + "keystore";
-    QDir dir(networkDir);
-    if (!dir.exists()) {
-      dir.mkpath(".");
+    QString rootDirPath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+    QDir rootDir(rootDirPath);
+    QString absDataDirPath = rootDirPath + relativeDataDirPath;
+    QDir dataDir(absDataDirPath);
+    if (!dataDir.exists()) {
+      dataDir.mkpath(".");
     }
-    qDebug()<<"RCTStatus::startNode networkDir: "<<networkDir;
 
+    configJSON["DataDir"] = absDataDirPath;
+    configJSON["KeyStoreDir"] = rootDir.absoluteFilePath("keystore");
+    configJSON["LogFile"] = dataDir.absoluteFilePath("geth.log");
 
     char *configChars = GenerateConfig(networkDir.toUtf8().data(), fleet.toUtf8().data(), networkId);
     qDebug() << "RCTStatus::startNode GenerateConfig result: " << statusGoResultError(configChars);
