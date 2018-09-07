@@ -65,8 +65,7 @@ RCT_EXPORT_MODULE();
 ////////////////////////////////////////////////////////////////////
 #pragma mark - startNode
 //////////////////////////////////////////////////////////////////// startNode
-RCT_EXPORT_METHOD(startNode:(NSString *)configString
-                      fleet:(NSString *)fleet) {
+RCT_EXPORT_METHOD(startNode:(NSString *)configString) {
 #if DEBUG
     NSLog(@"StartNode() method called");
 #endif
@@ -110,42 +109,15 @@ RCT_EXPORT_METHOD(startNode:(NSString *)configString
     NSLog(@"preconfig: %@", configString);
     NSData *configData = [configString dataUsingEncoding:NSUTF8StringEncoding];
     NSDictionary *configJSON = [NSJSONSerialization JSONObjectWithData:configData options:NSJSONReadingMutableContainers error:nil];
-    int networkId = [configJSON[@"NetworkId"] integerValue];
     NSString *dataDir = [configJSON objectForKey:@"DataDir"];
-    NSString *upstreamURL = [configJSON valueForKeyPath:@"UpstreamConfig.URL"];
-    NSArray *bootnodes = [configJSON valueForKeyPath:@"ClusterConfig.BootNodes"];
     NSString *networkDir = [rootUrl.path stringByAppendingString:dataDir];
-    NSString *devCluster = [ReactNativeConfig envFor:@"ETHEREUM_DEV_CLUSTER"];
-    NSString *logEnabled = [configJSON objectForKey:@"LogEnabled"];
-    NSString *logLevel = [configJSON objectForKey:@"LogLevel"];
-    char *configChars = GenerateConfig((char *)[networkDir UTF8String], (char *)[fleet UTF8String], networkId);
-    NSString *config = [NSString stringWithUTF8String: configChars];
-    configData = [config dataUsingEncoding:NSUTF8StringEncoding];
-    NSDictionary *resultingConfigJson = [NSJSONSerialization JSONObjectWithData:configData options:NSJSONReadingMutableContainers error:nil];
+
     NSURL *networkDirUrl = [NSURL fileURLWithPath:networkDir];
     NSURL *logUrl = [networkDirUrl URLByAppendingPathComponent:@"geth.log"];
-    [resultingConfigJson setValue:newKeystoreUrl.path forKey:@"KeyStoreDir"];
-    [resultingConfigJson setValue:logEnabled forKey:@"LogEnabled"];
-    [resultingConfigJson setValue:logUrl.path forKey:@"LogFile"];
-    [resultingConfigJson setValue:([logLevel length] == 0 ? [NSString stringWithUTF8String: "ERROR"] : logLevel) forKey:@"LogLevel"];
+    [configJSON setValue:newKeystoreUrl.path forKey:@"KeyStoreDir"];
+    [configJSON setValue:logUrl.path forKey:@"LogFile"];
 
-    [resultingConfigJson setValue:[NSNumber numberWithBool:YES] forKeyPath:@"WhisperConfig.LightClient"];
-
-    if(upstreamURL != nil) {
-        [resultingConfigJson setValue:[NSNumber numberWithBool:YES] forKeyPath:@"UpstreamConfig.Enabled"];
-        [resultingConfigJson setValue:upstreamURL forKeyPath:@"UpstreamConfig.URL"];
-    }
-
-    if(bootnodes != nil) {
-        [resultingConfigJson setValue:[NSNumber numberWithBool:YES] forKeyPath:@"ClusterConfig.Enabled"];
-        [resultingConfigJson setValue:bootnodes forKeyPath:@"ClusterConfig.BootNodes"];
-    }
-
-    if([fleet length] > 0) {
-        [resultingConfigJson setValue:fleet forKeyPath:@"ClusterConfig.Fleet"];
-    }
-
-    NSString *resultingConfig = [resultingConfigJson bv_jsonStringWithPrettyPrint:NO];
+    NSString *resultingConfig = [configJSON bv_jsonStringWithPrettyPrint:NO];
     NSLog(@"node config %@", resultingConfig);
 
     if(![fileManager fileExistsAtPath:networkDirUrl.path]) {
@@ -163,7 +135,8 @@ RCT_EXPORT_METHOD(startNode:(NSString *)configString
                    ^(void)
                    {
                        char *res = StartNode((char *) [resultingConfig UTF8String]);
-                       NSLog(@"StartNode result %@", [NSString stringWithUTF8String: res]);                   });
+                       NSLog(@"StartNode result %@", [NSString stringWithUTF8String: res]);
+                   });
 }
 
 ////////////////////////////////////////////////////////////////////
