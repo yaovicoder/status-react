@@ -15,10 +15,10 @@
             [status-im.models.browser :as browser.models]
             [status-im.models.contact :as models.contact]
             [status-im.models.fleet :as fleet]
-            [status-im.models.network :as models.network]
             [status-im.models.protocol :as protocol]
             [status-im.native-module.core :as status]
             [status-im.network.net-info :as net-info]
+            [status-im.network.core :as network]
             [status-im.notifications.core :as notifications]
             [status-im.signals.core :as signals]
             [status-im.transport.core :as transport]
@@ -75,62 +75,7 @@
  (fn [coeffects _]
    (assoc coeffects :random-id-seq (repeatedly random/id))))
 
-(defn- http-get [{:keys [url response-validator success-event-creator failure-event-creator timeout-ms]}]
-  (let [on-success #(re-frame/dispatch (success-event-creator %))
-        on-error   #(re-frame/dispatch (failure-event-creator %))
-        opts       {:valid-response? response-validator
-                    :timeout-ms      timeout-ms}]
-    (http/get url on-success on-error opts)))
-
-(re-frame/reg-fx
- :http-get
- http-get)
-
-(re-frame/reg-fx
- :http-get-n
- (fn [calls]
-   (doseq [call calls]
-     (http-get call))))
-
-(defn- http-post [{:keys [url data response-validator success-event-creator failure-event-creator timeout-ms opts]}]
-  (let [on-success #(re-frame/dispatch (success-event-creator %))
-        on-error   #(re-frame/dispatch (failure-event-creator %))
-        all-opts   (assoc opts
-                          :valid-response? response-validator
-                          :timeout-ms      timeout-ms)]
-    (http/post url data on-success on-error all-opts)))
-
-(re-frame/reg-fx
- :http-post
- http-post)
-
-(re-frame/reg-fx
- :request-permissions-fx
- (fn [options]
-   (permissions/request-permissions options)))
-
 ;; init module
-
-(re-frame/reg-fx
- :init/init-store
- init/init-store!)
-
-(re-frame/reg-fx
- :init/status-module-initialized
- status/module-initialized!)
-
-(re-frame/reg-fx
- :init/testfairy-alert
- init/testfairy-alert!)
-
-(re-frame/reg-fx
- :init/get-device-UUID
- (fn []
-   (status/get-device-UUID #(re-frame/dispatch [:init.callback/get-device-UUID-success %]))))
-
-(re-frame/reg-fx
- :init/reset-data
- init/reset-data!)
 
 (handlers/register-handler-fx
  :init.ui/data-reset-accepted
@@ -200,26 +145,6 @@
 
 ;; accounts module
 
-;;;; COFX
-
-(re-frame/reg-cofx
- :accounts/get-signing-phrase
- (fn [cofx _]
-   (accounts/get-signing-phrase cofx)))
-
-(re-frame/reg-cofx
- :accounts/get-status
- (fn [cofx _]
-   (accounts/get-status cofx)))
-
-;;;; FX
-
-(re-frame/reg-fx
- :accounts/create-account
- accounts/create-account!)
-
-;;;; Handlers
-
 (handlers/register-handler-fx
  :accounts.callback/account-created
  [(re-frame/inject-cofx :accounts/get-signing-phrase) (re-frame/inject-cofx :accounts/get-status)]
@@ -267,37 +192,6 @@
    (accounts/show-logout-confirmation)))
 
 ;; UI module events
-
-
-;;;; FX
-
-(re-frame/reg-fx
- :ui/listen-to-window-dimensions-change
- (fn []
-   (dimensions/add-event-listener)))
-
-(re-frame/reg-fx
- :ui/show-error
- (fn [content]
-   (utils/show-popup "Error" content)))
-
-(re-frame/reg-fx
- :ui/show-confirmation
- (fn [{:keys [title content confirm-button-text on-accept on-cancel]}]
-   (utils/show-confirmation title content confirm-button-text on-accept on-cancel)))
-
-(re-frame/reg-fx
- :close-application
- (fn [_]
-   (status/close-application)))
-
-(re-frame/reg-fx
- ::app-state-change-fx
- (fn [state]
-   (status/app-state-change state)))
-
-;;;; Handlers
-
 (handlers/register-handler-db
  :set
  (fn [db [_ k v]]
@@ -432,57 +326,49 @@
  (fn [cofx _]
    (accounts/logout cofx)))
 
+;; network module
 (handlers/register-handler-fx
- :save-new-network
+ :network.ui/save-network-pressed
  [(re-frame/inject-cofx :random-id)]
  (fn [cofx]
-   (models.network/save cofx
-                        {:data       (get-in cofx [:db :network/manage])
-                         :on-success (fn []
-                                       {:dispatch [:navigate-back]})})))
+   (network/save-network cofx)))
 
 (handlers/register-handler-fx
- :network-set-input
+ :network.ui/input-changed
  (fn [cofx [_ input-key value]]
-   (models.network/set-input input-key value cofx)))
+   (network/set-input input-key value cofx)))
 
 (handlers/register-handler-fx
- :edit-network
+ :network.ui/add-network-pressed
  (fn [cofx]
-   (models.network/edit cofx)))
+   (network/edit cofx)))
 
 (handlers/register-handler-fx
- :close-application
+ :network.callback/non-rpc-network-saved
  (fn [_ _]
-   {:close-application nil}))
+   {:ui/close-application nil}))
 
 (handlers/register-handler-fx
- ::save-network
- (fn [{:keys [db now] :as cofx} [_ network]]
-   (handlers-macro/merge-fx cofx
-                            (accounts.utils/account-update {:network      network
-                                                            :last-updated now}
-                                                           [::close-application]))))
-
-(handlers/register-handler-fx
- ::remove-network
- (fn [{:keys [db now] :as cofx} [_ network]]
-   (let [networks         (dissoc (get-in db [:account/account :networks]) network)]
-     (handlers-macro/merge-fx cofx
-                              {:dispatch [:navigate-back]}
-                              (accounts.utils/account-update {:networks     networks
-                                                              :last-updated now})))))
-
-(handlers/register-handler-fx
- :connect-network
+ :network.ui/save-non-rpc-network-pressed
  (fn [cofx [_ network]]
-   (models.network/connect cofx {:network network})))
+   (network/save-non-rpc-network network cofx)))
 
 (handlers/register-handler-fx
- :delete-network
+ :network.ui/remove-network-confirmed
  (fn [cofx [_ network]]
-   (models.network/delete cofx {:network network})))
+   (network/remove-network network cofx)))
 
+(handlers/register-handler-fx
+ :network.ui/connect-network-pressed
+ (fn [cofx [_ network]]
+   (network/connect cofx {:network network})))
+
+(handlers/register-handler-fx
+ :network.ui/delete-network-pressed
+ (fn [cofx [_ network]]
+   (network/delete cofx {:network network})))
+
+;; fleet module
 (handlers/register-handler-fx
  ::save-fleet
  (fn [{:keys [db now] :as cofx} [_ fleet]]
@@ -1022,6 +908,11 @@
    (log/debug :event-str event-str)
    (instabug/log (str "Signal event: " event-str))
    (signals/process event-str cofx)))
+
+(handlers/register-handler-fx
+ :protocol.ui/close-app-confirmed
+ (fn [_ _]
+   {:ui/close-application nil}))
 
 ;;;; FX
 (re-frame/reg-fx

@@ -164,3 +164,21 @@
                           :confirm-button-text (i18n/label :t/logout)
                           :on-accept           #(re-frame/dispatch [:accounts.ui/logout-confirmed])
                           :on-cancel           nil}})
+
+;;;; COFX
+
+(re-frame/reg-cofx
+ :accounts/get-signing-phrase
+ (fn [cofx _]
+   (get-signing-phrase cofx)))
+
+(re-frame/reg-cofx
+ :accounts/get-status
+ (fn [cofx _]
+   (get-status cofx)))
+
+;;;; FX
+
+(re-frame/reg-fx
+ :accounts/create-account
+ create-account!)
