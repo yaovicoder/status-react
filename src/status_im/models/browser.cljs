@@ -83,10 +83,11 @@
       :actions [{:routeName :home}
                 {:routeName :browser}]}
      cofx)
-    (navigation/navigate-to :browser cofx)))
+    (navigation/navigate-to-cofx :browser nil cofx)))
 
 (defn update-new-browser-and-navigate
   [host browser {:keys [db] :as cofx}]
+  (println "\n lol " db " \n")
   (handlers-macro/merge-fx
    cofx
    {:db (assoc db :browser/options
