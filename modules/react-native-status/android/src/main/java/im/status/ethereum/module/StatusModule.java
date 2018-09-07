@@ -151,63 +151,32 @@ class StatusModule extends ReactContextBaseJavaModule implements LifecycleEventL
         return null;
     }
 
-    private String generateConfig(final JSONObject defaultConfig, final String root, final String keystoreDir, final String fleet) throws JSONException {
-        // retrieve parameters from app config, that will be applied onto the Go-side config later on
-        final String dataDir = root + defaultConfig.get("DataDir");
-        final int networkId = defaultConfig.getInt("NetworkId");
-        final Object upstreamConfig = defaultConfig.opt("UpstreamConfig");
-        final Boolean logEnabled = defaultConfig.getBoolean("LogEnabled");
-        final String logLevel = defaultConfig.optString("LogLevel", "ERROR");
-
-        // retrieve config from Go side, in order to use as the basis of the config
-        JSONObject jsonConfig = new JSONObject(
-            Statusgo.GenerateConfig(dataDir, fleet, networkId));
-
-        jsonConfig.put("NetworkId", networkId);
-        jsonConfig.put("DataDir", dataDir);
-        jsonConfig.put("KeyStoreDir", keystoreDir);
-
-        if (upstreamConfig != null) {
-            Log.d(TAG, "UpstreamConfig is not null");
-            jsonConfig.put("UpstreamConfig", upstreamConfig);
-        }
-
-        final String gethLogFilePath = logEnabled ? prepareLogsFile() : null;
-        jsonConfig.put("LogEnabled", logEnabled);
-        jsonConfig.put("LogFile", gethLogFilePath);
-        jsonConfig.put("LogLevel", TextUtils.isEmpty(logLevel) ? "ERROR" : logLevel);
-
-        // Setting up whisper config
-        JSONObject whisperConfig = jsonConfig.optJSONObject("WhisperConfig");
-        if (whisperConfig == null) {
-            whisperConfig = new JSONObject();
-        }
-        whisperConfig.put("LightClient", true);
-        jsonConfig.put("WhisperConfig", whisperConfig);
-
-        // Setting up cluster config
-        JSONObject clusterConfig = jsonConfig.optJSONObject("ClusterConfig");
-        if (clusterConfig != null) {
-            Log.d(TAG, "ClusterConfig is not null");
-            clusterConfig.put("Fleet", fleet);
-            jsonConfig.put("ClusterConfig", clusterConfig);
-        } else {
-            Log.w(TAG, "ClusterConfig: Cannot find ClusterConfig: doesn't exist or not a JSON object");
-            Log.w(TAG, "ClusterConfig: Fleet will be set to defaults");
-        }
-
-        return jsonConfig.toString();
-    }
-
-    private String generateConfigFromDefaultConfig(final String root, final String keystoreDir, final String fleet, final String defaultConfig) {
+    private String updateConfig(final String jsonConfigString, final String root, final String keystoreDir) throws JSONException {
         try {
-            JSONObject customConfig = new JSONObject(defaultConfig);
+            final JSONObject jsonConfig = new JSONObject(jsonConfigString);
+            // retrieve parameters from app config, that will be applied onto the Go-side config later on
+            final String dataDir = root + jsonConfig.get("DataDir");
+            final Boolean logEnabled = jsonConfig.getBoolean("LogEnabled");
+            final String logLevel = jsonConfig.optString("LogLevel", "ERROR");
 
-            return generateConfig(customConfig, root, keystoreDir, fleet);
+            jsonConfig.put("DataDir", dataDir);
+            jsonConfig.put("KeyStoreDir", keystoreDir);
+
+            final String gethLogFilePath = logEnabled ? prepareLogsFile() : null;
+            jsonConfig.put("LogFile", gethLogFilePath);
+            jsonConfig.put("LogLevel", TextUtils.isEmpty(logLevel) ? "ERROR" : logLevel);
+
+            // Setting up whisper config
+            JSONObject whisperConfig = jsonConfig.optJSONObject("WhisperConfig");
+            if (whisperConfig != null) {
+                final String whisperDataDir = root + whisperConfig.get("DataDir");
+                whisperConfig.put("DataDir", whisperDataDir);
+            }
+
+            return jsonConfig.toString();
         } catch (JSONException e) {
             Log.d(TAG, "Something went wrong " + e.getMessage());
-            Log.d(TAG, "Default configuration will be used: ropsten, beta fleet");
-            return Statusgo.GenerateConfig(this.getTestnetDataDir(root), "eth.beta", TESTNET_NETWORK_ID);
+            throw e;
         }
     }
 
@@ -231,7 +200,7 @@ class StatusModule extends ReactContextBaseJavaModule implements LifecycleEventL
         return root + "/ethereum/testnet";
     }
 
-    private void doStartNode(final String defaultConfig, final String fleet) {
+    private void doStartNode(final String jsonConfigString) {
 
         Activity currentActivity = getCurrentActivity();
 
@@ -288,11 +257,11 @@ class StatusModule extends ReactContextBaseJavaModule implements LifecycleEventL
             }
         }
 
-        final String config = this.generateConfigFromDefaultConfig(root, newKeystoreDir, fleet, defaultConfig);
+        final String updatedJsonConfigString = this.updateConfig(jsonConfigString, root, newKeystoreDir);
 
-        prettyPrintConfig(config);
+        prettyPrintConfig(updatedJsonConfigString);
 
-        String res = Statusgo.StartNode(config);
+        String res = Statusgo.StartNode(updatedJsonConfigString);
         if (res.startsWith("{\"error\":\"\"")) {
             Log.d(TAG, "StartNode result: " + res);
         }
@@ -384,7 +353,7 @@ class StatusModule extends ReactContextBaseJavaModule implements LifecycleEventL
     }
 
     @ReactMethod
-    public void startNode(final String config, final String fleet) {
+    public void startNode(final String config) {
         Log.d(TAG, "startNode");
         if (!checkAvailability()) {
             return;
@@ -393,7 +362,7 @@ class StatusModule extends ReactContextBaseJavaModule implements LifecycleEventL
         Runnable r = new Runnable() {
             @Override
             public void run() {
-                doStartNode(config, fleet);
+                doStartNode(config);
             }
         };
 
