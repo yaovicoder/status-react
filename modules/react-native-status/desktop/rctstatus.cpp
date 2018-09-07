@@ -71,7 +71,7 @@ void RCTStatus::getDeviceUUID(double callbackId) {
 }
 
 
-void RCTStatus::startNode(QString configString, QString fleet) {
+void RCTStatus::startNode(QString configString) {
     Q_D(RCTStatus);
     qDebug() << "call of RCTStatus::startNode with param configString:" << configString;
 
@@ -96,22 +96,11 @@ void RCTStatus::startNode(QString configString, QString fleet) {
     }
     qDebug()<<"RCTStatus::startNode networkDir: "<<networkDir;
 
+    configJSON["DataDir"] = networkDir;
+    configJSON["KeyStoreDir"] = keyStoreDir;
+    configJSON["LogFile"] = networkDir + "/geth.log";
 
-    char *configChars = GenerateConfig(networkDir.toUtf8().data(), fleet.toUtf8().data(), networkId);
-    qDebug() << "RCTStatus::startNode GenerateConfig result: " << configChars;
-
-    jsonDoc = QJsonDocument::fromJson(QString(configChars).toUtf8(), &jsonError);
-    if (jsonError.error != QJsonParseError::NoError){
-        qDebug() << jsonError.errorString();
-    }
-
-    qDebug() << " RCTStatus::startNode GenerateConfig configString: " << jsonDoc.toVariant().toMap();
-    QVariantMap generatedConfig = jsonDoc.toVariant().toMap();
-    generatedConfig["KeyStoreDir"] = keyStoreDir;
-    generatedConfig["LogFile"] = networkDir + "/geth.log";
-    generatedConfig["ClusterConfig.Fleet"] = fleet;
-
-    const char* result = StartNode(QString(QJsonDocument::fromVariant(generatedConfig).toJson(QJsonDocument::Compact)).toUtf8().data());
+    const char* result = StartNode(QString(QJsonDocument::fromVariant(configJSON).toJson(QJsonDocument::Compact)).toUtf8().data());
     qDebug() << "RCTStatus::startNode StartNode result: " << result;
 }
 
