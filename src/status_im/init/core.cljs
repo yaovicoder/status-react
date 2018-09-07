@@ -25,7 +25,8 @@
             [status-im.utils.platform :as platform]
             [status-im.utils.universal-links.core :as universal-links]
             [status-im.utils.utils :as utils]
-            [taoensso.timbre :as log]))
+            [taoensso.timbre :as log]
+            [status-im.native-module.core :as status]))
 
 (defn init-store!
   "Try to decrypt the database, move on if successful otherwise go back to
@@ -194,3 +195,24 @@
                            (transactions/start-sync)
                            (models.account/update-sign-in-time)
                            (login-only-events address)))
+
+(re-frame/reg-fx
+ :init/init-store
+ init-store!)
+
+(re-frame/reg-fx
+ :init/status-module-initialized
+ status/module-initialized!)
+
+(re-frame/reg-fx
+ :init/testfairy-alert
+ testfairy-alert!)
+
+(re-frame/reg-fx
+ :init/get-device-UUID
+ (fn []
+   (status/get-device-UUID #(re-frame/dispatch [:init.callback/get-device-UUID-success %]))))
+
+(re-frame/reg-fx
+ :init/reset-data
+ reset-data!)

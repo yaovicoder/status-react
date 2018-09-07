@@ -56,3 +56,62 @@
             [status-im.utils.handlers-macro :as handlers-macro]
             [status-im.utils.http :as http]
             [status-im.utils.utils :as utils]))
+
+(defn- http-get [{:keys [url response-validator success-event-creator failure-event-creator timeout-ms]}]
+  (let [on-success #(re-frame/dispatch (success-event-creator %))
+        on-error   #(re-frame/dispatch (failure-event-creator %))
+        opts       {:valid-response? response-validator
+                    :timeout-ms      timeout-ms}]
+    (http/get url on-success on-error opts)))
+
+(re-frame/reg-fx
+ :http-get
+ http-get)
+
+(re-frame/reg-fx
+ :http-get-n
+ (fn [calls]
+   (doseq [call calls]
+     (http-get call))))
+
+(defn- http-post [{:keys [url data response-validator success-event-creator failure-event-creator timeout-ms opts]}]
+  (let [on-success #(re-frame/dispatch (success-event-creator %))
+        on-error   #(re-frame/dispatch (failure-event-creator %))
+        all-opts   (assoc opts
+                          :valid-response? response-validator
+                          :timeout-ms      timeout-ms)]
+    (http/post url data on-success on-error all-opts)))
+
+(re-frame/reg-fx
+ :http-post
+ http-post)
+
+(re-frame/reg-fx
+ :request-permissions-fx
+ (fn [options]
+   (permissions/request-permissions options)))
+
+(re-frame/reg-fx
+ :ui/listen-to-window-dimensions-change
+ (fn []
+   (dimensions/add-event-listener)))
+
+(re-frame/reg-fx
+ :ui/show-error
+ (fn [content]
+   (utils/show-popup "Error" content)))
+
+(re-frame/reg-fx
+ :ui/show-confirmation
+ (fn [{:keys [title content confirm-button-text on-accept on-cancel]}]
+   (utils/show-confirmation title content confirm-button-text on-accept on-cancel)))
+
+(re-frame/reg-fx
+ :ui/close-application
+ (fn [_]
+   (status/close-application)))
+
+(re-frame/reg-fx
+ ::app-state-change-fx
+ (fn [state]
+   (status/app-state-change state)))
