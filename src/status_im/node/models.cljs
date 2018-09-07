@@ -3,7 +3,7 @@
             [status-im.utils.types :as types]
             [clojure.string :as str]
             [taoensso.timbre :as log]
-            [status-im.models.fleet :as fleet]))
+            [status-im.fleet.core :as fleet]))
 
 (defn- add-custom-bootnodes [config network all-bootnodes]
   (let [bootnodes (as-> all-bootnodes $
