@@ -15,7 +15,6 @@
             [status-im.models.browser :as browser.models]
             [status-im.models.contact :as models.contact]
             [status-im.models.fleet :as fleet]
-            [status-im.models.mailserver :as models.mailserver]
             [status-im.models.network :as models.network]
             [status-im.models.protocol :as protocol]
             [status-im.native-module.core :as status]
@@ -37,6 +36,7 @@
             [status-im.ui.screens.currency-settings.models
              :as
              currency-settings.models]
+            [status-im.mailserver.core :as mailserver]
             [status-im.ui.screens.navigation :as navigation]
             [status-im.ui.screens.profile.models :as profile.models]
             [status-im.utils.config :as config]
@@ -382,62 +382,55 @@
  (fn [] {::open-privacy-policy nil}))
 
 (handlers/register-handler-fx
- :upsert-mailserver
+ :mailserver.ui/user-defined-mailserver-selected
+ (fn [cofx [_ mailserver-id]]
+   (mailserver/edit mailserver-id cofx)))
+
+(handlers/register-handler-fx
+ :mailserver.ui/default-mailserver-selected
+ (fn [cofx [_ mailserver-id]]
+   (mailserver/show-connection-confirmation mailserver-id cofx)))
+
+(handlers/register-handler-fx
+ :mailserver.ui/add-pressed
+ (fn [cofx _]
+   (navigation/navigate-to-cofx :edit-mailserver nil cofx)))
+
+(handlers/register-handler-fx
+ :mailserver.ui/save-pressed
  [(re-frame/inject-cofx :random-id)]
  (fn [cofx _]
-   (models.mailserver/upsert cofx)))
+   (mailserver/upsert cofx)))
 
 (handlers/register-handler-fx
- :mailserver-set-input
+ :mailserver.ui/input-changed
  (fn [cofx [_ input-key value]]
-   (models.mailserver/set-input input-key value cofx)))
-
-(handlers/register-handler-fx
- :edit-mailserver
- (fn [cofx [_ mailserver-id]]
-   (models.mailserver/edit mailserver-id cofx)))
+   (mailserver/set-input input-key value cofx)))
 
 (handlers/register-handler-fx
  :mailserver.ui/delete-confirmed
  (fn [cofx [_ mailserver-id]]
-   (assoc (models.mailserver/delete mailserver-id cofx)
-          :dispatch [:navigate-back])))
+   (mailserver/delete mailserver-id cofx)))
 
 (handlers/register-handler-fx
  :mailserver.ui/delete-pressed
  (fn [cofx [_ mailserver-id]]
-   {:ui/show-confirmation
-    {:title               (i18n/label :t/delete-mailserver-title)
-     :content             (i18n/label :t/delete-mailserver-are-you-sure)
-     :confirm-button-text (i18n/label :t/delete-mailserver)
-     :on-accept           #(re-frame/dispatch [:mailserver.ui/delete-confirmed mailserver-id])}}))
+   (mailserver/show-delete-confirmation mailserver-id cofx)))
 
 (handlers/register-handler-fx
- :set-mailserver-from-qr
+ :mailserver.callback/qr-code-scanned
  (fn [cofx [_ _ url]]
-   (assoc (models.mailserver/set-input :url url cofx)
-          :dispatch [:navigate-back])))
+   (mailserver/set-url-from-qr url cofx)))
 
 (handlers/register-handler-fx
  :mailserver.ui/connect-confirmed
- (fn [{:keys [db now] :as cofx} [_ current-fleet wnode]]
-   (let [settings (get-in db [:account/account :settings])]
-     (handlers-macro/merge-fx cofx
-                              (accounts.models/update-settings
-                               (assoc-in settings [:wnode current-fleet] wnode)
-                               [:accounts.ui/logout-confirmed])))))
+ (fn [cofx [_ current-fleet mailserver-id]]
+   (mailserver/save-settings current-fleet mailserver-id cofx)))
 
 (handlers/register-handler-fx
- :mailserver.ui/connect-pressed
- (fn [{:keys [db]} [_ wnode]]
-   (let [current-fleet (fleet/current-fleet db)]
-     {:ui/show-confirmation
-      {:title               (i18n/label :t/close-app-title)
-       :content             (i18n/label :t/connect-wnode-content
-                                        {:name (get-in db [:inbox/wnodes  current-fleet wnode :name])})
-       :confirm-button-text (i18n/label :t/close-app-button)
-       :on-accept           #(re-frame/dispatch [:mailserver.ui/connect-confirmed current-fleet wnode])
-       :on-cancel           nil}})))
+ :mailserver.callback/settings-saved
+ (fn [cofx _]
+   (accounts/logout cofx)))
 
 (handlers/register-handler-fx
  :save-new-network

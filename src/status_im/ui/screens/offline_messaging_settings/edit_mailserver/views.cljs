@@ -36,7 +36,7 @@
 (def qr-code
   [react/touchable-highlight {:on-press #(re-frame/dispatch [:scan-qr-code
                                                              {:toolbar-title (i18n/label :t/add-mailserver)}
-                                                             :set-mailserver-from-qr])
+                                                             :mailserver.callback/qr-code-scanned])
                               :style    styles/qr-code}
    [react/view
     [vector-icons/icon :icons/qr {:color colors/blue}]]])
@@ -60,7 +60,7 @@
             :style           styles/input
             :container       styles/input-container
             :default-value   name
-            :on-change-text  #(re-frame/dispatch [:mailserver-set-input :name %])
+            :on-change-text  #(re-frame/dispatch [:mailserver.ui/input-changed :name %])
             :auto-focus      true}]
           [text-input/text-input-with-label
            {:label           (i18n/label :t/mailserver-address)
@@ -69,7 +69,7 @@
             :style           styles/input
             :container       styles/input-container
             :default-value   url
-            :on-change-text  #(re-frame/dispatch [:mailserver-set-input :url %])}]
+            :on-change-text  #(re-frame/dispatch [:mailserver.ui/input-changed :url %])}]
           (when (and id
                      (not connected?))
             [react/view
@@ -81,4 +81,4 @@
           {:forward?  true
            :label     (i18n/label :t/save)
            :disabled? (not is-valid?)
-           :on-press  #(re-frame/dispatch [:upsert-mailserver])}]]]])))
+           :on-press  #(re-frame/dispatch [:mailserver.ui/save-pressed])}]]]])))
