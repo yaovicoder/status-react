@@ -23,7 +23,7 @@
    (let [current-fleet (fleet/current-fleet db)]
      {:show-confirmation {:title               (i18n/label :t/close-app-title)
                           :content             (i18n/label :t/connect-wnode-content
-                                                           {:name (get-in db [:inbox/wnodes  current-fleet wnode :name])})
+                                                           {:name (get-in db [:inbox/wnodes current-fleet wnode :name])})
                           :confirm-button-text (i18n/label :t/close-app-button)
                           :on-accept           #(re-frame/dispatch [::save-wnode current-fleet wnode])
                           :on-cancel           nil}})))
