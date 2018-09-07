@@ -1,5 +1,6 @@
 (ns status-im.node.models
   (:require [status-im.utils.config :as config]
+            [status-im.utils.platform :as platform]
             [status-im.utils.types :as types]))
 
 (defn- add-custom-bootnodes [config network all-bootnodes]
@@ -49,6 +50,6 @@
 
 (defn initialize
   [address {{:keys [status-node-started?] :as db} :db :as cofx}]
-  (if (not status-node-started?)
-    (start address cofx)
-    (restart)))
+  (if (or status-node-started? platform/desktop?)
+    (restart)
+    (start address cofx)))
