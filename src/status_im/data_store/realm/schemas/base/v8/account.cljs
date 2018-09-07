@@ -2,7 +2,7 @@
   (:require [taoensso.timbre :as log]
             [cognitect.transit :as transit]
             [clojure.set :as set]
-            [status-im.data-store.realm.schemas.base.v4.account :as v7]))
+            [status-im.data-store.realm.schemas.base.v7.account :as v7]))
 
 (def schema v7/schema)
 
