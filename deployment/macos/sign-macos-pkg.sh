@@ -1,0 +1,96 @@
+#!/usr/bin/env bash
+
+set -e
+
+DEV_ID="DTX7Z4U3YA"
+
+OBJECT="$1"
+GPG_ENCRYPTED_KEYCHAIN="$2"
+
+if [ $# -ne 2 ]; then
+  echo -e "sign-macos-bundle.sh <path to .app bundle or .dmg image> <path to encrypted keychain>"
+  exit 10
+elif [ ! -e "$OBJECT" ]; then
+  echo -e "Object does not exist."
+  exit 10
+elif [ ! -f "$GPG_ENCRYPTED_KEYCHAIN" ]; then
+  echo -e "Encrypted keychain file does not exist."
+  exit 10
+fi
+
+# Required env variables:
+
+export GPG_PASS_OUTER
+export GPG_PASS_INNER
+export KEYCHAIN_PASS
+
+[ -z "$GPG_PASS_OUTER" ] && echo 'Missing env var: GPG_PASS_OUTER' && exit 1
+[ -z "$GPG_PASS_INNER" ] && echo 'Missing env var: GPG_PASS_INNER' && exit 1
+[ -z "$KEYCHAIN_PASS" ] && echo 'Missing env var: KEYCHAIN_PASS' && exit 1
+
+echo -e "\n### Storing original keychain search list..."
+ORIG_KEYCHAIN_LIST="$(security list-keychains \
+  | grep -v "/Library/Keychains/System.keychain" \
+  | grep -v "/tmp." | xargs)"
+
+echo -e "\n### Creating ramdisk..."
+RAMDISK="$(hdiutil attach -nomount ram://20480 | tr -d '[:blank:]')"
+MOUNTPOINT="$(mktemp -d)"
+KEYCHAIN="${MOUNTPOINT}/macos-developer-id.keychain-db"
+
+function clean_up {
+  local STATUS=$?
+
+  set +e
+
+  echo -e "\n### Locking keychain..."
+  security lock-keychain "$KEYCHAIN"
+
+  echo -e "\n### Restoring original keychain search list..."
+  security list-keychains -s $ORIG_KEYCHAIN_LIST
+  security list-keychains
+
+  echo -e "\n### Wiping keychain file..."
+  rm -P "$KEYCHAIN"
+
+  echo -e "\n### Destroying ramdisk..."
+  diskutil umount force "$RAMDISK"
+  diskutil eject "$RAMDISK"
+
+  if [ $STATUS -eq 0 ]; then
+    echo -e "\n### DONE."
+  else
+    echo -e "\n### ERROR. See above for details."
+    exit 1
+  fi
+}
+
+trap clean_up EXIT
+
+echo -e "\n### Formatting and mounting ramdisk..."
+newfs_hfs "$RAMDISK"
+mount -t hfs "$RAMDISK" "$MOUNTPOINT"
+
+echo -e "\n### Decrypting keychain to $KEYCHAIN ..."
+gpg --batch --passphrase "$GPG_PASS_OUTER" --pinentry-mode loopback \
+  --decrypt "$GPG_ENCRYPTED_KEYCHAIN" \
+  | gpg --batch --passphrase "$GPG_PASS_INNER" --pinentry-mode loopback \
+    --decrypt > "$KEYCHAIN"
+
+echo -e "\n### Adding code-signing keychain to search list..."
+security list-keychains -s $ORIG_KEYCHAIN_LIST "$KEYCHAIN"
+security list-keychains
+
+echo -e "\n### Unlocking keychain..."
+security unlock-keychain -p "$KEYCHAIN_PASS" "$KEYCHAIN"
+
+echo -e "\n### Signing object..."
+codesign --sign "$DEV_ID" --deep --force --verbose "$OBJECT"
+
+echo -e "\n### Verifying signature..."
+codesign --verify --strict=all --deep --verbose "$OBJECT"
+
+if [ -d "$OBJECT" ]; then
+  echo -e "\n### Assessing Gatekeeper validation..."
+  spctl --assess --verbose "$OBJECT"
+fi

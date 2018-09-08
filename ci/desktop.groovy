@@ -201,7 +201,10 @@ def bundleMacOS(type = 'nightly') {
         -qmldir='${workspace}/node_modules/react-native/ReactQt/runtime/src/qml/'
     """
     sh 'rm -f Status.app.zip'
+
+    sh '../deployment/macos/sign-macos-pkg.sh Status.app ../deployment/macos/macos-developer-id.keychain-db.gpg'
     sh "../node_modules/appdmg/bin/appdmg.js ../deployment/macos/status-dmg.json ${pkg}"
+    sh "../deployment/macos/sign-macos-pkg.sh ${pkg} ../deployment/macos/macos-developer-id.keychain-db.gpg"
   }
   return "${packageFolder}/${pkg}".drop(2)
 }
