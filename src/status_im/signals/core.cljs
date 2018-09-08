@@ -3,7 +3,7 @@
             [status-im.transport.handlers :as transport.handlers]
             [status-im.transport.inbox :as inbox]
             [status-im.ui.screens.accounts.login.models :as login]
-            [status-im.node.models :as node]
+            [status-im.node.core :as node]
             [status-im.utils.handlers-macro :as handlers-macro]
             [status-im.utils.types :as types]
             [taoensso.timbre :as log]))

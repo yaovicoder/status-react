@@ -1,4 +1,4 @@
-(ns status-im.node.models
+(ns status-im.node.core
   (:require [status-im.utils.config :as config]
             [status-im.utils.types :as types]
             [clojure.string :as str]

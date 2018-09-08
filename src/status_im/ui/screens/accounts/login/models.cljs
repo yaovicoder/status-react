@@ -2,7 +2,7 @@
   (:require [re-frame.core :as re-frame]
             [status-im.data-store.core :as data-store]
             [status-im.native-module.core :as status]
-            [status-im.node.models :as node]
+            [status-im.node.core :as node]
             [status-im.ui.screens.navigation :as navigation]
             [status-im.utils.handlers-macro :as handlers-macro]
             [status-im.utils.keychain.core :as keychain]

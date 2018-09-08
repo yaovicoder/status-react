@@ -12,7 +12,7 @@
             [status-im.models.protocol :as models.protocol]
             [status-im.models.transactions :as transactions]
             [status-im.models.wallet :as models.wallet]
-            [status-im.node.models :as node]
+            [status-im.node.core :as node]
             [status-im.notifications.core :as notifications]
             [status-im.ui.screens.accounts.login.models :as login]
             [status-im.ui.screens.contacts.events :as contacts]
