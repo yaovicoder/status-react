@@ -21,20 +21,27 @@
            :LogLevel log-level
            :LogEnabled true)))
 
-; get-network-genesis-hash-prefix returns the hex representation of the first 8 bytes of a network's genesis hash.
-(defn get-network-genesis-hash-prefix [network]
+(defn get-network-genesis-hash-prefix
+  "returns the hex representation of the first 8 bytes of a network's genesis hash"
+  [network]
   (cond
     (= network "1") "d4e56740f876aef8"
     (= network "3") "41941023680923e0"
     (= network "4") "6341fd3daf94b748"))
 
-; get-les-topic returns discovery v5 topic derived from genesis of the provided network.
-(defn get-les-topic [network]
+(defn get-les-topic
+  "returns discovery v5 topic derived from genesis of the provided network"
+  [network]
   (let [les-discovery-identifier "LES2@"
         hash-prefix (get-network-genesis-hash-prefix network)]
-    (if (nil? hash-prefix)
-      ""
+    (when  hash-prefix
       (str les-discovery-identifier hash-prefix))))
+
+(defn get-topics
+  [network]
+  (let [les-topic (get-les-topic network)]
+    (cond-> {"whisper" {:Min 2, :Max 2}}
+      les-topic (assoc les-topic {:Min 2, :Max 2}))))
 
 (defn get-account-network [db address]
   (get-in db [:accounts/accounts address :network]))
@@ -63,8 +70,7 @@
                              :LightClient true
                              :MinimumPoW 0.001
                              :EnableNTPSync true}
-             :RequireTopics {(get-les-topic network) {:Min 2, :Max 2}
-                             "whisper"               {:Min 2, :Max 2}})
+             :RequireTopics (get-topics network))
 
       (and
        config/bootnodes-settings-enabled?
