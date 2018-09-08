@@ -17,6 +17,9 @@ is less than perfect and they aren't meant for human memorisation.
 
 If this hangs, move the mouse around, type into a different window and do
 some disk and network I/O to generate additional noise for the entropy pool.
+
+When done, intersperse some random characters of your choice throughout the
+passphrases.
 "
 for PASS in INNER OUTER KEYCHAIN; do
   echo "$PASS"
