@@ -7,15 +7,18 @@ DEV_ID="DTX7Z4U3YA"
 OBJECT="$1"
 GPG_ENCRYPTED_KEYCHAIN="$2"
 
-if [ $# -ne 2 ]; then
-  echo -e "sign-macos-bundle.sh <path to .app bundle or .dmg image> <path to encrypted keychain>"
-  exit 10
+if [ `uname` != 'Darwin' ]; then
+  echo "This only works on macOS."
+  exit 1
+elif [ $# -ne 2 ]; then
+  echo "sign-macos-bundle.sh <path to .app bundle or .dmg image> <path to encrypted keychain>"
+  exit 1
 elif [ ! -e "$OBJECT" ]; then
-  echo -e "Object does not exist."
-  exit 10
+  echo "Object does not exist."
+  exit 1
 elif [ ! -f "$GPG_ENCRYPTED_KEYCHAIN" ]; then
-  echo -e "Encrypted keychain file does not exist."
-  exit 10
+  echo "Encrypted keychain file does not exist."
+  exit 1
 fi
 
 # Required env variables:
