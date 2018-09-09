@@ -1,15 +1,12 @@
 (ns status-im.accounts.core
-  (:require [clojure.string :as str]
+  (:require [clojure.string :as string]
             [re-frame.core :as re-frame]
             [status-im.constants :as constants]
             [status-im.data-store.accounts :as accounts-store]
             [status-im.i18n :as i18n]
-            [status-im.init.core :as init]
             [status-im.native-module.core :as status]
-            [status-im.transport.core :as transport]
-            [status-im.ui.screens.accounts.login.models :as login.models]
-            [status-im.ui.screens.accounts.statuses :as statuses]
-            [status-im.ui.screens.accounts.utils :as accounts.utils]
+            [status-im.accounts.statuses :as statuses]
+            [status-im.accounts.update.core :as accounts.update]
             [status-im.ui.screens.navigation :as navigation]
             [status-im.ui.screens.wallet.settings.models :as wallet.settings.models]
             [status-im.utils.config :as config]
@@ -22,80 +19,13 @@
             [status-im.utils.utils :as utils]
             [taoensso.timbre :as log]))
 
-(def account-update accounts.utils/account-update)
-
 ;;;; COFX
 
-(defn get-signing-phrase [cofx]
-  (assoc cofx :signing-phrase (signing-phrase/generate)))
-
-(defn get-status [cofx]
-  (assoc cofx :status (rand-nth statuses/data)))
 
 ;;;; FX
 
-(defn create-account! [password]
-  (status/create-account
-   password
-   #(re-frame/dispatch [:accounts.callback/account-created (types/json->clj %) password])))
 
 ;;;; Handlers
-
-(defn create-account [{{:accounts/keys [create] :as db} :db}]
-  {:db (update db :accounts/create assoc :step :account-creating :error nil)
-   :accounts/create-account (:password create)})
-
-(defn- add-account
-  "Takes db and new account, creates map of effects describing adding account to database and realm"
-  [{:keys [address] :as account} cofx]
-  (let [db (:db cofx)
-        {:networks/keys [networks]} db
-        enriched-account (assoc account
-                                :network config/default-network
-                                :networks networks
-                                :address address)]
-    {:db                 (assoc-in db [:accounts/accounts address] enriched-account)
-     :data-store/base-tx [(accounts-store/save-account-tx enriched-account)]}))
-
-(defn on-account-created [{:keys [pubkey address mnemonic]} password seed-backed-up {:keys [signing-phrase status db] :as cofx}]
-  (let [normalized-address (utils.hex/normalize-hex address)
-        account            {:public-key      pubkey
-                            :address         normalized-address
-                            :name            (gfycat/generate-gfy pubkey)
-                            :status          status
-                            :signed-up?      true
-                            :photo-path      (identicon/identicon pubkey)
-                            :signing-phrase  signing-phrase
-                            :seed-backed-up? seed-backed-up
-                            :mnemonic        mnemonic
-                            :settings        (constants/default-account-settings)}]
-    (log/debug "account-created")
-    (when-not (str/blank? pubkey)
-      (handlers-macro/merge-fx cofx
-                               {:db (assoc db :accounts/login {:address normalized-address
-                                                               :password password
-                                                               :processing true})}
-                               (add-account account)
-                               (login.models/user-login)))))
-
-(defn update-settings
-  ([settings cofx] (update-settings settings nil cofx))
-  ([settings success-event {{:keys [account/account] :as db} :db :as cofx}]
-   (let [new-account (assoc account :settings settings)]
-     {:db                 (assoc db :account/account new-account)
-      :data-store/base-tx [{:transaction   (accounts-store/save-account-tx new-account)
-                            :success-event success-event}]})))
-
-(defn account-set-name [{{:accounts/keys [create] :as db} :db :as cofx}]
-  (handlers-macro/merge-fx cofx
-                           {:db                                  (assoc db :accounts/create {:show-welcome? true})
-                            :notifications/request-notifications nil
-                            :dispatch                            [:navigate-to-clean :home]}
-                           (accounts.utils/account-update {:name (:name create)})))
-
-(defn account-set-input-text [input-key text {db :db}]
-  {:db (update db :accounts/create merge {input-key text :error nil})})
-
 (defn show-mainnet-is-default-alert [{:keys [db]}]
   (let [enter-name-screen? (= :enter-name (get-in db [:accounts/create :step]))
         shown? (get-in db [:account/account :mainnet-warning-shown?])]
@@ -106,9 +36,6 @@
        (i18n/label :mainnet-is-default-alert-title)
        (i18n/label :mainnet-is-default-alert-text)
        #(re-frame/dispatch [:accounts.ui/update-mainnet-warning-shown])))))
-
-(defn reset-account-creation [{db :db}]
-  {:db (update db :accounts/create assoc :step :enter-password :password nil :password-confirm nil :error nil)})
 
 (defn- chat-send? [transaction]
   (and (seq transaction)
@@ -127,58 +54,10 @@
    cofx
    (continue-after-wallet-onboarding db modal?)
    (wallet.settings.models/wallet-autoconfig-tokens)
-   (account-update {:wallet-set-up-passed? true})))
-
-(defn next-step [step password password-confirm {:keys [db] :as cofx}]
-  (case step
-    :enter-password {:db (assoc-in db [:accounts/create :step] :confirm-password)}
-    :confirm-password (if (= password password-confirm)
-                        (create-account cofx)
-                        {:db (assoc-in db [:accounts/create :error] (i18n/label :t/password_error1))})
-    :enter-name (account-set-name cofx)))
-
-(defn step-back [step cofx]
-  (case step
-    :enter-password (navigation/navigate-back cofx)
-    :confirm-password (reset-account-creation cofx)))
+   (accounts.update/account-update {:wallet-set-up-passed? true})))
 
 (defn switch-dev-mode [dev-mode? cofx]
-  (merge (account-update {:dev-mode? dev-mode?} cofx)
+  (merge (accounts.update/account-update {:dev-mode? dev-mode?} cofx)
          (if dev-mode?
            {:dev-server/start nil}
            {:dev-server/stop nil})))
-
-(defn logout
-  [{:keys [db] :as cofx}]
-  (let [{:transport/keys [chats]} db]
-    (handlers-macro/merge-fx cofx
-                             {:clear-user-password (get-in db [:account/account :address])
-                              :dev-server/stop     nil}
-                             (navigation/navigate-to-clean nil)
-                             (transport/stop-whisper)
-                             (init/initialize-keychain))))
-
-(defn show-logout-confirmation []
-  {:ui/show-confirmation {:title               (i18n/label :t/logout-title)
-                          :content             (i18n/label :t/logout-are-you-sure)
-                          :confirm-button-text (i18n/label :t/logout)
-                          :on-accept           #(re-frame/dispatch [:accounts.ui/logout-confirmed])
-                          :on-cancel           nil}})
-
-;;;; COFX
-
-(re-frame/reg-cofx
- :accounts/get-signing-phrase
- (fn [cofx _]
-   (get-signing-phrase cofx)))
-
-(re-frame/reg-cofx
- :accounts/get-status
- (fn [cofx _]
-   (get-status cofx)))
-
-;;;; FX
-
-(re-frame/reg-fx
- :accounts/create-account
- create-account!)

@@ -2,7 +2,7 @@
   (:require [re-frame.core :as re-frame]
             [status-im.constants :as constants]
             [status-im.i18n :as i18n]
-            [status-im.ui.screens.accounts.models :as accounts.models]
+            [status-im.accounts.update.core :as accounts.update]
             [status-im.utils.config :as config]
             [status-im.utils.handlers-macro :as handlers-macro]
             [status-im.utils.types :as types])
@@ -53,8 +53,8 @@
   [fleet {:keys [db now] :as cofx}]
   (let [settings (get-in db [:account/account :settings])]
     (handlers-macro/merge-fx cofx
-                             (accounts.models/update-settings
+                             (accounts.update/update-settings
                               (if fleet
                                 (assoc settings :fleet fleet)
                                 (dissoc settings :fleet))
-                              [:accounts.ui/logout-confirmed]))))
+                              [:accounts.logout.ui/logout-confirmed]))))

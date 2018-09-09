@@ -4,8 +4,7 @@
             [status-im.data-store.mailservers :as data-store.mailservers]
             [status-im.i18n :as i18n]
             [status-im.fleet.core :as fleet]
-            [status-im.transport.inbox :as inbox]
-            [status-im.ui.screens.accounts.models :as accounts.models]
+            [status-im.accounts.update.core :as accounts.update]
             [status-im.utils.handlers-macro :as handlers-macro]))
 
 (def enode-address-regex #"enode://[a-zA-Z0-9]+\@\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b:(\d{1,5})")
@@ -150,7 +149,7 @@
                                                        :fleet
                                                        current-fleet))
                       ;; we naively logout if the user is connected to the edited mailserver
-                      :success-event (when current [:accounts.ui/logout-confirmed])}]
+                      :success-event (when current [:accounts.logout.ui/logout-confirmed])}]
      :dispatch [:navigate-back]}))
 
 (defn show-connection-confirmation
@@ -176,7 +175,7 @@
   [current-fleet mailserver-id {:keys [db] :as cofx}]
   (let [settings (get-in db [:account/account :settings])]
     (handlers-macro/merge-fx cofx
-                             (accounts.models/update-settings
+                             (accounts.update/update-settings
                               (assoc-in settings [:wnode current-fleet] mailserver-id)
                               [:mailserver.callback/settings-saved]))))
 

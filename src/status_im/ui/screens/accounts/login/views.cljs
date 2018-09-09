@@ -17,7 +17,7 @@
             [re-frame.core :as re-frame]
             [cljs.spec.alpha :as spec]
             [status-im.utils.platform :as platform]
-            [status-im.ui.screens.accounts.db :as db]))
+            [status-im.accounts.db :as db]))
 
 (defn login-toolbar [can-navigate-back?]
   [toolbar/toolbar

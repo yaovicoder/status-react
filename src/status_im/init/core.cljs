@@ -4,7 +4,7 @@
             [status-im.data-store.core :as data-store]
             [status-im.data-store.realm.core :as realm]
             [status-im.i18n :as i18n]
-            [status-im.models.account :as models.account]
+            [status-im.accounts.update.core :as accounts.update]
             [status-im.models.browser :as browser]
             [status-im.models.chat :as chat]
             [status-im.models.contacts :as models.contacts]
@@ -14,7 +14,7 @@
             [status-im.models.wallet :as models.wallet]
             [status-im.node.core :as node]
             [status-im.notifications.core :as notifications]
-            [status-im.ui.screens.accounts.login.models :as login]
+            [status-im.accounts.login.core :as accounts.login]
             [status-im.ui.screens.contacts.events :as contacts]
             [status-im.ui.screens.db :refer [app-db]]
             [status-im.ui.screens.navigation :as navigation]
@@ -126,7 +126,7 @@
     (if (empty? accounts)
       (navigation/navigate-to-clean :intro cofx)
       (let [{:keys [address photo-path name]} (first (sort-by :last-sign-in > (vals accounts)))]
-        (login/open-login address photo-path name cofx)))))
+        (accounts.login/open-login address photo-path name cofx)))))
 
 (defn load-accounts-and-initialize-views
   "DB has been decrypted, load accounts and initialize-view"
@@ -193,7 +193,7 @@
                            (models.wallet/update-wallet)
                            (transactions/run-update)
                            (transactions/start-sync)
-                           (models.account/update-sign-in-time)
+                           (accounts.update/update-sign-in-time)
                            (login-only-events address)))
 
 (re-frame/reg-fx

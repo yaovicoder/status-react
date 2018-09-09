@@ -1,5 +1,6 @@
 (ns status-im.events
   (:require status-im.ui.screens.accounts.create.navigation
+            status-im.ui.screens.accounts.recover.navigation
             [pluto.registry :as registry]
             [re-frame.core :as re-frame]
             [status-im.chat.events :as chat.events]
@@ -22,15 +23,19 @@
             [status-im.notifications.core :as notifications]
             [status-im.signals.core :as signals]
             [status-im.transport.core :as transport]
+
             [status-im.transport.inbox :as inbox]
             [status-im.transport.message.core :as transport.message]
             [status-im.transport.message.v1.group-chat :as group-chat]
             [status-im.ui.components.list-selection :as list-selection]
             [status-im.ui.components.permissions :as permissions]
             [status-im.ui.components.react :as react]
-            [status-im.ui.screens.accounts.models :as accounts.models]
             [status-im.accounts.core :as accounts]
-            [status-im.ui.screens.accounts.utils :as accounts.utils]
+            [status-im.accounts.create.core :as accounts.create]
+            [status-im.accounts.logout.core :as accounts.logout]
+            [status-im.accounts.update.core :as accounts.update]
+            [status-im.accounts.login.core :as accounts.login]
+            [status-im.accounts.recover.core :as accounts.recover]
             [status-im.ui.screens.add-new.new-chat.db :as new-chat.db]
             [status-im.ui.screens.browser.default-dapps :as default-dapps]
             [status-im.ui.screens.currency-settings.models
@@ -146,30 +151,31 @@
 ;; accounts module
 
 (handlers/register-handler-fx
- :accounts.callback/account-created
- [(re-frame/inject-cofx :accounts/get-signing-phrase) (re-frame/inject-cofx :accounts/get-status)]
+ :accounts.create.callback/account-created
+ [(re-frame/inject-cofx :accounts.create/get-signing-phrase)
+  (re-frame/inject-cofx :accounts.create/get-status)]
  (fn [cofx [_ result password]]
-   (accounts/on-account-created result password false cofx)))
+   (accounts.create/on-account-created result password false cofx)))
 
 (handlers/register-handler-fx
- :accounts.ui/next-step-pressed
+ :accounts.create.ui/next-step-pressed
  (fn [cofx [_ step password password-confirm]]
-   (accounts/next-step step password password-confirm cofx)))
+   (accounts.create/next-step step password password-confirm cofx)))
 
 (handlers/register-handler-fx
- :accounts.ui/step-back-pressed
+ :accounts.create.ui/step-back-pressed
  (fn [cofx [_ step password password-confirm]]
-   (accounts/step-back step cofx)))
+   (accounts.create/step-back step cofx)))
 
 (handlers/register-handler-fx
- :accounts.ui/input-text-changed
+ :accounts.create.ui/input-text-changed
  (fn [cofx [_ input-key text]]
-   (accounts/account-set-input-text input-key text cofx)))
+   (accounts.create/account-set-input-text input-key text cofx)))
 
 (handlers/register-handler-fx
  :accounts.ui/mainnet-warning-shown
  (fn [cofx _]
-   (accounts/account-update {:mainnet-warning-shown? true} cofx)))
+   (accounts.update/account-update {:mainnet-warning-shown? true} cofx)))
 
 (handlers/register-handler-fx
  :accounts.ui/dev-mode-switched
@@ -182,14 +188,96 @@
    (accounts/confirm-wallet-set-up modal? cofx)))
 
 (handlers/register-handler-fx
- :accounts.ui/logout-confirmed
+ :accounts.logout.ui/logout-confirmed
  (fn [cofx _]
-   (accounts/logout cofx)))
+   (accounts.logout/logout cofx)))
 
 (handlers/register-handler-fx
- :accounts.ui/logout-pressed
+ :accounts.logout.ui/logout-pressed
  (fn [cofx _]
-   (accounts/show-logout-confirmation)))
+   (accounts.logout/show-logout-confirmation)))
+
+;;;; FX
+
+(re-frame/reg-fx
+ :recover-account-fx
+ (fn [[masked-passphrase password]]
+   (accounts.recover/recover-account-fx! masked-passphrase password)))
+
+;;;; Handlers
+
+(handlers/register-handler-fx
+ :recover/set-phrase
+ (fn [cofx [_ recovery-phrase]]
+   (accounts.recover/set-phrase recovery-phrase cofx)))
+
+(handlers/register-handler-fx
+ :recover/validate-phrase
+ (fn [cofx _]
+   (accounts.recover/validate-phrase cofx)))
+
+(handlers/register-handler-fx
+ :recover/set-password
+ (fn [cofx [_ masked-password]]
+   (accounts.recover/set-password masked-password cofx)))
+
+(handlers/register-handler-fx
+ :recover/validate-password
+ (fn [cofx _]
+   (accounts.recover/validate-password cofx)))
+
+(handlers/register-handler-fx
+ :account-recovered
+ [(re-frame/inject-cofx :accounts.create/get-signing-phrase)
+  (re-frame/inject-cofx :accounts.create/get-status)]
+ (fn [cofx [_ result password]]
+   (accounts.recover/on-account-recovered result password cofx)))
+
+(handlers/register-handler-fx
+ :recover-account
+ (fn [cofx _]
+   (accounts.recover/recover-account cofx)))
+
+(handlers/register-handler-fx
+ :recover-account-with-checks
+ (fn [cofx _]
+   (accounts.recover/recover-account-with-checks cofx)))
+
+;;;; FX
+(re-frame/reg-fx
+ :login
+ (fn [[address password save-password?]]
+   (accounts.login/login! address password save-password?)))
+
+(re-frame/reg-fx
+ :clear-web-data
+ accounts.login/clear-web-data!)
+
+(re-frame/reg-fx
+ :data-store/change-account
+ (fn [address]
+   (accounts.login/change-account! address)))
+
+;;;; Handlers
+(handlers/register-handler-fx
+ :ui/login
+ (fn [cofx _]
+   (accounts.login/user-login cofx)))
+
+(handlers/register-handler-fx
+ :callback/login
+ (fn [cofx [_ login-result]]
+   (accounts.login/user-login-callback login-result cofx)))
+
+(handlers/register-handler-fx
+ :ui/open-login
+ (fn [cofx [_ address photo-path name]]
+   (accounts.login/open-login address photo-path name cofx)))
+
+(handlers/register-handler-fx
+ :callback/open-login
+ (fn [cofx [_ password]]
+   (accounts.login/open-login-callback password cofx)))
 
 ;; UI module events
 (handlers/register-handler-db
@@ -324,7 +412,7 @@
 (handlers/register-handler-fx
  :mailserver.callback/settings-saved
  (fn [cofx _]
-   (accounts/logout cofx)))
+   (accounts.logout/logout cofx)))
 
 ;; network module
 (handlers/register-handler-fx
@@ -651,9 +739,9 @@
   (let [network  (get-in db [:account/account :network])
         settings (get-in db [:account/account :settings])]
     (handlers-macro/merge-fx cofx
-                             (accounts.models/update-settings
+                             (accounts.update/update-settings
                               (assoc-in settings [:bootnodes network] value)
-                              [:accounts.ui/logout-confirmed]))))
+                              [:accounts.logout.ui/logout-confirmed]))))
 
 (handlers/register-handler-fx
  :toggle-custom-bootnodes
@@ -702,21 +790,21 @@
  (fn [{:keys [db now] :as cofx} [_ log-level]]
    (let [settings (get-in db [:account/account :settings])]
      (handlers-macro/merge-fx cofx
-                              (accounts.models/update-settings
+                              (accounts.update/update-settings
                                (if log-level
                                  (assoc settings :log-level log-level)
                                  (dissoc settings :log-level))
-                               [:accounts.ui/logout-confirmed])))))
+                               [:accounts.logout.ui/logout-confirmed])))))
 
 (handlers/register-handler-fx
-  :change-log-level
-  (fn [{:keys [db]} [_ {:keys [name value] :as log-level}]]
-    {:show-confirmation {:title               (i18n/label :t/close-app-title)
-                         :content             (i18n/label :t/change-log-level
-                                                          {:log-level name})
-                         :confirm-button-text (i18n/label :t/close-app-button)
-                         :on-accept           #(re-frame/dispatch [::save-log-level value])
-                         :on-cancel           nil}}))
+ :change-log-level
+ (fn [{:keys [db]} [_ {:keys [name value] :as log-level}]]
+   {:show-confirmation {:title               (i18n/label :t/close-app-title)
+                        :content             (i18n/label :t/change-log-level
+                                                         {:log-level name})
+                        :confirm-button-text (i18n/label :t/close-app-button)
+                        :on-accept           #(re-frame/dispatch [::save-log-level value])
+                        :on-cancel           nil}}))
 
 (handlers/register-handler-fx
  :chat.ui/clear-history-pressed
@@ -978,12 +1066,12 @@
 (handlers/register-handler-fx
  :notifications/request-notifications-granted
  (fn [cofx _]
-   (accounts.models/show-mainnet-is-default-alert cofx)))
+   (accounts/show-mainnet-is-default-alert cofx)))
 
 (handlers/register-handler-fx
  :notifications/request-notifications-denied
  (fn [cofx _]
-   (accounts.models/show-mainnet-is-default-alert cofx)))
+   (accounts/show-mainnet-is-default-alert cofx)))
 
 (re-frame/reg-fx
  :network/listen-to-network-status

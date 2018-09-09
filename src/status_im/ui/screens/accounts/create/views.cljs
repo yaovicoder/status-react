@@ -31,7 +31,7 @@
   [text-input/text-input-with-label
    {:label             (get-in steps [step :input-label])
     :placeholder       (get-in steps [step :input-placeholder])
-    :on-change-text    #(re-frame/dispatch [:accounts.ui/input-text-changed (get-in steps [step :input-key]) %])
+    :on-change-text    #(re-frame/dispatch [:accounts.create.ui/input-text-changed (get-in steps [step :input-key]) %])
     :secure-text-entry (boolean (#{:enter-password :confirm-password} step))
     :error             error}])
 
@@ -54,7 +54,7 @@
      (when (#{:enter-password :confirm-password :enter-name} step)
        [react/view components.styles/flex
         [toolbar/toolbar {:flat? true} (when (#{:enter-password :confirm-password} step)
-                                         (toolbar/nav-button (actions/back #(re-frame/dispatch [:accounts.ui/step-back step])))) nil]
+                                         (toolbar/nav-button (actions/back #(re-frame/dispatch [:accounts.create.ui/step-back-pressed step])))) nil]
         [react/view {:style styles/logo-container}
          [components.common/logo styles/logo]]
         ^{:key (str "step" step)}
@@ -70,4 +70,4 @@
           [components.common/bottom-button
            {:forward?  true
             :disabled? (not next-enabled?)
-            :on-press  #(re-frame/dispatch [:accounts.ui/next-step-pressed step password password-confirm])}]]]])]))
+            :on-press  #(re-frame/dispatch [:accounts.create.ui/next-step-pressed step password password-confirm])}]]]])]))

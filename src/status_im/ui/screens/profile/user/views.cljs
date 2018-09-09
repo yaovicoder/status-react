@@ -134,7 +134,7 @@
                                           :accessibility-label :log-out-button
                                           :destructive?        true
                                           :hide-arrow?         true
-                                          :action-fn           #(re-frame/dispatch [:accounts.ui/logout-pressed])}]]]]))
+                                          :action-fn           #(re-frame/dispatch [:accounts.logout.ui/logout-pressed])}]]]]))
 
 (defview advanced-settings [{:keys [network networks dev-mode?]} on-show]
   (letsubs [{:keys [sharing-usage-data?]} [:get-current-account]]

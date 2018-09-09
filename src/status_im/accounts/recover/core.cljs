@@ -1,12 +1,11 @@
-(ns status-im.ui.screens.accounts.recover.models
+(ns status-im.accounts.recover.core
   (:require status-im.ui.screens.accounts.recover.navigation
             [clojure.string :as string]
             [taoensso.timbre :as log]
             [re-frame.core :as re-frame]
             [status-im.utils.handlers-macro :as handlers-macro]
             [status-im.native-module.core :as status]
-            [status-im.ui.screens.accounts.models :as accounts.models]
-            [status-im.ui.screens.accounts.login.models :as login.models]
+            [status-im.accounts.create.core :as accounts.create]
             [status-im.utils.types :as types]
             [status-im.utils.identicon :as identicon]
             [status-im.utils.gfycat.core :as gfycat]
@@ -15,7 +14,7 @@
             [status-im.utils.hex :as utils.hex]
             [status-im.constants :as constants]
             [cljs.spec.alpha :as spec]
-            [status-im.ui.screens.accounts.db :as db]
+            [status-im.accounts.db :as db]
             [status-im.utils.ethereum.mnemonic :as mnemonic]
             [status-im.i18n :as i18n]))
 
@@ -83,7 +82,7 @@
 
     (handlers-macro/merge-fx cofx
                              {:db (assoc-in db [:accounts/recover :processing?] false)}
-                             (accounts.models/on-account-created account password true))))
+                             (accounts.create/on-account-created account password true))))
 
 (defn recover-account [{:keys [db]}]
   (let [{:keys [password passphrase]} (:accounts/recover db)]

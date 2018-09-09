@@ -1,6 +1,6 @@
 (ns status-im.models.bootnode
   (:require [clojure.string :as string]
-            [status-im.ui.screens.accounts.utils :as accounts.utils]
+            [status-im.accounts.update.core :as accounts.update]
             [status-im.utils.handlers-macro :as handlers-macro]))
 
 (def address-regex #"enode://[a-zA-Z0-9]+:?(.*)\@\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b:(\d{1,5})")
@@ -49,10 +49,10 @@
   (let [network     (:network db)
         new-account (update-in account [:bootnodes network] dissoc id)]
     (handlers-macro/merge-fx {:db (assoc db :account/account new-account)}
-                             (accounts.utils/account-update
+                             (accounts.update/account-update
                               (select-keys new-account [:bootnodes])
                               (when (custom-bootnodes-in-use? cofx)
-                                [:accounts.ui/logout-confirmed])))))
+                                [:accounts.logout.ui/logout-confirmed])))))
 
 (defn upsert [{{:bootnodes/keys [manage] :account/keys [account] :as db} :db :as cofx}]
   (let [{:keys [name
@@ -73,7 +73,7 @@
      cofx
      {:db       (dissoc db :bootnodes/manage)
       :dispatch [:navigate-back]}
-     (accounts.utils/account-update
+     (accounts.update/account-update
       {:bootnodes new-bootnodes}
       (when (custom-bootnodes-in-use? cofx)
-        [:accounts.ui/logout-confirmed])))))
+        [:accounts.logout.ui/logout-confirmed])))))

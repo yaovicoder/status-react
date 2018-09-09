@@ -1,4 +1,4 @@
-(ns status-im.ui.screens.accounts.statuses)
+(ns status-im.accounts.statuses)
 
 (def data
   ["be the hero of your own journey"

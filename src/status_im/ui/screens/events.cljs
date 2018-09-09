@@ -4,8 +4,6 @@
             status-im.dev-server.events
             status-im.network.events
             status-im.protocol.handlers
-            status-im.ui.screens.accounts.login.events
-            status-im.ui.screens.accounts.recover.events
             [status-im.models.contacts :as models.contacts]
             status-im.ui.screens.add-new.events
             status-im.ui.screens.add-new.new-chat.events
@@ -13,13 +11,11 @@
             status-im.ui.screens.group.events
             [status-im.ui.screens.navigation :as navigation]
             [status-im.utils.dimensions :as dimensions]
-            status-im.ui.screens.accounts.events
             status-im.utils.universal-links.events
             status-im.init.events
             status-im.node.events
             status-im.signals.events
             status-im.web3.events
-            status-im.notifications.events
             status-im.ui.screens.add-new.new-chat.navigation
             status-im.ui.screens.network-settings.events
             status-im.ui.screens.profile.events
@@ -37,7 +33,6 @@
             status-im.ui.screens.wallet.collectibles.etheremon.events
             status-im.ui.screens.wallet.collectibles.superrare.events
             status-im.ui.screens.browser.events
-            status-im.ui.screens.offline-messaging-settings.events
             status-im.ui.screens.log-level-settings.events
             status-im.ui.screens.privacy-policy.events
             status-im.ui.screens.bootnodes-settings.events
