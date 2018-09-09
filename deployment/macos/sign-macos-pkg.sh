@@ -85,12 +85,21 @@ echo -e "\n### Unlocking keychain..."
 security unlock-keychain -p "$KEYCHAIN_PASS" "$KEYCHAIN"
 
 echo -e "\n### Signing object..."
-codesign --sign "$DEV_ID" --deep --force --verbose "$OBJECT"
+
+# If `OBJECT` is a directory, we assume it's an app
+# bundle, otherwise we consider it to be a dmg.
+if [ -d "$OBJECT" ]; then
+  codesign --sign "$DEV_ID" --deep --force --verbose=4 "$OBJECT"
+else
+  codesign --sign "$DEV_ID" --force --verbose=4 "$OBJECT"
+fi
 
 echo -e "\n### Verifying signature..."
 codesign --verify --strict=all --deep --verbose "$OBJECT"
 
+echo -e "\n### Assessing Gatekeeper validation..."
 if [ -d "$OBJECT" ]; then
-  echo -e "\n### Assessing Gatekeeper validation..."
-  spctl --assess --verbose "$OBJECT"
+  spctl --assess --type execute --verbose=2 "$OBJECT"
+else
+  spctl --assess --type open --context context:primary-signature --verbose=2 "$OBJECT"
 fi
