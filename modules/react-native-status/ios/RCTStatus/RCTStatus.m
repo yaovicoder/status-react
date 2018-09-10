@@ -111,13 +111,11 @@ RCT_EXPORT_METHOD(startNode:(NSString *)configString) {
     NSDictionary *configJSON = [NSJSONSerialization JSONObjectWithData:configData options:NSJSONReadingMutableContainers error:nil];
     NSString *dataDir = [configJSON objectForKey:@"DataDir"];
     NSString *networkDir = [rootUrl.path stringByAppendingString:dataDir];
-    NSString *logLevel = [configJSON objectForKey:@"LogLevel"];
 
     NSURL *networkDirUrl = [NSURL fileURLWithPath:networkDir];
     NSURL *logUrl = [networkDirUrl URLByAppendingPathComponent:@"geth.log"];
     [configJSON setValue:newKeystoreUrl.path forKey:@"KeyStoreDir"];
     [configJSON setValue:logUrl.path forKey:@"LogFile"];
-    [configJSON setValue:([logLevel length] == 0 ? [NSString stringWithUTF8String: "ERROR"] : logLevel) forKey:@"LogLevel"];
 
     NSString *resultingConfig = [configJSON bv_jsonStringWithPrettyPrint:NO];
     NSLog(@"node config %@", resultingConfig);

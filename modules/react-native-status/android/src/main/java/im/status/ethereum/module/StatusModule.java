@@ -156,14 +156,12 @@ class StatusModule extends ReactContextBaseJavaModule implements LifecycleEventL
         // retrieve parameters from app config, that will be applied onto the Go-side config later on
         final String dataDir = root + jsonConfig.get("DataDir");
         final Boolean logEnabled = jsonConfig.getBoolean("LogEnabled");
-        final String logLevel = jsonConfig.optString("LogLevel", "ERROR");
 
         jsonConfig.put("DataDir", dataDir);
         jsonConfig.put("KeyStoreDir", keystoreDir);
 
         final String gethLogFilePath = logEnabled ? prepareLogsFile() : null;
         jsonConfig.put("LogFile", gethLogFilePath);
-        jsonConfig.put("LogLevel", TextUtils.isEmpty(logLevel) ? "ERROR" : logLevel);
 
         return jsonConfig.toString();
     }
