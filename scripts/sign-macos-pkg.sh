@@ -33,8 +33,7 @@ export KEYCHAIN_PASS
 
 echo -e "\n### Storing original keychain search list..."
 ORIG_KEYCHAIN_LIST="$(security list-keychains \
-  | grep -v "/Library/Keychains/System.keychain" \
-  | grep -v "/tmp." | xargs)"
+  | grep -v "/Library/Keychains/System.keychain" | xargs)"
 
 echo -e "\n### Creating ramdisk..."
 RAMDISK="$(hdiutil attach -nomount ram://20480 | tr -d '[:blank:]')"
