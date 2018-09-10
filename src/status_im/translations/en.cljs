@@ -401,6 +401,7 @@
    :twelve-words-in-correct-order        "12 words in correct order"
    :enter-12-words                       "Enter the 12 words of your recovery phrase, separated by single spaces"
    :recover-password-too-short           "Password is too short"
+   :recover-password-invalid             "Password is not valid"
    :recovery-phrase-invalid              "Recovery phrase is invalid"
    :recovery-phrase-unknown-words        "Some words might be misspelled"
    :recovery-typo-dialog-title           "Is the phrase correct?"
