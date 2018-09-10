@@ -62,7 +62,8 @@
             [reagent.core :as reagent]
             [cljs-react-navigation.reagent :as nav-reagent]
             [status-im.utils.random :as rand]
-            [re-frame.core :as re-frame]))
+            [re-frame.core :as re-frame]
+            [taoensso.timbre :as log]))
 
 (defn wrap [view-id component]
   (fn []
@@ -95,6 +96,7 @@
      [component]]))
 
 (defn get-main-component2 [view-id]
+  (log/debug :component2 view-id)
   (nav-reagent/switch-navigator
    {:intro-login-stack
     {:screen
@@ -270,7 +272,9 @@
         main-component (atom nil)]
     (reagent/create-class
      {:component-did-mount
-      utils.universal-links/initialize
+      (fn []
+        (log/debug :main-component-did-mount @view-id)
+        (utils.universal-links/initialize))
       :component-will-mount
       (fn []
         (when (and @view-id (not @main-component))
@@ -282,6 +286,9 @@
         (when (and @view-id (not @main-component))
           (reset! main-component (get-main-component2 @view-id)))
         (react/dismiss-keyboard!))
+      :component-did-update
+      (fn []
+        (log/debug :main-component-did-update @view-id))
       :reagent-render
       (fn []
         (when (and @view-id main-component)
