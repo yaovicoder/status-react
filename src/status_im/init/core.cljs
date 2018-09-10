@@ -104,7 +104,6 @@
 
 (defn initialize-views [cofx]
   (let [{{:accounts/keys [accounts] :as db} :db} cofx]
-    (log/debug :EMPTY-ACCOUNTS? accounts)
     (if (empty? accounts)
       (navigation/navigate-to-clean :intro cofx)
       (let [{:keys [address photo-path name]} (first (sort-by :last-sign-in > (vals accounts)))]
