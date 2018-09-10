@@ -204,7 +204,7 @@ def bundleMacOS(type = 'nightly') {
 
     withCredentials([
       string(credentialsId: 'desktop-gpg-outer-pass', variable: 'GPG_PASS_OUTER'),
-      string(credentialsId: 'desktop-gpg-inner-pass', variable: 'GPG_PASS_INNER')
+      string(credentialsId: 'desktop-gpg-inner-pass', variable: 'GPG_PASS_INNER'),
       string(credentialsId: 'desktop-keychain-pass', variable: 'KEYCHAIN_PASS')
     ]) {
       sh '../scripts/sign-macos-pkg.sh Status.app ../deployment/macos/macos-developer-id.keychain-db.gpg'
