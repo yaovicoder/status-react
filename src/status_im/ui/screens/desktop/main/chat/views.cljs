@@ -51,14 +51,14 @@
                      :on-press #(re-frame/dispatch [:show-profile-desktop whisper-identity])}
          (i18n/label :t/view-profile)])
 
-      [react/text {:style (styles/profile-actions-text colors/red)
+      [react/text {:style (styles/profile-actions-text colors/black)
                    :on-press (fn []
                                (utils/show-confirmation (i18n/label :clear-history-confirmation)
                                                         ""
                                                         (i18n/label :clear-history-action)
                                                         #(re-frame/dispatch [:clear-history])))}
        (i18n/label :t/clear-history)]
-      [react/text {:style (styles/profile-actions-text colors/red)
+      [react/text {:style (styles/profile-actions-text colors/black)
                    :on-press (fn []
                                (utils/show-confirmation (i18n/label :delete-chat-confirmation)
                                                         ""
