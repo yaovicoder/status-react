@@ -2,7 +2,8 @@
   (:require [re-frame.core :as re-frame]
             [status-im.utils.handlers :as handlers]
             [status-im.utils.handlers-macro :as handlers-macro]
-            [status-im.utils.navigation :as navigation]))
+            [status-im.utils.navigation :as navigation]
+            [taoensso.timbre :as log]))
 
 ;; private helper fns
 
@@ -86,26 +87,31 @@
 (re-frame/reg-fx
  ::navigate-to
  (fn [view-id]
+   (log/debug :navigate-to view-id)
    (navigation/navigate-to (name view-id))))
 
 (re-frame/reg-fx
  ::navigate-back
  (fn []
+   (log/debug :navigate-back)
    (navigation/navigate-back)))
 
 (re-frame/reg-fx
  ::navigate-replace
  (fn [view-id]
+   (log/debug :navigate-replace view-id)
    (navigation/navigate-replace view-id)))
 
 (re-frame/reg-fx
  ::navigate-reset
  (fn [config]
+   (log/debug :navigate-reset config)
    (navigation/navigate-reset config)))
 
 (re-frame/reg-fx
  ::navigate-to-clean
  (fn [view-id]
+   (log/debug :navigate-to-clean view-id)
    (navigation/navigate-reset
     {:index   0
      :actions [{:routeName view-id}]})))
