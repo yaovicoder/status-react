@@ -46,6 +46,14 @@ function clean_up {
 
   set +e
 
+  if [ $STATUS -eq 0 ]; then
+    echo -e "\n###### DONE."
+  else
+    echo -e "\n###### ERROR. See above for details."
+  fi
+
+  echo -e "\n###### Cleaning up..."
+
   echo -e "\n### Locking keychain..."
   security lock-keychain "$KEYCHAIN"
 
@@ -60,12 +68,7 @@ function clean_up {
   diskutil umount force "$RAMDISK"
   diskutil eject "$RAMDISK"
 
-  if [ $STATUS -eq 0 ]; then
-    echo -e "\n### DONE."
-  else
-    echo -e "\n### ERROR. See above for details."
-    exit 1
-  fi
+  exit $STATUS
 }
 
 trap clean_up EXIT
