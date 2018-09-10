@@ -202,9 +202,15 @@ def bundleMacOS(type = 'nightly') {
     """
     sh 'rm -f Status.app.zip'
 
-    sh '../scripts/sign-macos-pkg.sh Status.app ../deployment/macos/macos-developer-id.keychain-db.gpg'
-    sh "../node_modules/appdmg/bin/appdmg.js ../deployment/macos/status-dmg.json ${pkg}"
-    sh "../scripts/sign-macos-pkg.sh ${pkg} ../deployment/macos/macos-developer-id.keychain-db.gpg"
+    withCredentials([
+      string(credentialsId: 'desktop-gpg-outer-pass', variable: 'GPG_PASS_OUTER'),
+      string(credentialsId: 'desktop-gpg-inner-pass', variable: 'GPG_PASS_INNER')
+      string(credentialsId: 'desktop-keychain-pass', variable: 'KEYCHAIN_PASS')
+    ]) {
+      sh '../scripts/sign-macos-pkg.sh Status.app ../deployment/macos/macos-developer-id.keychain-db.gpg'
+      sh "../node_modules/appdmg/bin/appdmg.js ../deployment/macos/status-dmg.json ${pkg}"
+      sh "../scripts/sign-macos-pkg.sh ${pkg} ../deployment/macos/macos-developer-id.keychain-db.gpg"
+    }
   }
   return "${packageFolder}/${pkg}".drop(2)
 }
