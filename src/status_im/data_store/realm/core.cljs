@@ -177,8 +177,8 @@
                   (on-success)
                   (fs/unlink old-file-name)
                   (log/debug "old database removed"))))
-        (catch (fn []
-                 (let [message (str "can't move old database " file-name)]
+        (catch (fn [e]
+                 (let [message (str "can't move old database " (str e) " " file-name)]
                    (log/debug message)
                    (on-error {:error message})))))))
 
@@ -193,14 +193,11 @@
          (log/debug "try to encrypt with password success")
          (on-success))
        (catch :default _
-         (try
-           (do
-             (log/debug "try to encrypt with old key")
-             (encrypted-realm-version file-name old-key)
-             (log/debug "try to encrypt with old key success")
-             (re-encrypt-realm file-name old-key new-key on-success on-error))
-           (catch :default _
-             (on-error {:error "db can't be decrypted with either old and new keys"}))))))))
+         (do
+           (log/debug "try to encrypt with old key")
+           (encrypted-realm-version file-name old-key)
+           (log/debug "try to encrypt with old key success")
+           (re-encrypt-realm file-name old-key new-key on-success on-error)))))))
 
 (defn change-account [address password encryption-key]
   (let [path           (str accounts-realm-dir (utils.ethereum/sha3 address))
