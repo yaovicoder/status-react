@@ -185,8 +185,8 @@
                               ;;NOTE(goranjovic): keyboardDidShow is for android and keyboardWillShow for ios
                               (.addListener react/keyboard "keyboardDidShow" handler)
                               (.addListener react/keyboard "keyboardWillShow" handler))
-      :reagent-render       (fn [] (render-send-transaction-view
-                                    (assoc opts :amount-input amount-input)))})))
+      :reagent-render       (fn [opts] (render-send-transaction-view
+                                        (assoc opts :amount-input amount-input)))})))
 
 ;; SEND TRANSACTION FROM WALLET (CHAT)
 (defview send-transaction []
