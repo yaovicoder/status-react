@@ -169,12 +169,18 @@
                 (let [old-account-db (open-migrated-realm old-file-name
                                                           account/schemas
                                                           old-key)]
+                  (log/debug "copy old database")
                   (.writeCopyTo old-account-db file-name new-key)
+                  (log/debug "old database copied")
                   (close old-account-db)
+                  (log/debug "old database closed")
                   (on-success)
-                  (fs/unlink old-file-name))))
+                  (fs/unlink old-file-name)
+                  (log/debug "old database removed"))))
         (catch (fn []
-                 (on-error {:error (str "can't move old database " file-name)}))))))
+                 (let [message (str "can't move old database " file-name)]
+                   (log/debug message)
+                   (on-error {:error message})))))))
 
 (defn check-db-encryption
   [file-name old-key new-key]
@@ -182,12 +188,16 @@
    (fn [on-success on-error]
      (try
        (do
+         (log/debug "try to encrypt with password")
          (encrypted-realm-version file-name new-key)
+         (log/debug "try to encrypt with password success")
          (on-success))
        (catch :default _
          (try
            (do
+             (log/debug "try to encrypt with old key")
              (encrypted-realm-version file-name old-key)
+             (log/debug "try to encrypt with old key success")
              (re-encrypt-realm file-name old-key new-key on-success on-error))
            (catch :default _
              (on-error {:error "db can't be decrypted with either old and new keys"}))))))))
