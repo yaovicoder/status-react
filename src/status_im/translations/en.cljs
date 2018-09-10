@@ -212,6 +212,13 @@
    :browsing-open-in-web-browser         "Open in web browser"
    :browsing-open-in-status              "Open in Status"
    :browsing-cancel                      "Cancel"
+   :browsing-deceptive-site-title        "Deceptive site ahead"
+   :browsing-deceptive-site-description  "Attackers on this site may trick you into doing something dangerous like installing software or revealing your personal information."
+   :browsing-back-to-safety              "Back to safety"
+   :browsing-more-details                "More details"
+   :browsing-less-details                "Less details"
+   :browsing-phishing-explanation        "We recently detected phishing on {{site}}. Phishing sites pretend to be other websites to trick you."
+   :browsing-visit-unsafe-site           "Visit the unsafe site"
 
    ;;sign-up
    :contacts-syncronized                 "Your contacts have been synchronized"
