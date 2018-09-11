@@ -6,7 +6,8 @@
             [status-im.ui.screens.navigation :as navigation]
             [status-im.utils.handlers-macro :as handlers-macro]
             [status-im.utils.keychain.core :as keychain]
-            [status-im.utils.types :as types]))
+            [status-im.utils.types :as types]
+            [taoensso.timbre :as log]))
 
 ;; login flow:
 ;;
@@ -29,8 +30,11 @@
   ;; No matter what is the keychain we use, as checks are done on decrypting base
   (.. (keychain/safe-get-encryption-key)
       (then #(data-store/change-account address password %))
-      (then #(re-frame/dispatch [:init/initialize-account address]))
+      (then (fn []
+              (log/info "dispatch :init/initialize-account")
+              (re-frame/dispatch [:init/initialize-account address])))
       (catch (fn [error]
+               (log/info "decryption failed")
                ;; If all else fails we fallback to showing initial error
                (re-frame/dispatch [:init/initialize-app "" :decryption-failed])))))
 

@@ -173,21 +173,19 @@
                 (let [old-account-db (open-migrated-realm old-file-name
                                                           account/schemas
                                                           old-key)]
-                  (log/debug "copy old database")
+                  (log/info "copy old database")
                   (.writeCopyTo old-account-db file-name (to-buffer new-key))
-                  (log/debug "old database copied")
+                  (log/info "old database copied")
                   (close old-account-db)
-                  (log/debug "old database closed")
+                  (log/info "old database closed")
                   (on-success)
                   (fs/unlink old-file-name)
-                  (log/debug "old database removed"))))
+                  (log/info "old database removed"))))
         (catch (fn [e]
-                 (try (close old-account-db)
-                      (catch :default _))
                  (try (fs/move-file old-file-name file-name)
                       (catch :default _))
                  (let [message (str "can't copy old database " (str e) " " file-name)]
-                   (log/debug message)
+                   (log/info message)
                    (on-error {:error message})))))))
 
 (defn check-db-encryption
@@ -196,15 +194,15 @@
    (fn [on-success on-error]
      (try
        (do
-         (log/debug "try to encrypt with password")
+         (log/info "try to encrypt with password")
          (encrypted-realm-version file-name new-key)
-         (log/debug "try to encrypt with password success")
+         (log/info "try to encrypt with password success")
          (on-success))
        (catch :default _
          (do
-           (log/debug "try to encrypt with old key")
+           (log/info "try to encrypt with old key")
            (encrypted-realm-version file-name old-key)
-           (log/debug "try to encrypt with old key success")
+           (log/info "try to encrypt with old key success")
            (re-encrypt-realm file-name old-key new-key on-success on-error)))))))
 
 (defn change-account [address password encryption-key]
@@ -214,8 +212,11 @@
     (..
      (check-db-encryption path encryption-key account-db-key)
      (then
-      #(reset! account-realm
-               (open-migrated-realm path account/schemas account-db-key))))))
+      (fn []
+        (log/info "change-account done" (nil? @account-realm))
+        (reset! account-realm
+                (open-migrated-realm path account/schemas account-db-key))
+        (log/info "account-realm " (nil? @account-realm)))))))
 
 (declare realm-obj->clj)
 
