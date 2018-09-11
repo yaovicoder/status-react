@@ -48,6 +48,10 @@
 (defn get-account-network [db address]
   (get-in db [:accounts/accounts address :network]))
 
+(defn- get-base-node-config [config]
+  (assoc config
+         :Name "StatusIM"))
+
 (defn- get-account-node-config [db address]
   (let [accounts (get db :accounts/accounts)
         current-fleet-key (fleet/current-fleet db address)
@@ -61,8 +65,10 @@
                       config/log-level-status-go)]
     (cond-> (get-in networks [network :config])
       :always
+      (merge (get-base-node-config [config]))
+
+      (current-fleet)
       (assoc :NoDiscovery false
-             :Rendezvous false
              :ClusterConfig {:Enabled true
                              :Fleet              (name current-fleet-key)
                              :BootNodes          (vals (get-in current-fleet [:boot]))
@@ -84,8 +90,8 @@
 
 (defn get-node-config [db network]
   (-> (get-in (:networks/networks db) [network :config])
-      (assoc :NoDiscovery true
-             :Rendezvous false)
+      (get-base-node-config)
+      (assoc :NoDiscovery true)
       (add-log-level config/log-level-status-go)))
 
 (defn start
