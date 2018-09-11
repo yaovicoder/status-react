@@ -28,7 +28,7 @@
   ;; No matter what is the keychain we use, as checks are done on decrypting base
   (.. (keychain/safe-get-encryption-key)
       (then #(data-store/change-account address password %))
-      (then (fn [] (re-frame/dispatch [:init/initialize-account address])))
+      (then (fn [] (re-frame/dispatch [:init.callback/account-change-success address])))
       (catch (fn [error]
                (log/warn "Could not change account" error)
                ;; If all else fails we fallback to showing initial error
