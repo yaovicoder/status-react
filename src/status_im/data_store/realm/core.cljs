@@ -165,12 +165,16 @@
   [file-name old-key new-key on-success on-error]
   (let [old-file-name (str file-name "old")]
     (.. (fs/move-file file-name old-file-name)
+        (catch (fn [e]
+                 (let [message (str "can't move old database " (str e) " " file-name)]
+                   (log/debug message)
+                   (on-error {:error message}))))
         (then (fn []
                 (let [old-account-db (open-migrated-realm old-file-name
                                                           account/schemas
                                                           old-key)]
                   (log/debug "copy old database")
-                  (.writeCopyTo old-account-db file-name new-key)
+                  (.writeCopyTo old-account-db file-name (to-buffer new-key))
                   (log/debug "old database copied")
                   (close old-account-db)
                   (log/debug "old database closed")
@@ -178,7 +182,11 @@
                   (fs/unlink old-file-name)
                   (log/debug "old database removed"))))
         (catch (fn [e]
-                 (let [message (str "can't move old database " (str e) " " file-name)]
+                 (try (close old-account-db)
+                      (catch :default _))
+                 (try (fs/move-file old-file-name file-name)
+                      (catch :default _))
+                 (let [message (str "can't copy old database " (str e) " " file-name)]
                    (log/debug message)
                    (on-error {:error message})))))))
 
