@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-set -e
-
 DEV_ID="Developer ID Application: STATUS HOLDINGS PTE. LTD. (DTX7Z4U3YA)"
 
 OBJECT="$1"
@@ -30,6 +28,13 @@ export KEYCHAIN_PASS
 [ -z "$GPG_PASS_OUTER" ] && echo 'Missing env var: GPG_PASS_OUTER' && exit 1
 [ -z "$GPG_PASS_INNER" ] && echo 'Missing env var: GPG_PASS_INNER' && exit 1
 [ -z "$KEYCHAIN_PASS" ] && echo 'Missing env var: KEYCHAIN_PASS' && exit 1
+
+# If GPG hasn't been run on this host before, we run it once
+# quietly to make sure it creates the directories it needs first
+# and doesn't trip when trying to do the decryption further down
+script -q /dev/null gpg < /dev/null > /dev/null
+
+set -e
 
 echo -e "\n### Storing original keychain search list..."
 ORIG_KEYCHAIN_LIST="$(security list-keychains \
