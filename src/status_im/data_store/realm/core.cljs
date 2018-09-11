@@ -25,6 +25,7 @@
   "Returns -1 if the file does not exists, the schema version if it successfully
   decrypts it, throws error otherwise."
   [file-name encryption-key]
+  (log/info "encrypted-realm-version\nfile: " file-name)
   (.schemaVersion rn-dependencies/realm file-name (to-buffer encryption-key)))
 
 (defn open-realm
@@ -105,6 +106,7 @@
 (defn- migrate-schemas
   "Apply migrations in sequence and open database with the last schema"
   [file-name schemas encryption-key current-version]
+  (log/info "migrate schemas")
   (doseq [schema schemas
           :when (> (:schemaVersion schema) current-version)
           :let [migrated-realm (open-realm schema file-name encryption-key)]]
@@ -131,6 +133,7 @@
 (defn migrate-realm
   "Migrate realm if is a compatible version or reset the database"
   [file-name schemas encryption-key]
+  (log/info "migrate-realm")
   (migrate-schemas file-name schemas encryption-key (encrypted-realm-version
                                                      file-name
                                                      encryption-key)))

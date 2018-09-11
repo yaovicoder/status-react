@@ -34,7 +34,7 @@
               (log/info "dispatch :init/initialize-account")
               (re-frame/dispatch [:init/initialize-account address])))
       (catch (fn [error]
-               (log/info "decryption failed")
+               (log/info "decryption failed" (str error))
                ;; If all else fails we fallback to showing initial error
                (re-frame/dispatch [:init/initialize-app "" :decryption-failed])))))
 
