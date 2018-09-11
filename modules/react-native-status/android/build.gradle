@@ -16,7 +16,11 @@ dependencies {
     implementation 'com.instabug.library:instabug:3+'
     implementation 'status-im:function:0.0.1'
 
+<<<<<<< HEAD
     String statusGoVersion = 'v0.14.1'
+=======
+    String statusGoVersion = 'v0.14.1-10-g5cc5e97c'
+>>>>>>> tmp: Linux desktop fix
     final String statusGoGroup = 'status-im', statusGoName = 'status-go'
 
     // Check if the local status-go jar exists, and compile against that if it does
