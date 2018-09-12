@@ -51,6 +51,9 @@
     [react/view {:style styles/total-balance}
      [react/text {:style               styles/total-balance-value
                   :accessibility-label :total-amount-value-text}
+      (when (pos? value)
+        [react/text {:style styles/total-balance-tilde}
+         "~"])
       value]
      [react/text {:style               styles/total-balance-currency
                   :accessibility-label :total-amount-currency-text}

@@ -68,8 +68,7 @@
                         (-> balance-total-value
                             (money/with-precision 2)
                             str
-                            (i18n/format-currency (:code currency) false)
-                            (->> (str "~"))))
+                            (i18n/format-currency (:code currency) false)))
                       "...")))
 
 (re-frame/reg-sub :prices-loading?
