@@ -151,16 +151,15 @@ class StatusModule extends ReactContextBaseJavaModule implements LifecycleEventL
         return null;
     }
 
-    private String updateConfig(final String jsonConfigString, final String root, final String keystoreDir) throws JSONException {
+    private String updateConfig(final String jsonConfigString, final String absRootDirPath, final String absKeystoreDirPath) throws JSONException {
         final JSONObject jsonConfig = new JSONObject(jsonConfigString);
         // retrieve parameters from app config, that will be applied onto the Go-side config later on
-        final String dataDir = pathCombine(root, jsonConfig.get("DataDir"));
+        final String absDataDirPath = pathCombine(absRootDirPath, jsonConfig.getString("DataDir"));
         final Boolean logEnabled = jsonConfig.getBoolean("LogEnabled");
-
-        jsonConfig.put("DataDir", dataDir);
-        jsonConfig.put("KeyStoreDir", keystoreDir);
-
         final String gethLogFilePath = logEnabled ? prepareLogsFile() : null;
+
+        jsonConfig.put("DataDir", absDataDirPath);
+        jsonConfig.put("KeyStoreDir", absKeystoreDirPath);
         jsonConfig.put("LogFile", gethLogFilePath);
 
         return jsonConfig.toString();
@@ -182,8 +181,8 @@ class StatusModule extends ReactContextBaseJavaModule implements LifecycleEventL
         Log.d(TAG, "******************* ENDOF NODE CONFIG *************************");
     }
 
-    private String getTestnetDataDir(final String root) {
-        return pathCombine(root, "ethereum/testnet");
+    private String getTestnetDataDir(final String absRootDirPath) {
+        return pathCombine(absRootDirPath, "ethereum/testnet");
     }
 
     private String pathCombine(final String path1, final String path2) {
@@ -195,8 +194,8 @@ class StatusModule extends ReactContextBaseJavaModule implements LifecycleEventL
 
         Activity currentActivity = getCurrentActivity();
 
-        final String root = currentActivity.getApplicationInfo().dataDir;
-        final String dataFolder = this.getTestnetDataDir(root);
+        final String absRootDirPath = currentActivity.getApplicationInfo().dataDir;
+        final String dataFolder = this.getTestnetDataDir(absRootDirPath);
         Log.d(TAG, "Starting Geth node in folder: " + dataFolder);
 
         try {
@@ -207,7 +206,7 @@ class StatusModule extends ReactContextBaseJavaModule implements LifecycleEventL
             Log.e(TAG, "error making folder: " + dataFolder, e);
         }
 
-        final String ropstenFlagPath = pathCombine(root, "ropsten_flag");
+        final String ropstenFlagPath = pathCombine(absRootDirPath, "ropsten_flag");
         final File ropstenFlag = new File(ropstenFlagPath);
         if (!ropstenFlag.exists()) {
             try {
@@ -228,7 +227,7 @@ class StatusModule extends ReactContextBaseJavaModule implements LifecycleEventL
 
         String testnetDataDir = dataFolder;
         String oldKeystoreDir = pathCombine(testnetDataDir, "keystore");
-        String newKeystoreDir = pathCombine(root, "keystore");
+        String newKeystoreDir = pathCombine(absRootDirPath, "keystore");
         final File oldKeystore = new File(oldKeystoreDir);
         if (oldKeystore.exists()) {
             try {
@@ -248,7 +247,7 @@ class StatusModule extends ReactContextBaseJavaModule implements LifecycleEventL
         }
 
         try {
-            final String updatedJsonConfigString = this.updateConfig(jsonConfigString, root, newKeystoreDir);
+            final String updatedJsonConfigString = this.updateConfig(jsonConfigString, absRootDirPath, newKeystoreDir);
 
             prettyPrintConfig(updatedJsonConfigString);
 
