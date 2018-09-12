@@ -81,25 +81,27 @@ void RCTStatus::startNode(QString configString) {
         qDebug() << jsonError.errorString();
     }
 
-    qDebug() << " RCTStatus::startNode configString: " << jsonDoc.toVariant().toMap();
     QVariantMap configJSON = jsonDoc.toVariant().toMap();
+    qDebug() << " RCTStatus::startNode configString: " << configJSON;
 
     int networkId = configJSON["NetworkId"].toInt();
     QString relativeDataDirPath = configJSON["DataDir"].toString();
 
-    QDir rootDir(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation));
-    QString absDataDirPath = rootDir.filePath(relativeDataDirPath);
+    QString rootDirPath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+    QDir rootDir(rootDirPath);
+    QString absDataDirPath = rootDir.absoluteFilePath(relativeDataDirPath);
     QDir dataDir(absDataDirPath);
     if (!dataDir.exists()) {
       dataDir.mkpath(".");
     }
-    qDebug()<<"RCTStatus::startNode absDataDirPath: "<<absDataDirPath;
 
     configJSON["DataDir"] = absDataDirPath;
-    configJSON["KeyStoreDir"] = rootDir.filePath("keystore");
-    configJSON["LogFile"] = dataDir.filePath("geth.log");
+    configJSON["KeyStoreDir"] = rootDir.absoluteFilePath("keystore");
+    configJSON["LogFile"] = dataDir.absoluteFilePath("geth.log");
 
-    const char* result = StartNode(QString(QJsonDocument::fromVariant(configJSON).toJson(QJsonDocument::Compact)).toUtf8().data());
+    QJsonDocument updatedJsonDoc = QJsonDocument::fromVariant(configJSON).toJson(QJsonDocument::Compact);
+    qDebug() << " RCTStatus::startNode updated configString: " << updatedJsonDoc.toVariant().toMap();
+    const char* result = StartNode(QString(updatedJsonDoc).toUtf8().data());
     qDebug() << "RCTStatus::startNode StartNode result: " << result;
 }
 
