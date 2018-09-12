@@ -97,7 +97,8 @@
 
 ;; "Cancel" and "Sign Transaction >" or "Sign >" buttons, signing with password
 (defview enter-password-buttons [spinning? cancel-handler sign-handler sign-label]
-  (letsubs [sign-enabled? [:wallet.send/sign-password-enabled?]]
+  (letsubs [sign-enabled? [:wallet.send/sign-password-enabled?]
+            network-status [:network-status]]
     [bottom-buttons/bottom-buttons
      styles/sign-buttons
      [button/button {:style               components.styles/flex
@@ -106,18 +107,21 @@
       (i18n/label :t/cancel)]
      [button/button {:style               (wallet.styles/button-container sign-enabled?)
                      :on-press            sign-handler
-                     :disabled?           (or spinning? (not sign-enabled?))
+                     :disabled?           (or spinning?
+                                              (not sign-enabled?)
+                                              (= :offline network-status))
                      :accessibility-label :sign-transaction-button}
       (i18n/label sign-label)
       [vector-icons/icon :icons/forward {:color :white}]]]))
 
 ;; "Sign Transaction >" button
-(defn- sign-transaction-button [amount-error to amount sufficient-funds? sufficient-gas? modal?]
+(defn- sign-transaction-button [amount-error to amount sufficient-funds? sufficient-gas? modal? online?]
   (let [sign-enabled? (and (nil? amount-error)
                            (or modal? (not (empty? to))) ;;NOTE(goranjovic) - contract creation will have empty `to`
                            (not (nil? amount))
                            sufficient-funds?
-                           sufficient-gas?)]
+                           sufficient-gas?
+                           online?)]
     [bottom-buttons/bottom-buttons
      styles/sign-buttons
      [react/view]
@@ -131,10 +135,11 @@
       (i18n/label :t/transactions-sign-transaction)
       [vector-icons/icon :icons/forward {:color (if sign-enabled? :white :gray)}]]]))
 
-(defn- render-send-transaction-view [{:keys [modal? transaction scroll advanced? network amount-input]}]
+(defn- render-send-transaction-view [{:keys [modal? transaction scroll advanced? network amount-input network-status]}]
   (let [{:keys [amount amount-text amount-error asset-error show-password-input? to to-name sufficient-funds?
                 sufficient-gas? in-progress? from-chat? symbol]} transaction
-        {:keys [decimals] :as token} (tokens/asset-for (ethereum/network->chain-keyword network) symbol)]
+        {:keys [decimals] :as token} (tokens/asset-for (ethereum/network->chain-keyword network) symbol)
+        online? (= :online network-status)]
     [wallet.components/simple-screen {:avoid-keyboard? (not modal?)
                                       :status-bar-type (if modal? :modal-wallet :wallet)}
      [toolbar modal? (i18n/label :t/send-transaction)]
@@ -153,7 +158,7 @@
                                     :error     asset-error
                                     :type      :send
                                     :symbol    symbol}]
-        [components/amount-selector {:disabled?     (or from-chat? modal?)
+        [components/amount-selector {:disabled?     (or from-chat? modal? (not online?))
                                      :error         (or amount-error
                                                         (when-not sufficient-funds? (i18n/label :t/wallet-insufficient-funds))
                                                         (when-not sufficient-gas? (i18n/label :t/wallet-insufficient-gas)))
@@ -167,7 +172,7 @@
          #(re-frame/dispatch [:wallet/cancel-entering-password])
          #(re-frame/dispatch [:wallet/send-transaction])
          :t/transactions-sign-transaction]
-        [sign-transaction-button amount-error to amount sufficient-funds? sufficient-gas? modal?])
+        [sign-transaction-button amount-error to amount sufficient-funds? sufficient-gas? modal? online?])
       (when show-password-input?
         [password-input-panel :t/signing-phrase-description in-progress?])
       (when in-progress? [react/view styles/processing-view])]]))
@@ -191,21 +196,31 @@
 ;; SEND TRANSACTION FROM WALLET (CHAT)
 (defview send-transaction []
   (letsubs [transaction [:wallet.send/transaction]
-            advanced?   [:wallet.send/advanced?]
-            network     [:get-current-account-network]
-            scroll      (atom nil)]
-    [send-transaction-view {:modal? false :transaction transaction :scroll scroll :advanced? advanced?
-                            :network network}]))
+            advanced? [:wallet.send/advanced?]
+            network [:get-current-account-network]
+            scroll (atom nil)
+            network-status [:network-status]]
+    [send-transaction-view {:modal? false
+                            :transaction transaction
+                            :scroll scroll
+                            :advanced? advanced?
+                            :network network
+                            :network-status network-status}]))
 
 ;; SEND TRANSACTION FROM DAPP
 (defview send-transaction-modal []
   (letsubs [transaction [:wallet.send/transaction]
-            advanced?   [:wallet.send/advanced?]
-            network     [:get-current-account-network]
-            scroll      (atom nil)]
+            advanced? [:wallet.send/advanced?]
+            network [:get-current-account-network]
+            scroll (atom nil)
+            network-status [:network-status]]
     (if transaction
-      [send-transaction-view {:modal? true :transaction transaction :scroll scroll :advanced? advanced?
-                              :network network}]
+      [send-transaction-view {:modal? true
+                              :transaction transaction
+                              :scroll scroll
+                              :advanced? advanced?
+                              :network network
+                              :network-status network-status}]
       [react/view wallet.styles/wallet-modal-container
        [react/view components.styles/flex
         [status-bar/status-bar {:type :modal-wallet}]
