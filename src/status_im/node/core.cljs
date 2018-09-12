@@ -107,7 +107,7 @@
          node-config-json (types/clj->json node-config)]
      (log/info "Node config: " node-config-json)
      {:db         (assoc db :network network)
-      :node/start [node-config-json]})))
+      :node/start node-config-json})))
 
 (defn restart
   []
@@ -121,7 +121,7 @@
 
 (re-frame/reg-fx
  :node/start
- (fn [[config]]
+ (fn [config]
    (status/start-node config)))
 
 (re-frame/reg-fx
