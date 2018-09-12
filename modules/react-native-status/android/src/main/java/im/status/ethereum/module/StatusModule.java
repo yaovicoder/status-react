@@ -154,7 +154,7 @@ class StatusModule extends ReactContextBaseJavaModule implements LifecycleEventL
     private String updateConfig(final String jsonConfigString, final String root, final String keystoreDir) throws JSONException {
         final JSONObject jsonConfig = new JSONObject(jsonConfigString);
         // retrieve parameters from app config, that will be applied onto the Go-side config later on
-        final String dataDir = root + jsonConfig.get("DataDir");
+        final String dataDir = Paths.get(root, jsonConfig.get("DataDir"));
         final Boolean logEnabled = jsonConfig.getBoolean("LogEnabled");
 
         jsonConfig.put("DataDir", dataDir);
@@ -183,7 +183,7 @@ class StatusModule extends ReactContextBaseJavaModule implements LifecycleEventL
     }
 
     private String getTestnetDataDir(final String root) {
-        return root + "/ethereum/testnet";
+        return Paths.get(root, "ethereum/testnet");
     }
 
     private void doStartNode(final String jsonConfigString) {
@@ -202,11 +202,11 @@ class StatusModule extends ReactContextBaseJavaModule implements LifecycleEventL
             Log.e(TAG, "error making folder: " + dataFolder, e);
         }
 
-        final String ropstenFlagPath = root + "/ropsten_flag";
+        final String ropstenFlagPath = Paths.get(root, "ropsten_flag");
         final File ropstenFlag = new File(ropstenFlagPath);
         if (!ropstenFlag.exists()) {
             try {
-                final String chaindDataFolderPath = dataFolder + "/StatusIM/lightchaindata";
+                final String chaindDataFolderPath = Paths.get(dataFolder, "StatusIM/lightchaindata");
                 final File lightChainFolder = new File(chaindDataFolderPath);
                 if (lightChainFolder.isDirectory()) {
                     String[] children = lightChainFolder.list();
@@ -223,8 +223,8 @@ class StatusModule extends ReactContextBaseJavaModule implements LifecycleEventL
 
 
         String testnetDataDir = dataFolder;
-        String oldKeystoreDir = testnetDataDir + "/keystore";
-        String newKeystoreDir = root + "/keystore";
+        String oldKeystoreDir = Paths.get(testnetDataDir, "keystore");
+        String newKeystoreDir = Paths.get(root, "keystore");
         final File oldKeystore = new File(oldKeystoreDir);
         if (oldKeystore.exists()) {
             try {
@@ -265,12 +265,12 @@ class StatusModule extends ReactContextBaseJavaModule implements LifecycleEventL
 
     private String getOldExternalDir() {
         File extStore = Environment.getExternalStorageDirectory();
-        return extStore.exists() ? extStore.getAbsolutePath() + "/ethereum/testnet" : getNewInternalDir();
+        return extStore.exists() ? Paths.get(extStore.getAbsolutePath(), "ethereum/testnet") : getNewInternalDir();
     }
 
     private String getNewInternalDir() {
         Activity currentActivity = getCurrentActivity();
-        return currentActivity.getApplicationInfo().dataDir + "/ethereum/testnet";
+        return Paths.get(currentActivity.getApplicationInfo().dataDir, "ethereum/testnet");
     }
 
     private void deleteDirectory(File folder) {

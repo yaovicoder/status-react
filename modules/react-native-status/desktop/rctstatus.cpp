@@ -85,20 +85,19 @@ void RCTStatus::startNode(QString configString) {
     QVariantMap configJSON = jsonDoc.toVariant().toMap();
 
     int networkId = configJSON["NetworkId"].toInt();
-    QString dataDir = configJSON["DataDir"].toString();
+    QString relativeDataDirPath = configJSON["DataDir"].toString();
 
-    QString rootDirPath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/";
-    QString networkDir = rootDirPath + dataDir;
-    QString keyStoreDir = rootDirPath + "keystore";
-    QDir dir(networkDir);
-    if (!dir.exists()) {
-      dir.mkpath(".");
+    QDir rootDir(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation));
+    QString absDataDirPath = rootDir.filePath(relativeDataDirPath);
+    QDir dataDir(absDataDirPath);
+    if (!dataDir.exists()) {
+      dataDir.mkpath(".");
     }
-    qDebug()<<"RCTStatus::startNode networkDir: "<<networkDir;
+    qDebug()<<"RCTStatus::startNode absDataDirPath: "<<absDataDirPath;
 
-    configJSON["DataDir"] = networkDir;
-    configJSON["KeyStoreDir"] = keyStoreDir;
-    configJSON["LogFile"] = networkDir + "/geth.log";
+    configJSON["DataDir"] = absDataDirPath;
+    configJSON["KeyStoreDir"] = rootDir.filePath("keystore");
+    configJSON["LogFile"] = dataDir.filePath("geth.log");
 
     const char* result = StartNode(QString(QJsonDocument::fromVariant(configJSON).toJson(QJsonDocument::Compact)).toUtf8().data());
     qDebug() << "RCTStatus::startNode StartNode result: " << result;
