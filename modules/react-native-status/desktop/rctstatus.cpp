@@ -76,30 +76,33 @@ void RCTStatus::startNode(QString configString) {
     qDebug() << "call of RCTStatus::startNode with param configString:" << configString;
 
     QJsonParseError jsonError;
-    QJsonDocument jsonDoc = QJsonDocument::fromJson(configString.toUtf8(), &jsonError);
+    const QJsonDocument& jsonDoc = QJsonDocument::fromJson(configString.toUtf8(), &jsonError);
     if (jsonError.error != QJsonParseError::NoError){
         qDebug() << jsonError.errorString();
     }
 
-    qDebug() << " RCTStatus::startNode configString: " << jsonDoc.toVariant().toMap();
-    QVariantMap configJSON = jsonDoc.toVariant().toMap();
+    const QVariantMap& configJSON = jsonDoc.toVariant().toMap();
+    qDebug() << " RCTStatus::startNode configString: " << configJSON;
 
     int networkId = configJSON["NetworkId"].toInt();
     QString relativeDataDirPath = configJSON["DataDir"].toString();
 
-    QDir rootDir(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation));
-    QString absDataDirPath = rootDir.filePath(relativeDataDirPath);
+    QString rootDirPath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+    QDir rootDir(rootDirPath);
+    QString absDataDirPath = rootDir.absoluteFilePath(relativeDataDirPath);
     QDir dataDir(absDataDirPath);
     if (!dataDir.exists()) {
       dataDir.mkpath(".");
     }
-    qDebug()<<"RCTStatus::startNode absDataDirPath: "<<absDataDirPath;
 
     configJSON["DataDir"] = absDataDirPath;
-    configJSON["KeyStoreDir"] = rootDir.filePath("keystore");
-    configJSON["LogFile"] = dataDir.filePath("geth.log");
+    configJSON["KeyStoreDir"] = rootDir.absoluteFilePath("keystore");
+    configJSON["LogFile"] = dataDir.absoluteFilePath("geth.log");
 
-    const char* result = StartNode(QString(QJsonDocument::fromVariant(configJSON).toJson(QJsonDocument::Compact)).toUtf8().data());
+    const QJsonDocument& updatedJsonDoc = QJsonDocument::fromVariant(configJSON);
+    const QString& updatedJSON = QString(updatedJsonDoc.toJson(QJsonDocument::Compact));
+    qDebug() << " RCTStatus::startNode updated configString: " << updatedJsonDoc.toVariant().toMap();
+    const char* result = StartNode(QString(updatedJSON.toUtf8().data()));
     qDebug() << "RCTStatus::startNode StartNode result: " << result;
 }
 
