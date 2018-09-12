@@ -87,8 +87,9 @@ void RCTStatus::startNode(QString configString) {
     int networkId = configJSON["NetworkId"].toInt();
     QString relativeDataDirPath = configJSON["DataDir"].toString();
 
-    QDir rootDir(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation));
-    QString absDataDirPath = rootDir.filePath(relativeDataDirPath);
+    QString rootDirPath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/";
+    QDir rootDir(rootDirPath);
+    QString absDataDirPath = rootDirPath + relativeDataDirPath;
     QDir dataDir(absDataDirPath);
     if (!dataDir.exists()) {
       dataDir.mkpath(".");
