@@ -97,7 +97,8 @@
 
 ;; "Cancel" and "Sign Transaction >" or "Sign >" buttons, signing with password
 (defview enter-password-buttons [spinning? cancel-handler sign-handler sign-label]
-  (letsubs [sign-enabled? [:wallet.send/sign-password-enabled?]]
+  (letsubs [sign-enabled? [:wallet.send/sign-password-enabled?]
+            network-status [:network-status]]
     [bottom-buttons/bottom-buttons
      styles/sign-buttons
      [button/button {:style               components.styles/flex
@@ -106,18 +107,22 @@
       (i18n/label :t/cancel)]
      [button/button {:style               (wallet.styles/button-container sign-enabled?)
                      :on-press            sign-handler
-                     :disabled?           (or spinning? (not sign-enabled?))
+                     :disabled?           (or spinning?
+                                              (not sign-enabled?)
+                                              (= :offline network-status))
                      :accessibility-label :sign-transaction-button}
       (i18n/label sign-label)
       [vector-icons/icon :icons/forward {:color :white}]]]))
 
 ;; "Sign Transaction >" button
 (defn- sign-transaction-button [amount-error to amount sufficient-funds? sufficient-gas? modal?]
-  (let [sign-enabled? (and (nil? amount-error)
+  (let [online? (= :online @(re-frame/subscribe [:network-status]))
+        sign-enabled? (and (nil? amount-error)
                            (or modal? (not (empty? to))) ;;NOTE(goranjovic) - contract creation will have empty `to`
                            (not (nil? amount))
                            sufficient-funds?
-                           sufficient-gas?)]
+                           sufficient-gas?
+                           online?)]
     [bottom-buttons/bottom-buttons
      styles/sign-buttons
      [react/view]
