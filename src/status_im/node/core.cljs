@@ -26,17 +26,18 @@
 (defn get-network-genesis-hash-prefix
   "returns the hex representation of the first 8 bytes of a network's genesis hash"
   [network]
-  (cond
-    (= network "1") "d4e56740f876aef8"
-    (= network "3") "41941023680923e0"
-    (= network "4") "6341fd3daf94b748"))
+  (case network
+    1 "d4e56740f876aef8"
+    3 "41941023680923e0"
+    4 "6341fd3daf94b748"
+    nil))
 
 (defn get-les-topic
   "returns discovery v5 topic derived from genesis of the provided network"
   [network]
   (let [les-discovery-identifier "LES2@"
         hash-prefix (get-network-genesis-hash-prefix network)]
-    (when  hash-prefix
+    (when hash-prefix
       (str les-discovery-identifier hash-prefix))))
 
 (defn get-topics
