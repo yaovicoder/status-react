@@ -158,6 +158,8 @@ class StatusModule extends ReactContextBaseJavaModule implements LifecycleEventL
         final Object upstreamConfig = defaultConfig.opt("UpstreamConfig");
         final Boolean logEnabled = defaultConfig.getBoolean("LogEnabled");
         final String logLevel = defaultConfig.optString("LogLevel", "ERROR");
+        final Boolean pfsEnabled = defaultConfig.getBoolean("PFSEnabled");
+        final String noBackupDataDir = root + "/no_backup/ethereum";
 
         // retrieve config from Go side, in order to use as the basis of the config
         JSONObject jsonConfig = new JSONObject(
@@ -166,6 +168,8 @@ class StatusModule extends ReactContextBaseJavaModule implements LifecycleEventL
         jsonConfig.put("NetworkId", networkId);
         jsonConfig.put("DataDir", dataDir);
         jsonConfig.put("KeyStoreDir", keystoreDir);
+        jsonConfig.put("PFSEnabled", pfsEnabled);
+        jsonConfig.put("NoBackupDataDir", noBackupDataDir);
 
         if (upstreamConfig != null) {
             Log.d(TAG, "UpstreamConfig is not null");
