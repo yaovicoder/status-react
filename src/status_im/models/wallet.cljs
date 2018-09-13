@@ -128,7 +128,7 @@
     (assoc :dispatch [:navigate-back])
 
     (= method constants/web3-send-transaction)
-    (assoc :dispatch [:navigate-to-clean :wallet-transaction-sent-modal])))
+    (assoc :dispatch [:navigate-to-clean :wallet-transaction-sent])))
 
 (defn discard-transaction
   [{:keys [db]}]
