@@ -8,7 +8,8 @@
             [status-im.data-store.realm.schemas.base.v7.core :as v7]
             [status-im.data-store.realm.schemas.base.v8.core :as v8]
             [status-im.data-store.realm.schemas.base.v9.core :as v9]
-            [status-im.data-store.realm.schemas.base.v10.core :as v10]))
+            [status-im.data-store.realm.schemas.base.v10.core :as v10]
+            [status-im.data-store.realm.schemas.base.v20.core :as v20]))
 
 ;; put schemas ordered by version
 (def schemas [{:schema        v1/schema
@@ -40,4 +41,7 @@
                :migration     v9/migration}
               {:schema        v10/schema
                :schemaVersion 10
-               :migration     v10/migration}])
+               :migration     v10/migration}
+              {:schema        v20/schema
+               :schemaVersion 20
+               :migration     v20/migration}])
