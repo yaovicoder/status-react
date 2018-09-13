@@ -4,6 +4,9 @@
 
 (def chance (dependencies/Chance.))
 
+(defn guid []
+  (.guid chance))
+
 (defn id []
   (str (datetime/timestamp) "-" (.guid chance)))
 

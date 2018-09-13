@@ -11,6 +11,7 @@
             [status-im.ui.screens.navigation :as navigation]
             [status-im.ui.screens.wallet.settings.models :as wallet.settings.models]
             [status-im.utils.config :as config]
+            [status-im.utils.random :as random]
             [status-im.utils.gfycat.core :as gfycat]
             [status-im.utils.handlers-macro :as handlers-macro]
             [status-im.utils.hex :as utils.hex]
@@ -56,6 +57,7 @@
 (defn on-account-created [{:keys [pubkey address mnemonic]} password seed-backed-up {:keys [signing-phrase status db] :as cofx}]
   (let [normalized-address (utils.hex/normalize-hex address)
         account            {:public-key      pubkey
+                            :installation-id (random/guid)
                             :address         normalized-address
                             :name            (gfycat/generate-gfy pubkey)
                             :status          status
