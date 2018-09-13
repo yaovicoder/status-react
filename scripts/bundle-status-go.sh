@@ -13,10 +13,12 @@ if [ $# -eq 0 ]; then
     exit 1
 fi
 
-set -euf
-
 # Ensure we start with a clean state, so as to e.g., not reuse old native status-go bindings 
+if [ -z $DONT_CLEAN ] ; then
 make clean
+fi
+
+set -euf
 
 for platform in "$@"; do
     case $platform in
