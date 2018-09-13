@@ -94,7 +94,7 @@ def compileLinux() {
         -DEXTERNAL_MODULES_DIR='${external_modules_dir.join(";")}' \\
         -DDESKTOP_FONTS='${external_fonts.join(";")}' \\
         -DJS_BUNDLE_PATH='${workspace}/${packageFolder}/StatusIm.jsbundle' \\
-        -DCMAKE_CXX_FLAGS:='-DBUILD_FOR_BUNDLE=1'
+        -DCMAKE_CXX_FLAGS:='-DBUILD_FOR_BUNDLE=1 -std=c++11'
     """
     sh 'make'
   }
