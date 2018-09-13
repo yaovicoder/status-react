@@ -51,7 +51,10 @@
 
 (defn- get-base-node-config [config]
   (assoc config
-         :Name "StatusIM"))
+         :Name "StatusIM")
+  (if (not (contains? config :NetworkId))
+    (assoc config
+           :NetworkId 0)))
 
 (defn- pick-nodes
   "Picks `limit` different nodes randomly from the list of nodes
