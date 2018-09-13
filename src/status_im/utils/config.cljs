@@ -17,7 +17,7 @@
 ;; TESTFAIRY_ENABLED - indefinite
 
 ;; CONFIG FLAGS
-(def testfairy-enabled? (enabled? (get-config :TESTFAIRY_ENABLED)))
+(def testfairy-enabled? (when-not platform/desktop? (enabled? (get-config :TESTFAIRY_ENABLED))))
 
 (def bootnodes-settings-enabled? (enabled? (get-config :BOOTNODES_SETTINGS_ENABLED "1")))
 (def rpc-networks-only? (enabled? (get-config :RPC_NETWORKS_ONLY "1")))
