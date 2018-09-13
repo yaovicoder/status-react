@@ -121,3 +121,18 @@ fastlane/README.md
 
 # Jenkins
 pkg
+
+# Status Desktop
+cmake_install.cmake
+/StatusImPackage/*
+/desktop/bin/*
+/desktop/lib/*
+/desktop/modules/*
+/desktop/Makefile
+/desktop/run-app.sh
+/desktop/CMakeFiles/
+/desktop/CMakeCache.txt
+/desktop/reportApp/Makefile
+/desktop/reportApp/CMakeFiles/*
+/desktop/reportApp/reportApp
+/desktop/reportApp/reportApp_autogen/

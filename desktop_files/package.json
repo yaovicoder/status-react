@@ -6,6 +6,7 @@
     "start": "node node_modules/react-native/local-cli/cli.js start",
     "prepare": "patch-package"
   },
+  "desktopJSBundlePath": "/home/pedro/src/github.com/status-im/status-react/scripts/../StatusImPackage/StatusIm.jsbundle",
   "desktopExternalModules": [
     "node_modules/react-native-i18n/desktop",
     "node_modules/react-native-config/desktop",
