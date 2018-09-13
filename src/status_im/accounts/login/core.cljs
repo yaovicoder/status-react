@@ -79,7 +79,8 @@
                              {:db (assoc-in db [:accounts/login :password] password)}
                              (navigation/navigate-to-cofx :progress nil)
                              (user-login))
-    (navigation/navigate-to-cofx :login nil cofx)))
+    (when-not (= (:view-id db) :re-login)
+      (navigation/navigate-to-cofx :login nil cofx))))
 
 (re-frame/reg-fx
  :accounts.login/login
