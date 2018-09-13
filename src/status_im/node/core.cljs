@@ -27,9 +27,10 @@
 (defn get-account-network [db address]
   (get-in db [:accounts/accounts address :network]))
 
-(defn- get-account-node-config [db address]
+(defn- get-account-node-config [db address cofx]
   (let [accounts (get db :accounts/accounts)
         {:keys [network
+                installation-id
                 settings
                 bootnodes
                 networks]} (get accounts address)
@@ -37,6 +38,10 @@
         log-level (or (:log-level settings)
                       config/log-level-status-go)]
     (cond-> (get-in networks [network :config])
+      :always (assoc :InstallationID installation-id)
+      (or config/encryption-enabled?
+          config/group-chats-enabled?)
+      (assoc :PFSEnabled true)
       (and
        config/bootnodes-settings-enabled?
        use-custom-bootnodes)
@@ -52,7 +57,7 @@
 (defn start
   ([cofx]
    (start nil cofx))
-  ([address {:keys [db]}]
+  ([address {:keys [db] :as cofx}]
    (let [network     (if address
                        (get-account-network db address)
                        (:network db))
