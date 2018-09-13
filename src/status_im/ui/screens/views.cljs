@@ -240,7 +240,7 @@
            :fleet-settings             fleet-settings
            :currency-settings          currency-settings
            :backup-seed                backup-seed
-           :login                      login
+           :re-login                   login
            :create-account             create-account
            :recover                    recover
            :accounts                   accounts
