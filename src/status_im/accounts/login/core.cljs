@@ -74,12 +74,13 @@
 
 (defn open-login-callback
   [password {:keys [db] :as cofx}]
+  (println :LOLOLO password)
   (if password
     (handlers-macro/merge-fx cofx
                              {:db (assoc-in db [:accounts/login :password] password)}
                              (navigation/navigate-to-cofx :progress nil)
                              (user-login))
-    (navigation/navigate-to-clean :login nil cofx)))
+    (navigation/navigate-to-clean :login cofx)))
 
 (re-frame/reg-fx
  :accounts.login/login
