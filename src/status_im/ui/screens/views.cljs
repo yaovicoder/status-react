@@ -93,8 +93,11 @@
 
 (defn wrap-modal [modal-view component]
   (fn []
-    [react/main-screen-modal-view modal-view
-     [component]]))
+    [view common-styles/modal
+     [modal {:transparent true
+             :animation-type   :slide}
+      [react/main-screen-modal-view modal-view
+       [component]]]]))
 
 (defn get-main-component2 [view-id]
   (log/debug :component2 view-id)
@@ -252,7 +255,7 @@
          {:headerMode       "none"
           :initialRouteName "my-profile"})}
        :profile-qr-viewer
-       {:screen (nav-reagent/stack-screen (wrap :profile-qr-viewer profile.user/qr-viewer))}}
+       {:screen (nav-reagent/stack-screen (wrap-modal :profile-qr-viewer profile.user/qr-viewer))}}
       {:mode             "modal"
        :headerMode       "none"
        :initialRouteName "main-stack"})}}
