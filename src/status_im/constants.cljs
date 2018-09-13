@@ -196,3 +196,5 @@
 (def ^:const history-state-changed "history-state-changed")
 (def ^:const web3-send-async "web3-send-async")
 (def ^:const web3-send-async-callback "web3-send-async-callback")
+(def ^:const scan-qr-code "scan-qr-code")
+(def ^:const scan-qr-code-callback "scan-qr-code-callback")
