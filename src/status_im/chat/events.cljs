@@ -253,7 +253,8 @@
  :create-new-group-chat-and-open
  [re-frame/trim-v (re-frame/inject-cofx :random-id)]
  (fn [{:keys [db random-id] :as cofx} [group-name]]
-   (let [selected-contacts (:group/selected-contacts db)
+   (let [selected-contacts (conj (:group/selected-contacts db)
+                                 (:current-public-key db))
          chat-name         (if-not (string/blank? group-name)
                              group-name
                              (group-name-from-contacts selected-contacts
@@ -264,7 +265,7 @@
                               (models/add-group-chat random-id chat-name (:current-public-key db) selected-contacts)
                               (navigation/navigate-to-clean :home)
                               (navigate-to-chat random-id {})
-                              (transport.message/send (group-chat/GroupAdminUpdate. chat-name selected-contacts) random-id)))))
+                              (transport.message/send (group-chat/GroupChatCreate. chat-name selected-contacts random-id) random-id)))))
 
 (defn show-profile [identity keep-navigation? {:keys [db] :as cofx}]
   (cond->> {:db (assoc db :contacts/identity identity)}
