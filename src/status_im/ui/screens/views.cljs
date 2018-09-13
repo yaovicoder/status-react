@@ -73,6 +73,7 @@
        [:> navigation/navigation-events
         {:on-will-focus
          (fn []
+           (log/debug :on-will-focus view-id)
            (re-frame/dispatch [:set :view-id view-id]))}]])))
 
 (defn stack-screens [screens-map]
@@ -102,12 +103,13 @@
     {:screen
      (nav-reagent/stack-navigator
       (stack-screens
-       {:intro          intro
-        :login          login
-        :progress       progress
-        :create-account create-account
-        :recover        recover
-        :accounts       accounts})
+       (cond-> {:login          login
+                :progress       progress
+                :create-account create-account
+                :recover        recover
+                :accounts       accounts}
+         (= :intro view-id)
+         (assoc :intro intro)))
       (cond-> {:headerMode "none"}
         (#{:intro :login} view-id)
         (assoc :initialRouteName (name view-id))))}
@@ -240,7 +242,7 @@
            :fleet-settings             fleet-settings
            :currency-settings          currency-settings
            :backup-seed                backup-seed
-           :login                   login
+           :login                      login
            :create-account             create-account
            :recover                    recover
            :accounts                   accounts
