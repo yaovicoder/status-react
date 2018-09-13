@@ -118,6 +118,7 @@ RCT_EXPORT_METHOD(startNode:(NSString *)configString
     NSString *noBackupDataDir = [rootUrl.path stringByAppendingString:@"/ethereum"];
     NSString *devCluster = [ReactNativeConfig envFor:@"ETHEREUM_DEV_CLUSTER"];
     NSString *logEnabled = [configJSON objectForKey:@"LogEnabled"];
+    NSString *pfsEnabled = [configJSON objectForKey:@"PFSEnabled"];
     NSString *logLevel = [configJSON objectForKey:@"LogLevel"];
     char *configChars = GenerateConfig((char *)[networkDir UTF8String], (char *)[fleet UTF8String], networkId);
     NSString *config = [NSString stringWithUTF8String: configChars];
@@ -128,6 +129,7 @@ RCT_EXPORT_METHOD(startNode:(NSString *)configString
     NSURL *logUrl = [networkDirUrl URLByAppendingPathComponent:@"geth.log"];
     [resultingConfigJson setValue:newKeystoreUrl.path forKey:@"KeyStoreDir"];
     [resultingConfigJson setValue:logEnabled forKey:@"LogEnabled"];
+    [resultingConfigJson setValue:pfsEnabled forKey:@"PFSEnabled"];
     [resultingConfigJson setValue:logUrl.path forKey:@"LogFile"];
     [resultingConfigJson setValue:([logLevel length] == 0 ? [NSString stringWithUTF8String: "ERROR"] : logLevel) forKey:@"LogLevel"];
 
