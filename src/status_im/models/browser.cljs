@@ -87,7 +87,6 @@
 
 (defn update-new-browser-and-navigate
   [host browser {:keys [db] :as cofx}]
-  (println "\n lol " db " \n")
   (handlers-macro/merge-fx
    cofx
    {:db (assoc db :browser/options
