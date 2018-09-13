@@ -13,7 +13,7 @@
      cofx
      {:keychain/clear-user-password (get-in db [:account/account :address])
       :dev-server/stop              nil}
-     (navigation/navigate-to-clean :login)
+     (navigation/navigate-to-clean :re-login)
      (transport/stop-whisper)
      (init/initialize-keychain))))
 
