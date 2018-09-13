@@ -23,6 +23,7 @@
 (defn navigate-to-clean
   ([view-id cofx] (navigate-to-clean view-id cofx nil))
   ([view-id {:keys [db]} screen-params]
+   (log/debug "current view-id " (:view-id db))
    (let [db (cond-> db
               (seq screen-params)
               (assoc-in [:navigation/screen-params view-id] screen-params))]
