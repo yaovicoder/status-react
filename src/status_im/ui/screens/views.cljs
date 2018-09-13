@@ -144,8 +144,8 @@
          {:wallet-send-transaction-modal
           (wrap-modal :wallet-send-transaction-modal send-transaction-modal)
 
-          :wallet-transaction-sent-modal
-          (wrap-modal :wallet-transaction-sent-modal transaction-sent-modal)
+          :wallet-transaction-sent
+          (wrap-modal :wallet-transaction-sent transaction-sent-modal)
 
           :wallet-transaction-fee
           (wrap-modal :wallet-transaction-fee wallet.transaction-fee/transaction-fee)}
@@ -161,8 +161,8 @@
           :wallet-send-transaction-modal
           (wrap-modal :wallet-send-transaction-modal send-transaction-modal)
 
-          :wallet-transaction-sent-modal
-          (wrap-modal :wallet-transaction-sent-modal transaction-sent-modal)
+          :wallet-transaction-sent
+          (wrap-modal :wallet-transaction-sent transaction-sent-modal)
 
           :wallet-transaction-fee
           (wrap-modal :wallet-transaction-fee wallet.transaction-fee/transaction-fee)}
@@ -185,12 +185,14 @@
           {:wallet                          (main-tabs/get-main-tab :wallet)
            :collectibles-list               collectibles-list
            :wallet-onboarding-setup         wallet.onboarding.setup/screen
-           :wallet-send-transaction         send-transaction
-           :recent-recipients               recent-recipients
-           :recipient-qr-code               recipient-qr-code
            :wallet-send-transaction-chat    send-transaction
            :contact-code                    contact-code
-           :wallet-transaction-sent         transaction-sent
+           :send-transaction-stack          {:screens {:wallet-send-transaction send-transaction
+                                                       :recent-recipients       recent-recipients
+                                                       :wallet-transaction-sent transaction-sent
+                                                       :recipient-qr-code       recipient-qr-code}
+                                             :config  {:headerMode "none"}}
+
            :wallet-request-transaction      request-transaction
            :wallet-send-transaction-request send-transaction-request
            :unsigned-transactions           wallet-transactions/transactions

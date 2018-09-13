@@ -1,4 +1,5 @@
 (ns status-im.ui.screens.wallet.send.events
+  (:require-macros [status-im.utils.handlers-macro :as handlers-macro])
   (:require [re-frame.core :as re-frame]
             [status-im.chat.commands.sending :as commands-sending]
             [status-im.chat.models.message :as models.message]
@@ -163,9 +164,9 @@
    (if-let [send-command (and chat-id (get-in db [:id->command ["send" #{:personal-chats}]]))]
      (handlers-macro/merge-fx cofx
                               (commands-sending/send chat-id send-command params)
-                              (navigation/navigate-to-clean :wallet-transaction-sent-modal))
+                              (navigation/navigate-to-clean :wallet-transaction-sent))
      (handlers-macro/merge-fx cofx
-                              (navigation/replace-view :wallet-transaction-sent)))))
+                              (navigation/navigate-to-clean :wallet-transaction-sent)))))
 
 (defn set-and-validate-amount-db [db amount symbol decimals]
   (let [{:keys [value error]} (wallet.db/parse-amount amount decimals)]
@@ -264,9 +265,11 @@
 
 (handlers/register-handler-fx
  :close-transaction-sent-screen
- (fn [{:keys [db]} [_ chat-id]]
-   {:dispatch       [:navigate-back]
-    :dispatch-later [{:ms 400 :dispatch [:check-dapps-transactions-queue]}]}))
+ (fn [{:keys [db] :as cofx} [_ chat-id]]
+   (handlers-macro/merge-fx
+    cofx
+    {:dispatch-later [{:ms 400 :dispatch [:check-dapps-transactions-queue]}]}
+    (navigation/navigate-back))))
 
 (handlers/register-handler-fx
  :sync-wallet-transactions
