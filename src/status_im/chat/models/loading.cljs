@@ -1,10 +1,12 @@
-(ns status-im.models.chat
+(ns status-im.chat.models.loading
   (:require [clojure.set :as set]
-            [status-im.chat.commands.core :as commands]
-            [status-im.chat.models.message :as models.message]
+            [status-im.constants :as constants]
             [status-im.data-store.contacts :as contacts-store]
             [status-im.data-store.user-statuses :as user-statuses-store]
             [status-im.utils.contacts :as utils.contacts]
+            [status-im.chat.commands.core :as commands]
+            [status-im.chat.models :as chat-model]
+            [status-im.utils.datetime :as time]
             [status-im.utils.handlers-macro :as handlers-macro]))
 
 (def index-messages (partial into {} (map (juxt :message-id identity))))
@@ -33,20 +35,42 @@
     {:db            (update db :contacts/contacts merge contacts-to-add)
      :data-store/tx [(contacts-store/save-contacts-tx (vals contacts-to-add))]}))
 
-(defn- group-chat-messages
+(defn- sort-references
+  "Sorts message-references sequence primary by clock value,
+  breaking ties by `:message-id`"
+  [messages message-references]
+  (sort-by (juxt (comp :clock-value (partial get messages) :message-id)
+                 :message-id)
+           message-references))
+
+(defn group-chat-messages
+  "Takes chat-id, new messages + cofx and properly groups them
+  into the `:message-groups`index in db"
+  [chat-id messages {:keys [db]}]
+  {:db (reduce (fn [db [datemark grouped-messages]]
+                 (update-in db [:chats chat-id :message-groups datemark]
+                            (fn [message-references]
+                              (->> grouped-messages
+                                   (map (fn [{:keys [message-id timestamp]}]
+                                          {:message-id    message-id
+                                           :timestamp-str (time/timestamp->time timestamp)}))
+                                   (into (or message-references '()))
+                                   (sort-references (get-in db [:chats chat-id :messages]))))))
+               db
+               (group-by (comp time/day-relative :timestamp)
+                         (filter :show? messages)))})
+
+(defn- group-messages
   [{:keys [db]}]
   (reduce-kv (fn [fx chat-id {:keys [messages]}]
-               (models.message/group-messages chat-id (vals messages) fx))
+               (group-chat-messages chat-id (vals messages) fx))
              {:db db}
              (:chats db)))
 
-(defn initialize-chats [{:keys [db
-                                default-dapps
-                                all-stored-chats
-                                get-stored-messages
-                                get-stored-user-statuses
-                                get-stored-unviewed-messages
-                                stored-message-ids] :as cofx}]
+(defn initialize-chats
+  "Initialize all persisted chats on startup"
+  [{:keys [db default-dapps all-stored-chats get-stored-messages get-stored-user-statuses
+           get-stored-unviewed-messages stored-message-ids] :as cofx}]
   (let [stored-unviewed-messages (get-stored-unviewed-messages (:current-public-key db))
         chats (reduce (fn [acc {:keys [chat-id] :as chat}]
                         (let [chat-messages (index-messages (get-stored-messages chat-id))
@@ -65,11 +89,11 @@
                              {:db (assoc db
                                          :chats          chats
                                          :contacts/dapps default-dapps)}
-                             (group-chat-messages)
+                             (group-messages)
                              (add-default-contacts)
                              (commands/load-commands commands/register))))
 
-(defn process-pending-messages
+(defn initialize-pending-messages
   "Change status of own messages which are still in `sending` status to `not-sent`
   (If signal from status-go has not been received)"
   [{:keys [db]}]
@@ -89,3 +113,26 @@
                                  status))
                      db
                      updated-statuses)}))
+
+(defn load-more-messages
+  "Loads more messages for current chat"
+  [{{:keys [current-chat-id] :as db} :db
+    get-stored-messages :get-stored-messages
+    get-stored-user-statuses :get-stored-user-statuses :as cofx}]
+  (when-not (get-in db [:chats current-chat-id :all-loaded?])
+    (let [loaded-count     (count (get-in db [:chats current-chat-id :messages]))
+          new-messages     (get-stored-messages current-chat-id loaded-count)
+          indexed-messages (index-messages new-messages)
+          new-message-ids  (keys indexed-messages)
+          new-statuses     (get-stored-user-statuses current-chat-id new-message-ids)]
+      (handlers-macro/merge-fx
+       cofx
+       {:db (-> db
+                (update-in [:chats current-chat-id :messages] merge indexed-messages)
+                (update-in [:chats current-chat-id :message-statuses] merge new-statuses)
+                (update-in [:chats current-chat-id :not-loaded-message-ids]
+                           #(apply disj % new-message-ids))
+                (assoc-in [:chats current-chat-id :all-loaded?]
+                          (> constants/default-number-of-messages (count new-messages))))}
+       (group-chat-messages current-chat-id new-messages)
+       (chat-model/mark-messages-seen current-chat-id)))))
