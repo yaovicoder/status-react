@@ -127,7 +127,8 @@ void RCTStatus::createAccount(QString password, double callbackId) {
     Q_D(RCTStatus);
     qDebug() << "call of RCTStatus::createAccount with param callbackId: " << callbackId;
     const char* result = CreateAccount(password.toUtf8().data());
-    qDebug() << "RCTStatus::createAccount CreateAccount result: " << result;
+    QString obscuredResult = QString(result).contains("address") ? "Success" : "Probably, some error occured";
+    qDebug() << "RCTStatus::createAccount CreateAccount result: " << obscuredResult;
     d->bridge->invokePromiseCallback(callbackId, QVariantList{result});
 }
 
