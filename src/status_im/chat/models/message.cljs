@@ -152,7 +152,7 @@
    {:keys [db now] :as cofx}]
   (let [{:keys [web3 current-chat-id view-id]} db
         current-chat?              (and (= :chat view-id) (= current-chat-id chat-id))
-        {:keys [public?] :as chat} (get-in db [:chats chat-id])
+        {:keys [group-chat] :as chat} (get-in db [:chats chat-id])
         add-message-fn             (if batch? add-batch-message add-single-message)
         message                    (-> raw-message
                                        (commands-receiving/enhance-receive-parameters cofx)
@@ -173,7 +173,7 @@
                                                                       :else :received))
                              (commands-receiving/receive message)
                              (display-notification chat-id)
-                             (send-message-seen chat-id message-id (and (not public?)
+                             (send-message-seen chat-id message-id (and (not group-chat)
                                                                         current-chat?
                                                                         (not (chat-model/bot-only-chat? db chat-id))
                                                                         (not (= constants/system from))
