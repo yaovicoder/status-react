@@ -53,7 +53,7 @@
   (assoc config
          :Name "StatusIM"))
 
-(defn- get-account-node-config [db address cofx]
+(defn- get-account-node-config [db address]
   (let [accounts (get db :accounts/accounts)
         current-fleet-key (fleet/current-fleet db address)
         current-fleet (get fleet/fleets current-fleet-key)
@@ -79,16 +79,14 @@
                              :StaticNodes        (vals (get-in current-fleet [:whisper]))})
 
       :always
+      (assoc :PFSEnabled (or config/encryption-enabled?
+                             config/group-chats-enabled?)) :always
       (assoc :WhisperConfig {:Enabled true
                              :LightClient true
                              :MinimumPoW 0.001
                              :EnableNTPSync true}
              :RequireTopics (get-topics network))
       :always (assoc :InstallationID installation-id)
-      (or config/encryption-enabled?
-          config/group-chats-enabled?)
-      (assoc :PFSEnabled true)
-
       (and
        config/bootnodes-settings-enabled?
        use-custom-bootnodes)
@@ -100,13 +98,16 @@
 (defn get-node-config [db network]
   (-> (get-in (:networks/networks db) [network :config])
       (get-base-node-config)
+      (assoc :PFSEnabled (or config/encryption-enabled?
+                             config/group-chats-enabled?))
+
       (assoc :NoDiscovery true)
       (add-log-level config/log-level-status-go)))
 
 (defn start
   ([cofx]
    (start nil cofx))
-  ([address {:keys [db] :as cofx}]
+  ([address {:keys [db]}]
    (let [network     (if address
                        (get-account-network db address)
                        (:network db))
