@@ -20,9 +20,7 @@
 
 (figwheel/start {:websocket-url    (:ios conf/figwheel-urls)
                  :heads-up-display false
-                 :jsload-callback  (fn []
-                                       (println :CHANGES_LOADED)
-                                       (swap! cnt inc))})
+                 :jsload-callback  #(swap! cnt inc)})
 
 (utils.handlers/add-pre-event-callback rr/pre-event-callback)
 
