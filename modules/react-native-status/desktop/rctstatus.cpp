@@ -101,9 +101,9 @@ void RCTStatus::startNode(QString configString) {
     configJSON["KeyStoreDir"] = rootDir.absoluteFilePath("keystore");
     configJSON["LogFile"] = dataDir.absoluteFilePath("geth.log");
 
-    const QJsonDocument& updatedJsonDoc = QJsonDocument::fromVariant(configJSON);
-    qDebug() << " RCTStatus::startNode updated configString: " << updatedJsonDoc.toVariant().toMap();
-    const char* result = StartNode(QString(updatedJsonDoc.toJson(QJsonDocument::Compact)).toUtf8().data());
+    const QJsonDocument& updatedJson = QString(QJsonDocument::fromVariant(configJSON).toJson(QJsonDocument::Compact));
+    qDebug() << " RCTStatus::startNode updated configString: " << updatedJson;
+    const char* result = StartNode(updatedJson.toUtf8().data());
     qDebug() << "RCTStatus::startNode StartNode result: " << result;
 }
 
