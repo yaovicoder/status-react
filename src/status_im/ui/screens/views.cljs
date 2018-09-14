@@ -63,7 +63,8 @@
             [cljs-react-navigation.reagent :as nav-reagent]
             [status-im.utils.random :as rand]
             [re-frame.core :as re-frame]
-            [taoensso.timbre :as log]))
+            [taoensso.timbre :as log]
+            [status-im.utils.platform :as platform]))
 
 (defn wrap [view-id component]
   (fn []
@@ -93,11 +94,14 @@
 
 (defn wrap-modal [modal-view component]
   (fn []
-    [view common-styles/modal
-     [modal {:transparent true
-             :animation-type   :slide}
+    (if platform/android?
+      [view common-styles/modal
+       [modal {:transparent    true
+               :animation-type :slide}
+        [react/main-screen-modal-view modal-view
+         [component]]]]
       [react/main-screen-modal-view modal-view
-       [component]]]]))
+       [component]])))
 
 (defn get-main-component2 [view-id]
   (log/debug :component2 view-id)
@@ -125,9 +129,6 @@
          {:home                         (main-tabs/get-main-tab :home)
           :chat                         chat
           :profile                      profile.contact/profile
-          :wallet-onboarding-setup      wallet.onboarding.setup/screen
-          :wallet-send-transaction-chat send-transaction
-          :wallet-transaction-sent      transaction-sent
           :new                          add-new
           :new-chat                     new-chat
           :qr-scanner                   qr-scanner
