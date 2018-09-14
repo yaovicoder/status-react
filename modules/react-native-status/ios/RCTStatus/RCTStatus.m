@@ -65,7 +65,8 @@ RCT_EXPORT_MODULE();
 ////////////////////////////////////////////////////////////////////
 #pragma mark - startNode
 //////////////////////////////////////////////////////////////////// startNode
-RCT_EXPORT_METHOD(startNode:(NSString *)configString) {
+RCT_EXPORT_METHOD(startNode:(NSString *)configString
+                      fleet:(NSString *)fleet) {
 #if DEBUG
     NSLog(@"StartNode() method called");
 #endif
@@ -74,18 +75,18 @@ RCT_EXPORT_METHOD(startNode:(NSString *)configString) {
     NSURL *rootUrl =[[fileManager
                       URLsForDirectory:NSDocumentDirectory inDomains:NSUserDomainMask]
                      lastObject];
-    NSURL *absTestnetFolderName = [rootUrl URLByAppendingPathComponent:@"ethereum/testnet"];
+    NSURL *testnetFolderName = [rootUrl URLByAppendingPathComponent:@"ethereum/testnet"];
 
-    if (![fileManager fileExistsAtPath:absTestnetFolderName.path])
-        [fileManager createDirectoryAtPath:absTestnetFolderName.path withIntermediateDirectories:YES attributes:nil error:&error];
+    if (![fileManager fileExistsAtPath:testnetFolderName.path])
+        [fileManager createDirectoryAtPath:testnetFolderName.path withIntermediateDirectories:YES attributes:nil error:&error];
 
     NSURL *flagFolderUrl = [rootUrl URLByAppendingPathComponent:@"ropsten_flag"];
 
     if(![fileManager fileExistsAtPath:flagFolderUrl.path]){
         NSLog(@"remove lightchaindata");
-        NSURL *absLightChainDataUrl = [absTestnetFolderName URLByAppendingPathComponent:@"StatusIM/lightchaindata"];
-        if([fileManager fileExistsAtPath:absLightChainDataUrl.path]) {
-            [fileManager removeItemAtPath:absLightChainDataUrl.path
+        NSURL *lightChainData = [testnetFolderName URLByAppendingPathComponent:@"StatusIM/lightchaindata"];
+        if([fileManager fileExistsAtPath:lightChainData.path]) {
+            [fileManager removeItemAtPath:lightChainData.path
                                     error:nil];
         }
         [fileManager createDirectoryAtPath:flagFolderUrl.path
@@ -96,12 +97,12 @@ RCT_EXPORT_METHOD(startNode:(NSString *)configString) {
 
     NSLog(@"after remove lightchaindata");
 
-    NSURL *absTestnetKeystoreUrl = [absTestnetFolderName URLByAppendingPathComponent:@"keystore"];
-    NSURL *absKeystoreUrl = [rootUrl URLByAppendingPathComponent:@"keystore"];
-    if([fileManager fileExistsAtPath:absTestnetKeystoreUrl.path]){
+    NSURL *oldKeystoreUrl = [testnetFolderName URLByAppendingPathComponent:@"keystore"];
+    NSURL *newKeystoreUrl = [rootUrl URLByAppendingPathComponent:@"keystore"];
+    if([fileManager fileExistsAtPath:oldKeystoreUrl.path]){
         NSLog(@"copy keystore");
-        [fileManager copyItemAtPath:absTestnetKeystoreUrl.path toPath:absKeystoreUrl.path error:nil];
-        [fileManager removeItemAtPath:absTestnetKeystoreUrl.path error:nil];
+        [fileManager copyItemAtPath:oldKeystoreUrl.path toPath:newKeystoreUrl.path error:nil];
+        [fileManager removeItemAtPath:oldKeystoreUrl.path error:nil];
     }
 
     NSLog(@"after lightChainData");
@@ -109,41 +110,60 @@ RCT_EXPORT_METHOD(startNode:(NSString *)configString) {
     NSLog(@"preconfig: %@", configString);
     NSData *configData = [configString dataUsingEncoding:NSUTF8StringEncoding];
     NSDictionary *configJSON = [NSJSONSerialization JSONObjectWithData:configData options:NSJSONReadingMutableContainers error:nil];
+    int networkId = [configJSON[@"NetworkId"] integerValue];
+    NSString *dataDir = [configJSON objectForKey:@"DataDir"];
+    NSString *upstreamURL = [configJSON valueForKeyPath:@"UpstreamConfig.URL"];
+    NSArray *bootnodes = [configJSON valueForKeyPath:@"ClusterConfig.BootNodes"];
+    NSString *networkDir = [rootUrl.path stringByAppendingString:dataDir];
+    NSString *devCluster = [ReactNativeConfig envFor:@"ETHEREUM_DEV_CLUSTER"];
+    NSString *logEnabled = [configJSON objectForKey:@"LogEnabled"];
+    NSString *logLevel = [configJSON objectForKey:@"LogLevel"];
+    char *configChars = GenerateConfig((char *)[networkDir UTF8String], (char *)[fleet UTF8String], networkId);
+    NSString *config = [NSString stringWithUTF8String: configChars];
+    configData = [config dataUsingEncoding:NSUTF8StringEncoding];
+    NSDictionary *resultingConfigJson = [NSJSONSerialization JSONObjectWithData:configData options:NSJSONReadingMutableContainers error:nil];
+    NSURL *networkDirUrl = [NSURL fileURLWithPath:networkDir];
+    NSURL *logUrl = [networkDirUrl URLByAppendingPathComponent:@"geth.log"];
+    [resultingConfigJson setValue:newKeystoreUrl.path forKey:@"KeyStoreDir"];
+    [resultingConfigJson setValue:logEnabled forKey:@"LogEnabled"];
+    [resultingConfigJson setValue:logUrl.path forKey:@"LogFile"];
+    [resultingConfigJson setValue:([logLevel length] == 0 ? [NSString stringWithUTF8String: "ERROR"] : logLevel) forKey:@"LogLevel"];
 
-    NSString *relativeDataDir = [configJSON objectForKey:@"DataDir"];
-    NSString *absDataDir = [rootUrl.path stringByAppendingString:relativeDataDir];
-    NSURL *absDataDirUrl = [NSURL fileURLWithPath:absDataDir];
-    NSURL *absLogUrl = [absDataDirUrl URLByAppendingPathComponent:@"geth.log"];
-    NSURL *noBackupDataDirUrl = [NSURL fileURLWithPath:noBackupDataDir];
-    NSString *pfsEnabled = [configJSON objectForKey:@"PFSEnabled"];
+    [resultingConfigJson setValue:[NSNumber numberWithBool:YES] forKeyPath:@"WhisperConfig.LightClient"];
 
-    [configJSON setValue:absDataDirUrl.path forKey:@"DataDir"];
-    [configJSON setValue:absKeystoreUrl.path forKey:@"KeyStoreDir"];
-    [configJSON setValue:absLogUrl.path forKey:@"LogFile"];
-    [configJson setValue:pfsEnabled forKey:@"PFSEnabled"];
-    [configJson setValue:noBackupDataDirUrl.path forKey:@"NoBackupDataDir"];
-
-    NSString *resultingConfig = [configJSON bv_jsonStringWithPrettyPrint:NO];
-
-    NSLog(@"node config %@", resultingConfig);
-
-    if(![fileManager fileExistsAtPath:absDataDirUrl.path]) {
-        [fileManager createDirectoryAtPath:absDataDirUrl.path withIntermediateDirectories:YES attributes:nil error:nil];
+    if(upstreamURL != nil) {
+        [resultingConfigJson setValue:[NSNumber numberWithBool:YES] forKeyPath:@"UpstreamConfig.Enabled"];
+        [resultingConfigJson setValue:upstreamURL forKeyPath:@"UpstreamConfig.URL"];
     }
 
-    NSLog(@"logUrlPath %@", absLogUrl.path);
-    if(![fileManager fileExistsAtPath:absLogUrl.path]) {
+    if(bootnodes != nil) {
+        [resultingConfigJson setValue:[NSNumber numberWithBool:YES] forKeyPath:@"ClusterConfig.Enabled"];
+        [resultingConfigJson setValue:bootnodes forKeyPath:@"ClusterConfig.BootNodes"];
+    }
+
+    if([fleet length] > 0) {
+        [resultingConfigJson setValue:fleet forKeyPath:@"ClusterConfig.Fleet"];
+    }
+
+    NSString *resultingConfig = [resultingConfigJson bv_jsonStringWithPrettyPrint:NO];
+    NSLog(@"node config %@", resultingConfig);
+
+    if(![fileManager fileExistsAtPath:networkDirUrl.path]) {
+        [fileManager createDirectoryAtPath:networkDirUrl.path withIntermediateDirectories:YES attributes:nil error:nil];
+    }
+
+    NSLog(@"logUrlPath %@", logUrl.path);
+    if(![fileManager fileExistsAtPath:logUrl.path]) {
         NSMutableDictionary *dict = [[NSMutableDictionary alloc] init];
         [dict setObject:[NSNumber numberWithInt:511] forKey:NSFilePosixPermissions];
-        [fileManager createFileAtPath:absLogUrl.path contents:nil attributes:dict];
+        [fileManager createFileAtPath:logUrl.path contents:nil attributes:dict];
     }
 
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0),
                    ^(void)
                    {
                        char *res = StartNode((char *) [resultingConfig UTF8String]);
-                       NSLog(@"StartNode result %@", [NSString stringWithUTF8String: res]);
-                   });
+                       NSLog(@"StartNode result %@", [NSString stringWithUTF8String: res]);                   });
 }
 
 ////////////////////////////////////////////////////////////////////
