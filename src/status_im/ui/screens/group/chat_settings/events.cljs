@@ -16,8 +16,7 @@
  [re-frame/trim-v]
  (fn [{:keys [db]} [chat-id]]
    {:db (-> db
-            (assoc :new-chat-name (get-in db [:chats chat-id :name])
-                   :group/group-type :chat-group)
+            (assoc :new-chat-name (get-in db [:chats chat-id :name]))
             (navigation/navigate-to :group-chat-profile))}))
 
 (handlers/register-handler-fx

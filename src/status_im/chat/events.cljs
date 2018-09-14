@@ -78,7 +78,7 @@
       :data-store/tx [(user-statuses-store/save-status-tx new-status)]})))
 
 (defn- send-messages-seen [chat-id message-ids {:keys [db] :as cofx}]
-  (when (and (not (get-in db [:chats chat-id :public?]))
+  (when (and (not (get-in db [:chats chat-id :group-chat]))
              (not (models/bot-only-chat? db chat-id)))
     (transport.message/send (protocol/map->MessagesSeen {:message-ids message-ids}) chat-id cofx)))
 
