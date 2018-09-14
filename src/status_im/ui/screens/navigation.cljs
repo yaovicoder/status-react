@@ -137,8 +137,17 @@
  (fn [cofx [_ view-id]]
    (replace-view view-id cofx)))
 
-(defn navigate-back [_]
-  {::navigate-back nil})
+(defn navigate-back
+  [{{:keys [navigation-stack view-id] :as db} :db}]
+  (assoc
+   {::navigate-back nil}
+   :db (let [[previous-view-id :as navigation-stack'] (pop navigation-stack)
+             first-in-stack (first navigation-stack)]
+         (if (= view-id first-in-stack)
+           (-> db
+               (assoc :view-id previous-view-id)
+               (assoc :navigation-stack navigation-stack'))
+           (assoc db :view-id first-in-stack)))))
 
 (handlers/register-handler-fx
  :navigate-back
