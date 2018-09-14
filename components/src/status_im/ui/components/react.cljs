@@ -47,12 +47,17 @@
 (def text-class (get-class "Text"))
 (def text-input-class (get-class "TextInput"))
 (def image-class (get-class "Image"))
+
+(defn valid-source? [source]
+  (or (not (map? source))
+      (not (contains? source :uri))
+      (and (contains? source :uri)
+           (:uri source))))
+
 (defn image [{:keys [source] :as props}]
-  (when (or (not (map? source))
-            (not (contains? source :uri))
-            (and (contains? source :uri)
-                 (:uri source)))
+  (when (valid-source? source)
     [image-class props]))
+
 (def switch (get-class "Switch"))
 (def check-box (get-class "CheckBox"))
 
