@@ -645,6 +645,7 @@
     "wants-to-access-profile": "chce uzyskać dostęp do Twojego profilu",
     "warning-message": "Niestety, ograniczamy wysyłanie kilku wiadomości w krótkich odstępach czasu, aby zapobiec spamowi. Spróbuj ponownie za chwilę",
     "web-view-error": "Nie można załadować strony",
+    "web3-opt-in": "Zezwalaj na dostęp dostawcy web3",
     "welcome-to-status": "Witamy w Status",
     "welcome-to-status-description": "Naciśnij przycisk (+), aby rozpocząć",
     "word-n": "Słowo #{{number}}",
