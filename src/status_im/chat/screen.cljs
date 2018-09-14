@@ -2,21 +2,16 @@
   (:require-macros [status-im.utils.views :refer [defview letsubs]])
   (:require [clojure.string :as string]
             [re-frame.core :as re-frame]
-            [status-im.constants :as constants]
             [status-im.i18n :as i18n]
-            [status-im.chat.models :as models.chat]
             [status-im.models.contact :as models.contact]
             [status-im.chat.styles.screen :as style]
             [status-im.utils.platform :as platform]
-            [status-im.chat.views.toolbar-content :as toolbar-content]
-            [status-im.chat.views.message.message :as message]
-            [status-im.chat.views.message.datemark :as message-datemark]
             [status-im.chat.views.input.input :as input]
             [status-im.chat.views.actions :as actions]
             [status-im.chat.views.bottom-info :as bottom-info]
+            [status-im.chat.views.message.message :as message]
             [status-im.chat.views.message.options :as message-options]
             [status-im.chat.views.message.datemark :as message-datemark]
-            [status-im.chat.views.message.message :as message]
             [status-im.chat.views.toolbar-content :as toolbar-content]
             [status-im.ui.components.animation :as animation]
             [status-im.ui.components.list.views :as list]
@@ -56,19 +51,17 @@
             {:keys [group-chat chat-id contacts]} [:get-current-chat]]
     [react/view
      [status-bar/status-bar]
-     (if (= chat-id constants/console-chat-id)
-       [toolbar/simple-toolbar name]
-       [toolbar/platform-agnostic-toolbar {}
-        (toolbar/nav-back-count {:home? true})
-        [toolbar-content/toolbar-content-view]
-        [toolbar/actions [{:icon      :icons/wallet
-                           :icon-opts {:color               :black
-                                       :accessibility-label :wallet-modal-button}
-                           :handler   #(re-frame/dispatch [:navigate-to-modal :wallet-modal])}
-                          {:icon      :icons/options
-                           :icon-opts {:color               :black
-                                       :accessibility-label :chat-menu-button}
-                           :handler   #(on-options chat-id name group-chat public?)}]]])
+     [toolbar/platform-agnostic-toolbar {}
+      (toolbar/nav-back-count {:home? true})
+      [toolbar-content/toolbar-content-view]
+      [toolbar/actions [{:icon      :icons/wallet
+                         :icon-opts {:color               :black
+                                     :accessibility-label :wallet-modal-button}
+                         :handler   #(re-frame/dispatch [:navigate-to-modal :wallet-modal])}
+                        {:icon      :icons/options
+                         :icon-opts {:color               :black
+                                     :accessibility-label :chat-menu-button}
+                         :handler   #(on-options chat-id name group-chat public?)}]]]
      (when-not (or public? group-chat) [add-contact-bar (first contacts)])]))
 
 (defmulti message-row (fn [{{:keys [type]} :row}] type))
@@ -113,16 +106,10 @@
        (when one-to-one
          [vector-icons/icon :icons/lock])
        [react/text {:style style/empty-chat-text}
-        (cond
-          (= chat-id constants/console-chat-id)
-          (i18n/label :t/empty-chat-description-console)
-
-          one-to-one
+        (if one-to-one
           [react/text style/empty-chat-container-one-to-one
            (i18n/label :t/empty-chat-description-one-to-one)
            [react/text {:style style/empty-chat-text-name} (:name contact)]]
-
-          :else
           (i18n/label :t/empty-chat-description))]])))
 
 (defview messages-view [group-chat]

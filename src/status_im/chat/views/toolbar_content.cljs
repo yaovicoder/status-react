@@ -10,22 +10,20 @@
             [status-im.utils.datetime :as time]
             [status-im.utils.platform :refer [platform-specific]]
             [status-im.utils.gfycat.core :refer [generate-gfy]]
-            [status-im.constants :refer [console-chat-id]]
             [status-im.ui.components.chat-icon.screen :as chat-icon.screen]
             [status-im.ui.components.common.common :as components.common]
             [status-im.ui.components.styles :as common.styles]))
 
 (defn- online-text [contact chat-id]
-  (cond
-    (= console-chat-id chat-id) (i18n/label :t/available)
-    contact (let [last-online      (get contact :last-online)
-                  last-online-date (time/to-date last-online)
-                  now-date         (t/now)]
-              (if (and (pos? last-online)
-                       (<= last-online-date now-date))
-                (time/time-ago last-online-date)
-                (i18n/label :t/active-unknown)))
-    :else (i18n/label :t/active-unknown)))
+  (if contact
+    (let [last-online      (get contact :last-online)
+          last-online-date (time/to-date last-online)
+          now-date         (t/now)]
+      (if (and (pos? last-online)
+               (<= last-online-date now-date))
+        (time/time-ago last-online-date)
+        (i18n/label :t/active-unknown)))
+    (i18n/label :t/active-unknown)))
 
 (defn- in-progress-text [{:keys [highestBlock currentBlock startBlock]}]
   (let [total      (- highestBlock startBlock)
