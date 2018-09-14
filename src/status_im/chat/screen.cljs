@@ -4,7 +4,6 @@
             [re-frame.core :as re-frame]
             [status-im.constants :as constants]
             [status-im.i18n :as i18n]
-            [status-im.chat.models :as models.chat]
             [status-im.models.contact :as models.contact]
             [status-im.chat.styles.screen :as style]
             [status-im.utils.platform :as platform]

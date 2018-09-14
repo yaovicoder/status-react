@@ -4,6 +4,7 @@
             [status-im.chat.constants :as chat-constants]
             [status-im.chat.models.input :as input-model]
             [status-im.chat.commands.core :as commands]
+            [status-im.chat.commands.input :as commands-input]
             [status-im.utils.datetime :as time]
             [status-im.utils.platform :as platform]
             [status-im.utils.gfycat.core :as gfycat]
@@ -257,7 +258,7 @@
  :<- [:get-current-chat-ui-prop :selection]
  :<- [:get-commands-for-chat]
  (fn [[{:keys [input-text]} selection commands]]
-   (commands/selected-chat-command input-text selection commands)))
+   (commands-input/selected-chat-command input-text selection commands)))
 
 (reg-sub
  :chat-input-placeholder

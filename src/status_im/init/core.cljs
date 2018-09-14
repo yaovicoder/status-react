@@ -1,5 +1,6 @@
 (ns status-im.init.core
   (:require [re-frame.core :as re-frame]
+            [status-im.chat.models.loading :as chat-loading]
             [status-im.accounts.login.core :as accounts.login]
             [status-im.accounts.update.core :as accounts.update]
             [status-im.constants :as constants]
@@ -7,7 +8,6 @@
             [status-im.data-store.realm.core :as realm]
             [status-im.i18n :as i18n]
             [status-im.models.browser :as browser]
-            [status-im.models.chat :as chat]
             [status-im.models.contacts :as models.contacts]
             [status-im.models.dev-server :as models.dev-server]
             [status-im.protocol.core :as protocol]
@@ -186,8 +186,8 @@
                            (protocol/initialize-protocol address)
                            (models.contacts/load-contacts)
                            (models.dev-server/start-if-needed)
-                           (chat/initialize-chats)
-                           (chat/process-pending-messages)
+                           (chat-loading/initialize-chats)
+                           (chat-loading/initialize-pending-messages)
                            (browser/initialize-browsers)
                            (browser/initialize-dapp-permissions)
                            (models.wallet/update-wallet)
