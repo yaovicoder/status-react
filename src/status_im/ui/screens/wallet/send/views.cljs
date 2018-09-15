@@ -76,9 +76,8 @@
 (def cancel-password-event #(re-frame/dispatch [:wallet/cancel-entering-password]))
 
 (defview password-input-drawer [{:keys [transaction sign-handler] :as opt}]
-  (letsubs [account         [:get-current-account]
-            wrong-password? [:wallet.send/wrong-password?]
-            signing-phrase  (:signing-phrase @account) ;;TODO
+  (letsubs [wrong-password? [:wallet.send/wrong-password?]
+            signing-phrase  [:wallet/signing-phrase]
             bottom-value    (animation/create-value -250)
             opacity-value   (animation/create-value 0)]
     {:component-did-mount #(send.animations/animate-sign-panel opacity-value bottom-value)}

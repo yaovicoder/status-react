@@ -80,7 +80,7 @@
 (defn wrap-modal [modal-view component]
   (fn []
     (if platform/android?
-      (let [signing? [:get-in [:wallet :send-transaction :show-password-input?]]]
+      (let [signing? [:wallet.send/show-password-input?]]
         [view common-styles/modal
          [modal {:transparent      (not @signing?)
                  :animation-type   :slide
