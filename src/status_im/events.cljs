@@ -114,9 +114,9 @@
    (accounts/switch-web3-opt-in-mode opt-in cofx)))
 
 (handlers/register-handler-fx
- :accounts.ui/wallet-set-up-confirmed
+ :accounts.ui/wallet-setup-confirmed
  (fn [cofx [_ modal?]]
-   (accounts/confirm-wallet-set-up modal? cofx)))
+   (accounts/confirm-wallet-setup modal? cofx)))
 
 ;; accounts create module
 
@@ -415,6 +415,11 @@
  :wallet.send.ui/sign-button-pressed
  (fn [cofx _]
    (wallet/show-password-input cofx)))
+
+(handlers/register-handler-fx
+ :wallet.setup.ui/got-it-button-pressed
+ (fn [cofx [_ modal?]]
+   (wallet/show-setup-confirmation modal? cofx)))
 
 ;; chat module
 
