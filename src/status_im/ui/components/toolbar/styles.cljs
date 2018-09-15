@@ -36,7 +36,8 @@
   {:color          colors/black
    :letter-spacing -0.2
    :font-size      17
-   :ios            {:text-align     :center}
+   :ios            {:text-align     :center
+                    :margin-left    22}
    :android        {:text-align     :left
                     :margin-left    22}})
 
