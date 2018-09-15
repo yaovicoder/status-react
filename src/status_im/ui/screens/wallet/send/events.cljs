@@ -123,7 +123,7 @@
      (when (and (not (:id send-transaction)) queued-transaction)
        (cond
 
-         ;;SEND TRANSACTION
+          ;;SEND TRANSACTION
          (= method constants/web3-send-transaction)
          (let [{:keys [gas gas-price] :as transaction} (models.wallet/prepare-dapp-transaction
                                                         queued-transaction (:contacts/contacts db))
@@ -138,16 +138,19 @@
                                                :wallet-send-transaction-modal
                                                :wallet-onboarding-setup-modal)]]})
 
-         ;;SIGN MESSAGE
+          ;;SIGN MESSAGE
          (= method constants/web3-personal-sign)
-         (let [[address data] (models.wallet/normalize-sign-message-params params)]
+         (let [[address data] (models.wallet/normalize-sign-message-params params)
+               {:keys [wallet-set-up-passed?]} (:account/account db)]
            (if (and address data)
              {:db       (assoc-in db' [:wallet :send-transaction] {:id               (str (or id message-id))
                                                                    :from             address
                                                                    :data             data
                                                                    :dapp-transaction queued-transaction
                                                                    :method           method})
-              :dispatch [:navigate-to-modal :wallet-sign-message-modal]}
+              :dispatch [:navigate-to-modal (if wallet-set-up-passed?
+                                              :wallet-sign-message-modal
+                                              :wallet-onboarding-setup-modal)]}
              {:db db'})))))))
 
 (handlers/register-handler-fx
