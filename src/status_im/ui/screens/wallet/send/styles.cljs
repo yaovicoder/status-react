@@ -188,4 +188,5 @@
   {:bottom-value -110
    :font-size    12
    :font-color   colors/white
-   :color        colors/blue})
+   :color        colors/blue
+   :fading-timeout 3000})
