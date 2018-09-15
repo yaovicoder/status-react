@@ -170,7 +170,7 @@
                           :show-password-input? show-password-input?
                           :transaction transaction
                           :toolbar-title-label :t/send-transaction
-                          :sign-handler #(re-frame/dispatch [:wallet/sign-transaction])}
+                          :sign-handler #(re-frame/dispatch [:wallet/send-transaction])}
      [react/view components.styles/flex
       [common/network-info {:text-color :white}]
       [react/scroll-view {:keyboard-should-persist-taps :always
