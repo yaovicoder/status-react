@@ -31,7 +31,7 @@
                                     :dispatch [:navigate-to :wallet-send-transaction-chat]}
           :else {:db (navigation/navigate-back db)})))
 
-(defn confirm-wallet-set-up [modal? {:keys [db] :as cofx}]
+(defn confirm-wallet-setup [modal? {:keys [db] :as cofx}]
   (handlers-macro/merge-fx
    cofx
    (continue-after-wallet-onboarding db modal?)
