@@ -125,10 +125,12 @@
 
           ;;SEND TRANSACTION
          (= method constants/web3-send-transaction)
-         (let [{:keys [gas gas-price] :as transaction} (models.wallet/prepare-dapp-transaction
-                                                        queued-transaction (:contacts/contacts db))
+         (let [{:keys [gas gas-price amount] :as transaction} (models.wallet/prepare-dapp-transaction
+                                                               queued-transaction (:contacts/contacts db))
                {:keys [wallet-set-up-passed?]} (:account/account db)]
-           {:db         (assoc-in db' [:wallet :send-transaction] transaction)
+           {:db         (assoc-in db'
+                                  [:wallet :send-transaction]
+                                  (assoc transaction :amount-text (str (money/wei->ether amount))))
             :dispatch-n [[:update-wallet]
                          (when-not gas
                            [:wallet/update-estimated-gas (first params)])
