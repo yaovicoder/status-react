@@ -27,14 +27,12 @@
 (defn display-confirmation [modal?]
   (utils/show-confirmation
    {}
-   "Remember this!"
-   #_(i18n/label :t/wallet-set-up-confirm-title)
-   "You'll need to recognize this combo to keep your transactions safe."
-   #_(i18n/label :t/wallet-set-up-confirm-description)
-   "Got it"
+   (i18n/label :t/wallet-set-up-confirm-title)
+   (i18n/label :t/wallet-set-up-confirm-description)
+   (i18n/label :t/got-it)
    #(re-frame/dispatch [:accounts.ui/wallet-set-up-confirmed modal?])
    nil
-   "See it again"))
+   (i18n/label :t/see-it-again)))
 
 (views/defview onboarding-panel [modal?]
   (views/letsubs [{:keys [signing-phrase]} [:get-current-account]]
@@ -56,16 +54,13 @@
           [signing-emoji (nth signing-emojis 1) false]
           [signing-emoji (nth signing-emojis 2) false]]
          [react/text {:style styles/super-safe-transactions}
-          "Super-safe transactions"]
+          (i18n/label :t/wallet-set-up-safe-transactions)]
          [react/text {:style styles/description}
-          "You should see these three emojis before\nsigning any transaction."
-          #_(i18n/label :t/wallet-set-up-signing-phrase)]
+          (i18n/label :t/wallet-set-up-description)]
          [react/view {:style styles/warning-container}
           [react/text {:style styles/warning}
-           "If you see a different combo, cancel\nthe transaction and logout."
-           #_(i18n/label :t/wallet-set-up-signing-phrase)]
+           (i18n/label :t/wallet-set-up-warning)]
           [vector-icons/icon :icons/info styles/info-icon]]]
-
         [bottom-buttons/bottom-buttons styles/bottom-buttons
          nil
          [button/button {:on-press            (partial display-confirmation modal?)
