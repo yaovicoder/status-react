@@ -130,7 +130,7 @@
 
 (defview main-modal []
   (letsubs [modal-view [:get :modal]
-            signing? [:get-in [:wallet :send-transaction :show-password-input?]]]
+            signing?   [:wallet.send/show-password-input?]]
     (when modal-view
       [view common-styles/modal
        [modal {:animation-type   :slide
