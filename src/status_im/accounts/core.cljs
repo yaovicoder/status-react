@@ -25,11 +25,14 @@
        (:from-chat? transaction)))
 
 (defn continue-after-wallet-onboarding [db modal? cofx]
-  (let [transaction (get-in db [:wallet :send-transaction])]
-    (cond modal? {:dispatch [:navigate-to-modal :wallet-send-transaction-modal]}
-          (chat-send? transaction) {:db       (navigation/navigate-back db)
-                                    :dispatch [:navigate-to :wallet-send-transaction-chat]}
-          :else {:db (navigation/navigate-back db)})))
+  (let [{:keys [method] :as transaction} (get-in db [:wallet :send-transaction])]
+    (cond
+      modal? {:dispatch [:navigate-to-modal (if (= method "personal_sign")
+                                              :wallet-sign-message-modal
+                                              :wallet-send-transaction-modal)]}
+      (chat-send? transaction) {:db       (navigation/navigate-back db)
+                                :dispatch [:navigate-to :wallet-send-transaction-chat]}
+      :else {:db (navigation/navigate-back db)})))
 
 (defn confirm-wallet-setup [modal? {:keys [db] :as cofx}]
   (handlers-macro/merge-fx
