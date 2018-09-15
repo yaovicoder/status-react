@@ -11,8 +11,7 @@
             [status-im.ui.components.styles :as components.styles]
             [status-im.ui.components.toolbar.actions :as actions]
             [status-im.ui.screens.wallet.components.views :as wallet.components]
-            [status-im.ui.screens.wallet.onboarding.setup.styles :as styles]
-            [status-im.utils.utils :as utils])
+            [status-im.ui.screens.wallet.onboarding.setup.styles :as styles])
   (:require-macros [status-im.utils.views :as views]))
 
 (defn signing-emoji [word first?]
@@ -24,18 +23,6 @@
                 :number-of-lines 1}
     word]])
 
-(defn display-confirmation [modal?]
-  (utils/show-confirmation
-   {}
-   "Remember this!"
-   #_(i18n/label :t/wallet-set-up-confirm-title)
-   "You'll need to recognize this combo to keep your transactions safe."
-   #_(i18n/label :t/wallet-set-up-confirm-description)
-   "Got it"
-   #(re-frame/dispatch [:accounts.ui/wallet-set-up-confirmed modal?])
-   nil
-   "See it again"))
-
 (views/defview onboarding-panel [modal?]
   (views/letsubs [{:keys [signing-phrase]} [:get-current-account]]
     (let [signing-emojis (string/split signing-phrase #" ")
@@ -45,7 +32,7 @@
        [wallet.components/toolbar
         {}
         (actions/back-white #(re-frame/dispatch [:wallet-setup-navigate-back]))
-        (i18n/label :t/wallet-set-up-title)]
+        (i18n/label :t/wallet-setup-title)]
        [react/view {:style {:flex 1}}
         [react/view {:style {:flex 1
                              :flex-direction :column
@@ -56,20 +43,17 @@
           [signing-emoji (nth signing-emojis 1) false]
           [signing-emoji (nth signing-emojis 2) false]]
          [react/text {:style styles/super-safe-transactions}
-          "Super-safe transactions"]
+          (i18n/label :t/wallet-setup-safe-transactions)]
          [react/text {:style styles/description}
-          "You should see these three emojis before\nsigning any transaction."
-          #_(i18n/label :t/wallet-set-up-signing-phrase)]
+          (i18n/label :t/wallet-setup-description)]
          [react/view {:style styles/warning-container}
           [react/text {:style styles/warning}
-           "If you see a different combo, cancel\nthe transaction and logout."
-           #_(i18n/label :t/wallet-set-up-signing-phrase)]
+           (i18n/label :t/wallet-setup-warning)]
           [vector-icons/icon :icons/info styles/info-icon]]]
-
         [bottom-buttons/bottom-buttons styles/bottom-buttons
          nil
-         [button/button {:on-press            (partial display-confirmation modal?)
-                         :text-style          styles/got-it-button-text
+         [button/button {:on-press #(re-frame/dispatch [:wallet.setup.ui/got-it-button-pressed modal?])
+                         :text-style styles/got-it-button-text
                          :accessibility-label :done-button}
           (i18n/label :t/got-it)
           nil]]]])))
