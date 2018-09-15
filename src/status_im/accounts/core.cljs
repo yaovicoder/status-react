@@ -32,7 +32,7 @@
         (navigation/navigate-to-clean :wallet cofx)
         (navigation/navigate-to-cofx :wallet-send-transaction-modal nil cofx)))))
 
-(defn confirm-wallet-set-up [modal? {:keys [db] :as cofx}]
+(defn confirm-wallet-setup [modal? {:keys [db] :as cofx}]
   (handlers-macro/merge-fx
    cofx
    (continue-after-wallet-onboarding db modal?)
