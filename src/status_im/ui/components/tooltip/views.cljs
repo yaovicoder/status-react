@@ -1,6 +1,7 @@
 (ns status-im.ui.components.tooltip.views
   (:require-macros [status-im.utils.views :as views])
-  (:require [status-im.ui.components.animation :as animation]
+  (:require [re-frame.core :as re-frame]
+            [status-im.ui.components.animation :as animation]
             [status-im.ui.components.tooltip.animations :as animations]
             [status-im.ui.components.react :as react]
             [status-im.ui.components.icons.vector-icons :as vector-icons]
@@ -16,11 +17,18 @@
   (views/letsubs [bottom-anim-value (animation/create-value bottom-value)
                   opacity-value     (animation/create-value 0)]
     {:component-did-mount (animations/animate-tooltip bottom-value bottom-anim-value opacity-value fading-timeout 10)}
-    [react/view styles/tooltip-container
-     [react/animated-view {:style (styles/tooltip-animated bottom-anim-value opacity-value)}
-      [react/view (styles/tooltip-text-container color)
-       [react/text {:style (styles/tooltip-text font-size font-color)} label]]
-      [vector-icons/icon :icons/tooltip-triangle {:color color :style styles/tooltip-triangle}]]]))
+    (if (zero? opacity-value)
+      [react/touchable-highlight
+       {:on-press #(re-frame/dispatch [:wallet/cancel-entering-password])}
+       [react/view {:background-color :red
+                    :width "100%"
+                    :height "100%"}]]
+      [react/view styles/tooltip-container
+       [react/animated-view {:style (styles/tooltip-animated bottom-anim-value opacity-value)}
+        [react/view (styles/tooltip-text-container color)
+         [react/text {:style (styles/tooltip-text font-size font-color)} label]]
+        [vector-icons/icon :icons/tooltip-triangle {:color color :style styles/tooltip-triangle}]]]
+      )))
 
 (views/defview bottom-tooltip-info [label on-close]
   (views/letsubs [bottom-anim-value (animation/create-value -150)
