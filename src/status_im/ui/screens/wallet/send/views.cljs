@@ -82,38 +82,58 @@
             opacity-value   (animation/create-value 0)]
     {:component-did-mount #(send.animations/animate-sign-panel opacity-value bottom-value)}
     (let [{:keys [in-progress? show-password-input? symbol amount-text]} transaction]
-      [react/animated-view {:style (styles/animated-sign-panel bottom-value)}
-       [react/animated-view {:style (styles/sign-panel opacity-value)}
-        [react/view {:style {:flex-direction :column
-                             :align-items :center
-                             :justify-content :center
-                             :padding-horizontal 15}}
-         [react/view styles/signing-phrase-container
-          [react/text {:style               styles/signing-phrase
-                       :accessibility-label :signing-phrase-text}
-           signing-phrase]]
-         (when (and amount-text symbol)
-           [react/text {:style styles/transaction-amount}
-            (str "Send " amount-text " " (name symbol))])
-         [react/view {:style                       styles/password-container
-                      :important-for-accessibility :no-hide-descendants}
-          [react/text-input
-           {:auto-focus             true
-            :secure-text-entry      true
-            :placeholder            (i18n/label :t/enter-password-placeholder)
-            :placeholder-text-color components.styles/color-gray4
-            :on-change-text         #(re-frame/dispatch [:wallet.send/set-password (security/mask-data %)])
-            :style                  styles/password
-            :accessibility-label    :enter-password-input
-            :auto-capitalize        :none}]]
-         [send-button in-progress? sign-handler]]]
+      [react/animated-view {:style {:flex 1
+                                    :position :absolute
+                                    :background-color :red
+                                    :left 0
+                                    :right 0
+                                    :bottom bottom-value
+                                    :margin-top 50
+                                    :z-index 4}}
+       ;; NOTE: because of the margin top of the inner view, the background
+       ;; is not entirely touchable and this inner touchable view fixes this
+       [react/touchable-highlight {:on-press cancel-password-event
+                                   :background-color :red}
+        [react/animated-view {:style {:margin-top 100
+                                      :border-top-left-radius 8
+                                      :border-top-right-radius 8
+                                      :background-color colors/white
+                                      :opacity opacity-value
+                                      :padding-top 12}}
+         [react/view {:style {:background-color :green
+                              :flex-direction :column
+                              :align-items :center
+                              :justify-content :center
+                              :padding-horizontal 15}}
+          [react/view styles/signing-phrase-container
+           [react/text {:style               styles/signing-phrase
+                        :accessibility-label :signing-phrase-text}
+            signing-phrase]]
+          (when (and amount-text symbol)
+            [react/text {:style styles/transaction-amount}
+             (str "Send " amount-text " " (name symbol))])
+          [react/view {:style                       styles/password-container
+                       :important-for-accessibility :no-hide-descendants}
+           [react/text-input
+            {:auto-focus             true
+             :secure-text-entry      true
+             :placeholder            (i18n/label :t/enter-password-placeholder)
+             :placeholder-text-color components.styles/color-gray4
+             :on-change-text         #(re-frame/dispatch [:wallet.send/set-password (security/mask-data %)])
+             :style                  styles/password
+             :accessibility-label    :enter-password-input
+             :auto-capitalize        :none}]]
+          [send-button in-progress? sign-handler]]]]
        [tooltip/tooltip (i18n/label :t/password-input-drawer-tooltip) styles/emojis-tooltip]
        [react/view styles/spinner-container
         (when in-progress?
           [react/activity-indicator {:animating true
                                      :size      :large}])]])))
 
-(defn opacify-background []
+(defn opacify-background
+  "Create a background view that is touchable (to close the frontground view)
+  and opacifies the actual background view"
+  []
   [react/view {:flex 1
                :background-color :black
                :opacity 0.5
@@ -122,7 +142,11 @@
                :left 0
                :right 0
                :bottom 0
-               :z-index 3}])
+               :z-index 3}
+   [react/touchable-highlight
+    {:on-press cancel-password-event}
+    [react/view {:width "100%"
+                 :height "100%"}]]])
 
 (defview sign-view-container [{:keys [modal? transaction toolbar-title-label sign-handler]} current-view]
   (let [{:keys [in-progress? show-password-input?]} transaction]
