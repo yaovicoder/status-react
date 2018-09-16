@@ -64,11 +64,20 @@
 
 ;; Main screen
 
+(defn send-transaction-request-button [value]
+  [button/primary-button {:on-press            #(re-frame/dispatch [:navigate-to :wallet-send-transaction-request])
+                          :style               styles/send-request
+                          :accessibility-label :sent-transaction-request-button}
+   (i18n/label :t/send-transaction-request)])
+
 (defn- qr-code [address chain-id]
-  [qr-code-viewer/qr-code-viewer {:hint-style styles/hint :footer-style styles/footer}
-   (eip681/generate-uri address {:chain-id chain-id})
-   (i18n/label :t/request-qr-legend)
-   address])
+  [qr-code-viewer/qr-code-viewer
+   {:hint-style    styles/hint
+    :footer-style  styles/footer
+    :footer-button send-transaction-request-button
+    :value         (eip681/generate-uri address {:chain-id chain-id})
+    :hint          (i18n/label :t/request-qr-legend)
+    :legend        address}])
 
 (views/defview request-transaction []
   (views/letsubs [address-hex       [:get-current-account-hex]
@@ -84,8 +93,4 @@
      [react/view {:flex 1}
       [common/network-info {:text-color :white}]
       [react/scroll-view styles/request-wrapper
-       [qr-code address-hex chain-id]
-       [button/primary-button {:on-press            #(re-frame/dispatch [:navigate-to :wallet-send-transaction-request])
-                               :style               styles/send-request
-                               :accessibility-label :sent-transaction-request-button}
-        (i18n/label :t/send-transaction-request)]]]]))
+       [qr-code address-hex chain-id]]]]))
