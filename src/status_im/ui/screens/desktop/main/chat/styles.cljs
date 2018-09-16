@@ -1,6 +1,12 @@
 (ns status-im.ui.screens.desktop.main.chat.styles
   (:require [status-im.ui.components.colors :as colors]))
 
+(def min-input-container-height 68)
+(def max-input-container-height 180)
+(def chat-vertical-padding 10)
+(def min-input-area-height 20)
+(def max-input-area-height (- max-input-container-height (* 2 chat-vertical-padding)))
+
 (defn message-box [{:keys [outgoing] :as message}]
   (let [align (if outgoing :flex-end :flex-start)
         color (if outgoing colors/hawkes-blue colors/white)]
@@ -44,19 +50,25 @@
    :margin-left   48
    :margin-bottom 4})
 
-(def chat-box
-  {:height            68
-   :background-color  :white
+(defn chat-box [height]
+  {:height            (+ height (* 2 chat-vertical-padding))
+   :min-height        min-input-container-height
+   :max-height        max-input-container-height
    :border-radius     12
    :margin-horizontal 24
-   :padding-vertical  15})
+   :padding-vertical  chat-vertical-padding
+   :overflow          :hidden})
 
 (def chat-box-inner
-  {:flex-direction  :row
-   :flex            1})
+  {:flex-direction :row
+   :flex           1
+   :max-height     max-input-area-height
+   :overflow       :hidden})
 
-(def chat-text-input
-  {:flex 1})
+(defn chat-text-input [container-height]
+  {:height     container-height
+   :min-height min-input-area-height
+   :max-height max-input-area-height})
 
 (def messages-view
   {:flex             1
@@ -121,15 +133,21 @@
 (def not-first-in-group-wrapper
   {:flex-direction :row})
 
-(def send-icon
+(defn send-icon [not-active?]
   {:margin-left      16
    :width            30
    :height           30
    :border-radius    15
-   :background-color colors/gray-lighter
+   :background-color (if not-active? colors/gray-lighter colors/blue)
    :align-items      :center
    :justify-content  :center
+   :position         :absolute
+   :bottom           10
+   :right            0
    :transform        [{:rotate "90deg"}]})
+
+(defn send-icon-arrow [not-active?]
+  {:tint-color (if not-active? :gray :white)})
 
 (def chat-view
   {:flex             1
