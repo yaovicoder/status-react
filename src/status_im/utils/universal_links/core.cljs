@@ -1,16 +1,17 @@
 (ns status-im.utils.universal-links.core
-  (:require
-   [taoensso.timbre :as log]
-   [re-frame.core :as re-frame]
-   [status-im.utils.config :as config]
-   [status-im.chat.events :as chat.events]
-   [status-im.accounts.db :as accounts.db]
-   [status-im.ui.components.list-selection :as list-selection]
-   [status-im.ui.components.react  :as react]
-   [status-im.utils.handlers-macro :as handlers-macro]
-   [cljs.spec.alpha :as spec]
-   [status-im.ui.screens.navigation :as navigation]
-   [status-im.ui.screens.add-new.new-chat.db :as new-chat.db]))
+  (:require [goog.string :as gstring]
+            [goog.string.format]
+            [taoensso.timbre :as log]
+            [re-frame.core :as re-frame]
+            [status-im.utils.config :as config]
+            [status-im.chat.events :as chat.events]
+            [status-im.accounts.db :as accounts.db]
+            [status-im.ui.components.list-selection :as list-selection]
+            [status-im.ui.components.react :as react]
+            [status-im.ui.screens.navigation :as navigation]
+            [status-im.ui.screens.add-new.new-chat.db :as new-chat.db]
+            [status-im.utils.handlers-macro :as handlers-macro]
+            [cljs.spec.alpha :as spec]))
 
 ;; TODO(yenda) investigate why `handle-universal-link` event is
 ;; dispatched 7 times for the same link
@@ -19,6 +20,18 @@
 (def profile-regex #".*/user/(.*)$")
 (def browse-regex #".*/browse/(.*)$")
 (def extension-regex #".*/extension/(.*)$")
+
+;; domains should be without the trailing slash
+(def domains {:external "https://get.status.im"
+              :internal "status-im:/"})
+
+(def links {:public-chat "%s/chat/public/%s"
+            :browse      "%s/browse/%s"})
+
+(defn generate-link [link-type domain-type param]
+  (gstring/format (get links link-type)
+                  (get domains domain-type)
+                  param))
 
 (defn match-url [url regex]
   (some->> url

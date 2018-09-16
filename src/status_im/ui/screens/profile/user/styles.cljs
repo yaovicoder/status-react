@@ -33,7 +33,7 @@
    :justify-content :center})
 
 (def qr-code
-  {:background-color colors/gray-lighter})
+  {:background-color colors/white})
 
 (def qr-code-viewer
   {:flex-grow      1
