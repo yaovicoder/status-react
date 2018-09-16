@@ -66,5 +66,4 @@
     (let [{:keys [db]} (chat-events/show-profile
                         "a"
                         {:db {:navigation-stack '(:home)}})]
-      (is (= "a" (:contacts/identity db)))
-      (is (= '(:home) (:navigation-stack db))))))
+      (is (= "a" (:contacts/identity db))))))
