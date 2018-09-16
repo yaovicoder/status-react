@@ -6,6 +6,7 @@
             [status-im.i18n :as i18n]
             [status-im.ui.components.colors :as colors]
             [status-im.ui.components.icons.vector-icons :as icons]
+            [status-im.ui.components.list-selection :as list-selection]
             [status-im.ui.components.react :as react]
             [status-im.ui.components.status-bar.view :as status-bar]
             [status-im.ui.components.styles :as components.styles]
@@ -18,7 +19,8 @@
             [status-im.ui.screens.browser.styles :as styles]
             [status-im.utils.ethereum.core :as ethereum]
             [status-im.utils.http :as http]
-            [status-im.utils.js-resources :as js-res])
+            [status-im.utils.js-resources :as js-res]
+            [status-im.utils.universal-links.core :as universal-links])
   (:require-macros
    [status-im.utils.slurp :refer [slurp]]
    [status-im.utils.views :as views]))
@@ -74,6 +76,13 @@
   (when url
     (let [domain-name (nth (re-find #"^\w+://(www\.)?([^/:]+)" url) 2)]
       (get (:inject-js browser-config) domain-name))))
+
+(defn share-button [url]
+  (let [link    (universal-links/generate-link :browse :external url)
+        message (i18n/label :t/share-dapp-text {:link link})]
+    [react/touchable-highlight {:on-press #(list-selection/open-share {:message message})
+                                :style    styles/share-button}
+     [icons/icon :icons/share]]))
 
 (defn navigation [url webview can-go-back? can-go-forward?]
   [react/view styles/navbar
