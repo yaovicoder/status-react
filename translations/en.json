@@ -685,5 +685,9 @@
     "cost-fee": "Cost/Fee",
     "currency-display-name-usd": "United States Dollar",
     "currency-display-name-uah": "Ukraine Hryvnia",
-    "web3-opt-in": "Opt-in web3 provider access"
+    "web3-opt-in": "Opt-in web3 provider access",
+    "share-chat": "Share chat",
+    "share-profile-link": "Share profile link",
+    "share-public-chat-text": "Check out this public chat on the Status app: {{link}}",
+    "share-dapp-text": "Check out this DApp I'm using on Status: {{link}}"
 }
