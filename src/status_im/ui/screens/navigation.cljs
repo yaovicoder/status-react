@@ -52,11 +52,15 @@
     (apply preload-data! db args)))
 
 (defn navigate-to-cofx [go-to-view-id screen-params {:keys [db]}]
-  {:db           (cond-> (assoc db :view-id go-to-view-id)
-                   (seq screen-params)
-                   (assoc-in [:navigation/screen-params go-to-view-id]
-                             screen-params))
-   ::navigate-to go-to-view-id})
+  (let [view-id (:view-id db)
+        db      (cond-> (assoc db :view-id go-to-view-id)
+                  (seq screen-params)
+                  (assoc-in [:navigation/screen-params go-to-view-id]
+                            screen-params))]
+    {:db           (if (= view-id go-to-view-id)
+                     db
+                     (push-view db go-to-view-id))
+     ::navigate-to go-to-view-id}))
 
 (defn navigate-reset
   [{:keys [index actions] :as config} {:keys [db]}]
