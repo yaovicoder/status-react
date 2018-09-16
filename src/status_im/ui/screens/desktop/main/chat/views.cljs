@@ -22,24 +22,24 @@
             [status-im.ui.screens.desktop.main.chat.events :as chat.events]))
 
 (views/defview toolbar-chat-view [{:keys [chat-id color public-key public? group-chat]
-                                   :as current-chat}]
-  (views/letsubs [chat-name         [:get-current-chat-name]
+                                   :as   current-chat}]
+  (views/letsubs [chat-name [:get-current-chat-name]
                   {:keys [pending? whisper-identity photo-path]} [:get-current-chat-contact]]
     [react/view {:style styles/toolbar-chat-view}
      [react/view {:style {:flex-direction :row
-                          :flex 1}}
+                          :flex           1}}
       (if public?
         [react/view {:style (styles/topic-image color)}
          [react/text {:style styles/topic-text}
           (string/capitalize (second chat-name))]]
-        [react/image {:style styles/chat-icon
+        [react/image {:style  styles/chat-icon
                       :source {:uri photo-path}}])
       [react/view {:style (styles/chat-title-and-type pending?)}
        [react/text {:style styles/chat-title
                     :font  :medium}
         chat-name]
        (cond pending?
-             [react/text {:style styles/add-contact-text
+             [react/text {:style    styles/add-contact-text
                           :on-press #(re-frame/dispatch [:add-contact whisper-identity])}
               (i18n/label :t/add-to-contacts)]
              public?
@@ -47,14 +47,14 @@
               (i18n/label :t/public-chat)])]]
      [react/view
       (when (and (not group-chat) (not public?))
-        [react/text {:style (styles/profile-actions-text colors/black)
+        [react/text {:style    (styles/profile-actions-text colors/black)
                      :on-press #(re-frame/dispatch [:show-profile-desktop whisper-identity])}
          (i18n/label :t/view-profile)])
 
-      [react/text {:style (styles/profile-actions-text colors/black)
+      [react/text {:style    (styles/profile-actions-text colors/black)
                    :on-press #(re-frame/dispatch [:chat.ui/clear-history-pressed])}
        (i18n/label :t/clear-history)]
-      [react/text {:style (styles/profile-actions-text colors/black)
+      [react/text {:style    (styles/profile-actions-text colors/black)
                    :on-press #(re-frame/dispatch [:chat.ui/delete-chat-pressed chat-id])}
        (i18n/label :t/delete-chat)]]]))
 
@@ -66,8 +66,8 @@
        [react/text {:style styles/author} name]])))
 
 (views/defview member-photo [from]
-  (letsubs [photo-path [:get-photo-path from]]
-    [react/touchable-highlight  {:on-press #(re-frame/dispatch [:show-profile-desktop from])}
+  (views/letsubs [photo-path [:get-photo-path from]]
+    [react/touchable-highlight {:on-press #(re-frame/dispatch [:show-profile-desktop from])}
      [react/image {:source {:uri (if (string/blank? photo-path)
                                    (identicon/identicon from)
                                    photo-path)}
@@ -138,29 +138,29 @@
             [text-only-message text message]))}))))
 
 (views/defview messages-view [{:keys [chat-id group-chat]}]
-  (views/letsubs [chat-id* (atom nil)
-                  scroll-ref (atom nil)
-                  scroll-timer (atom nil)
+  (views/letsubs [chat-id*      (atom nil)
+                  scroll-ref    (atom nil)
+                  scroll-timer  (atom nil)
                   scroll-height (atom nil)]
-    (let [_ (when (or (not @chat-id*) (not= @chat-id* chat-id))
-              (reset! chat-id* chat-id)
-              (js/setTimeout #(when scroll-ref (.scrollToEnd @scroll-ref)) 400))
-          messages (re-frame/subscribe [:get-current-chat-messages-stream])
+    (let [_                  (when (or (not @chat-id*) (not= @chat-id* chat-id))
+                               (reset! chat-id* chat-id)
+                               (js/setTimeout #(when scroll-ref (.scrollToEnd @scroll-ref)) 400))
+          messages           (re-frame/subscribe [:get-current-chat-messages-stream])
           current-public-key (re-frame/subscribe [:get-current-public-key])]
       [react/view {:style styles/messages-view}
-       [react/scroll-view {:scrollEventThrottle    16
-                           :headerHeight styles/messages-list-vertical-padding
-                           :footerWidth styles/messages-list-vertical-padding
+       [react/scroll-view {:scrollEventThrottle              16
+                           :headerHeight                     styles/messages-list-vertical-padding
+                           :footerWidth                      styles/messages-list-vertical-padding
                            :enableArrayScrollingOptimization true
-                           :on-scroll              (fn [e]
-                                                     (let [ne (.-nativeEvent e)
-                                                           y (.-y (.-contentOffset ne))]
-                                                       (when (<= y 0)
-                                                         (when @scroll-timer (js/clearTimeout @scroll-timer))
-                                                         (reset! scroll-timer (js/setTimeout #(re-frame/dispatch [:load-more-messages]) 300)))
-                                                       (reset! scroll-height (+ y (.-height (.-layoutMeasurement ne))))))
-                           :on-content-size-change #(.scrollToEnd @scroll-ref)
-                           :ref                    #(reset! scroll-ref %)}
+                           :on-scroll                        (fn [e]
+                                                               (let [ne (.-nativeEvent e)
+                                                                     y  (.-y (.-contentOffset ne))]
+                                                                 (when (<= y 0)
+                                                                   (when @scroll-timer (js/clearTimeout @scroll-timer))
+                                                                   (reset! scroll-timer (js/setTimeout #(re-frame/dispatch [:load-more-messages]) 300)))
+                                                                 (reset! scroll-height (+ y (.-height (.-layoutMeasurement ne))))))
+                           :on-content-size-change           #(.scrollToEnd @scroll-ref)
+                           :ref                              #(reset! scroll-ref %)}
         [react/view
          (doall
           (for [[index {:keys [from content message-id type value] :as message-obj}] (map-indexed vector (reverse @messages))]
@@ -181,16 +181,16 @@
                           :ref            #(reset! inp-ref %)
                           :on-key-press   (fn [e]
                                             (let [native-event (.-nativeEvent e)
-                                                  key (.-key native-event)
-                                                  modifiers (js->clj (.-modifiers native-event))
-                                                  should-send (and (= key "Enter") (not (contains? (set modifiers) "shift")))]
+                                                  key          (.-key native-event)
+                                                  modifiers    (js->clj (.-modifiers native-event))
+                                                  should-send  (and (= key "Enter") (not (contains? (set modifiers) "shift")))]
                                               (when should-send
                                                 (.clear @inp-ref)
                                                 (.focus @inp-ref)
                                                 (re-frame/dispatch [:send-current-message]))))
                           :on-change      (fn [e]
                                             (let [native-event (.-nativeEvent e)
-                                                  text (.-text native-event)]
+                                                  text         (.-text native-event)]
                                               (re-frame/dispatch [:set-chat-input-text text])))}]]
       [react/touchable-highlight {:on-press (fn []
                                               (.clear @inp-ref)
@@ -207,24 +207,23 @@
      [chat-text-input]]))
 
 (views/defview chat-profile []
-  (letsubs [identity        [:get-current-contact-identity]
-            maybe-contact   [:get-current-contact]]
-
+  (views/letsubs [identity      [:get-current-contact-identity]
+                  maybe-contact [:get-current-contact]]
     (let [contact (or maybe-contact (utils.contacts/whisper-id->new-contact identity))
           {:keys [pending? whisper-identity public-key]} contact]
       [react/view {:style styles/chat-profile-body}
        [profile.views/profile-badge contact]
-                  ;; for private chat, public key will be chat-id
+       ;; for private chat, public key will be chat-id
        [react/view
         (if (or (nil? pending?) pending?)
           [react/touchable-highlight {:on-press #(re-frame/dispatch [:add-contact whisper-identity])}
            [react/view {:style styles/chat-profile-row}
-            [react/view {:style styles/chat-profile-icon-container
+            [react/view {:style               styles/chat-profile-icon-container
                          :accessibility-label :add-contact-link}
              [vector-icons/icon :icons/add {:style (styles/chat-profile-icon colors/blue)}]]
             [react/text {:style (styles/contact-card-text colors/blue)} (i18n/label :t/add-to-contacts)]]]
           [react/view {:style styles/chat-profile-row}
-           [react/view {:style styles/chat-profile-icon-container
+           [react/view {:style               styles/chat-profile-icon-container
                         :accessibility-label :add-contact-link}
             [vector-icons/icon :icons/add {:style (styles/chat-profile-icon colors/gray)}]]
            [react/text {:style (styles/contact-card-text colors/gray)} (i18n/label :t/in-contacts)]])
@@ -232,7 +231,7 @@
          {:on-press #(re-frame/dispatch
                       [:open-chat-with-contact {:whisper-identity whisper-identity}])}
          [react/view {:style styles/chat-profile-row}
-          [react/view {:style styles/chat-profile-icon-container
+          [react/view {:style               styles/chat-profile-icon-container
                        :accessibility-label :send-message-link}
            [vector-icons/icon :icons/chats {:style (styles/chat-profile-icon colors/blue)}]]
           [react/text {:style (styles/contact-card-text colors/blue)}

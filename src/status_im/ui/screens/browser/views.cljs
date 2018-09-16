@@ -2,27 +2,28 @@
   (:require-macros [status-im.utils.slurp :refer [slurp]]
                    [status-im.utils.views :as views])
   (:require [cljs.reader :as reader]
-            [re-frame.core :as re-frame]
-            [status-im.ui.components.react :as react]
-            [status-im.ui.screens.browser.styles :as styles]
-            [status-im.ui.components.status-bar.view :as status-bar]
-            [status-im.ui.components.toolbar.view :as toolbar.view]
-            [status-im.ui.components.webview-bridge :as components.webview-bridge]
-            [status-im.utils.js-resources :as js-res]
-            [status-im.ui.components.react :as components]
-            [reagent.core :as reagent]
-            [status-im.ui.components.icons.vector-icons :as icons]
-            [status-im.i18n :as i18n]
-            [status-im.utils.ethereum.core :as ethereum]
-            [status-im.ui.components.toolbar.actions :as actions]
-            [status-im.ui.components.tooltip.views :as tooltip]
-            [status-im.models.browser :as model]
-            [status-im.utils.http :as http]
-            [status-im.ui.components.styles :as components.styles]
-            [status-im.ui.components.colors :as colors]
             [clojure.string :as string]
+            [reagent.core :as reagent]
+            [re-frame.core :as re-frame]
+            [status-im.i18n :as i18n]
+            [status-im.models.browser :as model]
+            [status-im.ui.components.colors :as colors]
+            [status-im.ui.components.icons.vector-icons :as icons]
+            [status-im.ui.components.list-selection :as list-selection]
+            [status-im.ui.components.react :as react]
+            [status-im.ui.components.status-bar.view :as status-bar]
+            [status-im.ui.components.styles :as components.styles]
+            [status-im.ui.components.toolbar.actions :as actions]
+            [status-im.ui.components.toolbar.view :as toolbar.view]
+            [status-im.ui.components.tooltip.views :as tooltip]
+            [status-im.ui.components.webview-bridge :as components.webview-bridge]
+            [status-im.ui.screens.browser.styles :as styles]
             [status-im.ui.screens.browser.permissions.views :as permissions.views]
-            [status-im.utils.platform :as platform]))
+            [status-im.utils.ethereum.core :as ethereum]
+            [status-im.utils.http :as http]
+            [status-im.utils.js-resources :as js-res]
+            [status-im.utils.platform :as platform]
+            [status-im.utils.universal-links.core :as universal-links]))
 
 (def browser-config
   (reader/read-string (slurp "./src/status_im/utils/browser_config.edn")))
@@ -93,7 +94,14 @@
   (let [domain-name (nth (re-find #"^\w+://(www\.)?([^/:]+)" url) 2)]
     (get (:inject-js browser-config) domain-name)))
 
-(defn navigation [webview browser can-go-back? can-go-forward?]
+(defn share-button [url]
+  (let [link    (universal-links/generate-link :browse :external url)
+        message (i18n/label :t/share-dapp-text {:link link})]
+    [react/touchable-highlight {:on-press #(list-selection/open-share {:message message})
+                                :style    styles/share-button}
+     [icons/icon :icons/share]]))
+
+(defn navigation [webview {:keys [dapp? browser-id] :as browser} can-go-back? can-go-forward?]
   [react/view styles/toolbar
    [react/touchable-highlight {:on-press            #(re-frame/dispatch [:browser-nav-back browser])
                                :disabled            (not can-go-back?)
@@ -109,6 +117,8 @@
     [react/view
      [icons/icon :icons/arrow-right]]]
    [react/view {:flex 1}]
+   (when dapp?
+     [share-button browser-id])
    [react/touchable-highlight {:on-press #(.reload @webview)}
     [icons/icon :icons/refresh]]])
 
@@ -151,7 +161,7 @@
           :injected-java-script                  js-res/webview-js}]
         (when (or loading? resolving?)
           [react/view styles/web-view-loading
-           [components/activity-indicator {:animating true}]])]
+           [react/activity-indicator {:animating true}]])]
        [navigation webview browser can-go-back? can-go-forward?]
        [permissions.views/permissions-anim-panel browser show-permission]
        (when show-tooltip
