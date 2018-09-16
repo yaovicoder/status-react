@@ -62,7 +62,8 @@
 
 (def chat-last-message
   {:color     colors/gray
-   :font-size 14})
+   :font-size 14
+   :max-height 20})
 
 (def timestamp
   {:justify-content :flex-start
