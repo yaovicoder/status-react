@@ -700,5 +700,9 @@
     "send-request-amount-invalid-number": "Amount is not a valid number",
     "send-request-amount-max-decimals": "Max number of decimals is {{asset-decimals}}",
     "send-command-payment": "Send a payment",
-    "request-command-payment": "Request a payment"
+    "request-command-payment": "Request a payment",
+    "share-chat": "Share chat",
+    "share-profile-link": "Share profile link",
+    "share-public-chat-text": "Check out this public chat on the Status app: {{link}}",
+    "share-dapp-text": "Check out this DApp I'm using on Status: {{link}}"
 }
