@@ -430,7 +430,7 @@
     "currency-display-name-lrd": "Liberia Dollar",
     "leave": "Leave",
     "offline-messaging-settings": "Mailserver settings",
-    "qr-code-public-key-hint": "Share this code to \nstart chatting",
+    "qr-code-public-key-hint": "Share this code to start chatting",
     "submit-bug": "Submit a bug",
     "share": "Share",
     "recent-recipients": "Contacts",
@@ -714,5 +714,11 @@
     "link-card": "Link the card and use it to confirm your identity on the platform.",
     "hold-card": "hold card to the back of your phone",
     "turn-nfc-on": "turn nfc on",
-    "go-to-settings": "Go to Settings"
+    "go-to-settings": "Go to Settings",
+    "request-command-payment": "Request a payment",
+    "share-chat": "Share chat",
+    "share-link": "Share link",
+    "share-profile-link": "Share profile link",
+    "share-public-chat-text": "Check out this public chat on the Status app: {{link}}",
+    "share-dapp-text": "Check out this DApp I'm using on Status: {{link}}"
 }
