@@ -7,23 +7,6 @@
 (def send-transaction-form
   {:padding-bottom 60})
 
-(defn animated-sign-panel [bottom-value]
-  {:flex 1
-   :position :absolute
-   :left 0
-   :right 0
-   :bottom bottom-value
-   :margin-top 50
-   :z-index 4})
-
-(defn sign-panel [opacity-value]
-  {:margin-top 100
-   :border-top-left-radius 8
-   :border-top-right-radius 8
-   :background-color colors/white
-   :opacity opacity-value
-   :padding-top 12})
-
 (def spinner-container
   {:position        :absolute
    :left            0
