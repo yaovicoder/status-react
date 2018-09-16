@@ -428,7 +428,7 @@
     "currency-display-name-lrd": "Liberia Dollar",
     "leave": "Leave",
     "offline-messaging-settings": "Mailserver settings",
-    "qr-code-public-key-hint": "Share this code to \nstart chatting",
+    "qr-code-public-key-hint": "Share this code to start chatting",
     "submit-bug": "Submit a bug",
     "share": "Share",
     "recent-recipients": "Contacts",
@@ -704,5 +704,10 @@
     "send-request-amount-invalid-number": "Amount is not a valid number",
     "send-request-amount-max-decimals": "Max number of decimals is {{asset-decimals}}",
     "send-command-payment": "Send a payment",
-    "request-command-payment": "Request a payment"
+    "request-command-payment": "Request a payment",
+    "share-chat": "Share chat",
+    "share-link": "Share link",
+    "share-profile-link": "Share profile link",
+    "share-public-chat-text": "Check out this public chat on the Status app: {{link}}",
+    "share-dapp-text": "Check out this DApp I'm using on Status: {{link}}"
 }
