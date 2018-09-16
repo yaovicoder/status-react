@@ -426,7 +426,7 @@
     "currency-display-name-lrd": "Liberia Dollar",
     "leave": "Leave",
     "offline-messaging-settings": "Mailserver settings",
-    "qr-code-public-key-hint": "Share this code to \nstart chatting",
+    "qr-code-public-key-hint": "Share this code to start chatting",
     "submit-bug": "Submit a bug",
     "share": "Share",
     "recent-recipients": "Contacts",
@@ -732,5 +732,10 @@
     "create-pin-description": "You'll need your card + this PIN to log in and to confirm transactions",
     "repeat-pin": "Repeate your PIN",
     "pin-mismatch": "PIN does not match",
-    "view-my-wallet": "View my wallet"
+    "view-my-wallet": "View my wallet",
+    "share-chat": "Share chat",
+    "share-link": "Share link",
+    "share-profile-link": "Share profile link",
+    "share-public-chat-text": "Check out this public chat on the Status app: {{link}}",
+    "share-dapp-text": "Check out this DApp I'm using on Status: {{link}}"
 }
