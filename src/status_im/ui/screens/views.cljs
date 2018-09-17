@@ -77,27 +77,12 @@
            (log/debug :on-will-focus view-id)
            (re-frame/dispatch [:set :view-id view-id]))}]])))
 
-(defn stack-screens [screens-map]
-  (->> screens-map
-       (map (fn [[k v]]
-              (let [screen (cond
-                             (map? v)
-                             (let [{:keys [screens config]} v]
-                               (nav-reagent/stack-navigator
-                                (stack-screens screens)
-                                config))
-
-                             :else
-                             (nav-reagent/stack-screen (wrap k v)))]
-                [k {:screen screen}])))
-       (into {})))
-
 (defn wrap-modal [modal-view component]
   (fn []
     (if platform/android?
       [view common-styles/modal
-       [modal {:transparent    true
-               :animation-type :slide
+       [modal {:transparent      true
+               :animation-type   :slide
                :on-request-close (fn []
                                    (cond
                                      (#{:wallet-send-transaction-modal
@@ -111,6 +96,26 @@
          [component]]]]
       [react/main-screen-modal-view modal-view
        [component]])))
+
+(defn stack-screens [screens-map]
+  (->> screens-map
+       (map (fn [[k v]]
+              (let [screen (cond
+                             (map? v)
+                             (let [{:keys [screens config]} v]
+                               (nav-reagent/stack-navigator
+                                (stack-screens screens)
+                                config))
+
+                             (vector? v)
+                             (let [[_ screen] v]
+                               (nav-reagent/stack-screen
+                                (wrap-modal k screen)))
+
+                             :else
+                             (nav-reagent/stack-screen (wrap k v)))]
+                [k {:screen screen}])))
+       (into {})))
 
 (defn get-main-component2 [view-id]
   (log/debug :component2 view-id)
@@ -155,13 +160,13 @@
         :wallet-send-modal-stack
         {:screens
          {:wallet-send-transaction-modal
-          (wrap-modal :wallet-send-transaction-modal send-transaction-modal)
+          [:modal send-transaction-modal]
 
           :wallet-transaction-sent
-          (wrap-modal :wallet-transaction-sent transaction-sent-modal)
+          [:modal transaction-sent-modal]
 
           :wallet-transaction-fee
-          (wrap-modal :wallet-transaction-fee wallet.transaction-fee/transaction-fee)}
+          [:modal wallet.transaction-fee/transaction-fee]}
          :config
          {:headerMode       "none"
           :initialRouteName "wallet-send-transaction-modal"}}
@@ -169,16 +174,16 @@
         :wallet-send-modal-stack-with-onboarding
         {:screens
          {:wallet-onboarding-setup-modal
-          (wrap-modal :wallet-onboarding-setup-modal wallet.onboarding.setup/modal)
+          [:modal wallet.onboarding.setup/modal]
 
           :wallet-send-transaction-modal
-          (wrap-modal :wallet-send-transaction-modal send-transaction-modal)
+          [:modal send-transaction-modal]
 
           :wallet-transaction-sent
-          (wrap-modal :wallet-transaction-sent transaction-sent-modal)
+          [:modal transaction-sent-modal]
 
           :wallet-transaction-fee
-          (wrap-modal :wallet-transaction-fee wallet.transaction-fee/transaction-fee)}
+          [:modal wallet.transaction-fee/transaction-fee]}
          :config
          {:headerMode       "none"
           :initialRouteName "wallet-onboarding-setup-modal"}}
@@ -314,6 +319,7 @@
           [:> @main-component
            {:ref            (fn [r]
                               (navigation/set-navigator-ref r)
-                              (navigation/navigate-to @view-id))
+                              (when platform/android?
+                                (navigation/navigate-to @view-id)))
             ;; see https://reactnavigation.org/docs/en/state-persistence.html#development-mode
             :persistenceKey (when js/goog.DEBUG rand-label)}]))})))
