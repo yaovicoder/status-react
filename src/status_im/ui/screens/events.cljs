@@ -86,8 +86,8 @@
 
 (re-frame/reg-fx
  :ui/show-confirmation
- (fn [{:keys [title content confirm-button-text cancel-button-text on-accept on-cancel]}]
-   (utils/show-confirmation nil title content confirm-button-text on-accept on-cancel cancel-button-text)))
+ (fn [{:keys [title content confirm-button-text cancel-button-text on-accept on-cancel options]}]
+   (utils/show-confirmation options title content confirm-button-text on-accept on-cancel cancel-button-text)))
 
 (re-frame/reg-fx
  :ui/close-application
