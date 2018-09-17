@@ -3,7 +3,8 @@ from _pytest.outcomes import Failed
 from decimal import Decimal as d
 from selenium.common.exceptions import TimeoutException
 
-from tests import marks, transaction_users, common_password, group_chat_users, transaction_users_wallet, unique_password
+from tests import marks, common_password, unique_password, basic_user
+from tests.users import users as transaction_users
 from tests.base_test_case import MultipleDeviceTestCase, SingleDeviceTestCase
 from views.sign_in_view import SignInView
 
@@ -15,7 +16,7 @@ class TestCommandsMultipleDevices(MultipleDeviceTestCase):
     @marks.smoke_1
     @marks.testrail_id(3697)
     def test_network_mismatch_for_send_request_commands(self):
-        sender = self.senders['d_user'] = transaction_users['D_USER']
+        sender = self.senders['d_user'] = transaction_users['D']
         self.create_drivers(2)
         device_1_sign_in, device_2_sign_in = SignInView(self.drivers[0]), SignInView(self.drivers[1])
         device_1_sign_in.recover_access(passphrase=sender['passphrase'], password=sender['password'])
@@ -72,8 +73,8 @@ class TestCommandsMultipleDevices(MultipleDeviceTestCase):
     @marks.testrail_id(765)
     @marks.smoke_1
     def test_send_eth_in_1_1_chat(self):
-        recipient = transaction_users['D_USER']
-        sender = self.senders['c_user'] = transaction_users['C_USER']
+        recipient = transaction_users['K']
+        sender = self.senders['a_user'] = transaction_users['A']
         self.create_drivers(2)
         device_1, device_2 = SignInView(self.drivers[0]), SignInView(self.drivers[1])
         home_1 = device_1.recover_access(passphrase=sender['passphrase'], password=sender['password'])
@@ -139,8 +140,8 @@ class TestCommandsMultipleDevices(MultipleDeviceTestCase):
     @marks.testrail_id(1391)
     @marks.smoke_1
     def test_request_and_receive_eth_in_1_1_chat(self):
-        recipient = transaction_users['C_USER']
-        sender = self.senders['d_user'] = transaction_users['D_USER']
+        recipient = transaction_users['L']
+        sender = self.senders['d_user'] = transaction_users['J']
         self.create_drivers(2)
         device_1, device_2 = SignInView(self.drivers[0]), SignInView(self.drivers[1])
         home_1 = device_1.recover_access(passphrase=sender['passphrase'], password=sender['password'])
@@ -179,7 +180,7 @@ class TestCommandsMultipleDevices(MultipleDeviceTestCase):
         self.create_drivers(2)
         device_1, device_2 = SignInView(self.drivers[0]), SignInView(self.drivers[1])
         username_1 = 'user_1'
-        recipient = group_chat_users['C_USER']
+        recipient = transaction_users['O']
 
         home_1 = device_1.create_user(username=username_1)
         home_2 = device_2.recover_access(passphrase=recipient['passphrase'], password=recipient['password'])
@@ -217,7 +218,7 @@ class TestCommandsMultipleDevices(MultipleDeviceTestCase):
     @marks.testrail_id(1417)
     def test_contact_profile_send_transaction(self):
         self.create_drivers(1)
-        recipient = transaction_users['B_USER']
+        recipient = basic_user
         sign_in_view = SignInView(self.drivers[0])
         sign_in_view.create_user()
         home_view = sign_in_view.get_home_view()
@@ -245,8 +246,8 @@ class TestCommandsMultipleDevices(MultipleDeviceTestCase):
     @marks.testrail_id(3744)
     @marks.smoke_1
     def test_send_tokens_in_1_1_chat(self):
-        recipient = transaction_users['D_USER']
-        sender = transaction_users['C_USER']
+        recipient = transaction_users['D']
+        sender = transaction_users['C']
         self.create_drivers(2)
         device_1, device_2 = SignInView(self.drivers[0]), SignInView(self.drivers[1])
         home_1 = device_1.recover_access(passphrase=sender['passphrase'], password=sender['password'])
@@ -276,8 +277,8 @@ class TestCommandsMultipleDevices(MultipleDeviceTestCase):
     @marks.testrail_id(3748)
     @marks.smoke_1
     def test_request_and_receive_tokens_in_1_1_chat(self):
-        recipient = transaction_users['C_USER']
-        sender = transaction_users['D_USER']
+        recipient = transaction_users['C']
+        sender = transaction_users['D']
         self.create_drivers(2)
         device_1, device_2 = SignInView(self.drivers[0]), SignInView(self.drivers[1])
         home_1 = device_1.recover_access(passphrase=sender['passphrase'], password=sender['password'])
@@ -311,8 +312,8 @@ class TestCommandsMultipleDevices(MultipleDeviceTestCase):
     @marks.testrail_id(3749)
     @marks.smoke_1
     def test_transaction_confirmed_on_recipient_side(self):
-        recipient = transaction_users['D_USER']
-        sender = transaction_users['C_USER']
+        recipient = transaction_users['D']
+        sender = transaction_users['C']
         self.create_drivers(2)
         device_1, device_2 = SignInView(self.drivers[0]), SignInView(self.drivers[1])
         home_1 = device_1.recover_access(passphrase=sender['passphrase'], password=sender['password'])
@@ -355,7 +356,7 @@ class TestCommandsSingleDevices(SingleDeviceTestCase):
     @marks.logcat
     @marks.testrail_id(3771)
     def test_logcat_send_transaction_in_1_1_chat(self):
-        sender = transaction_users['C_USER']
+        sender = transaction_users['C']
         sign_in = SignInView(self.driver)
         home = sign_in.recover_access(passphrase=sender['passphrase'], password=unique_password)
         wallet = home.wallet_button.click()
@@ -369,8 +370,8 @@ class TestCommandsSingleDevices(SingleDeviceTestCase):
     @marks.testrail_id(3736)
     @marks.smoke_1
     def test_send_transaction_details_in_1_1_chat(self):
-        recipient = transaction_users['D_USER']
-        sender = transaction_users['C_USER']
+        recipient = transaction_users['D']
+        sender = transaction_users['C']
         sign_in = SignInView(self.driver)
         home = sign_in.recover_access(passphrase=sender['passphrase'], password=sender['password'])
         wallet = home.wallet_button.click()
@@ -399,7 +400,7 @@ class TestCommandsSingleDevices(SingleDeviceTestCase):
     @marks.testrail_id(3750)
     @marks.smoke_1
     def test_transaction_confirmed_on_sender_side(self):
-        sender = transaction_users['D_USER']
+        sender = transaction_users['D']
         sign_in = SignInView(self.driver)
         home = sign_in.recover_access(passphrase=sender['passphrase'], password=sender['password'])
         wallet = home.wallet_button.click()
@@ -441,7 +442,7 @@ class TestCommandsSingleDevices(SingleDeviceTestCase):
 
     @marks.testrail_id(3793)
     def test_insufficient_funds_1_1_chat_positive_balance(self):
-        sender = transaction_users_wallet['A_USER']
+        sender = transaction_users['M']
         sign_in_view = SignInView(self.driver)
         sign_in_view.recover_access(sender['passphrase'], sender['password'])
         wallet_view = sign_in_view.wallet_button.click()
