@@ -66,6 +66,7 @@
      [advanced-cartouche transaction])])
 
 (defn send-button [spinning? sign-handler]
+  (log/info (str sign-handler))
   [react/view {:flex 1}
    [button/secondary-button {:style               styles/password-button
                              :on-press            sign-handler
@@ -105,6 +106,8 @@
                                :padding-horizontal 15}}
            [react/view styles/signing-phrase-container
             [react/text {:style               styles/signing-phrase
+                         :font                :roboto-mono
+                         :number-of-lines     1
                          :accessibility-label :signing-phrase-text}
              signing-phrase]]
            (when amount-text
@@ -152,10 +155,8 @@
   (let [{:keys [in-progress? show-password-input?]} transaction]
     [react/view {:flex 1
                  :flex-direction :row}
-     [(if modal?
-        react/view
-        react/keyboard-avoiding-view) {:flex 1
-                                       :background-color colors/blue}
+     [react/view {:flex 1
+                  :background-color colors/blue}
       [status-bar/status-bar {:type (if modal? :modal-wallet :wallet)}]
       [toolbar modal? (i18n/label toolbar-title-label)]
       current-view]
