@@ -408,7 +408,7 @@
     "success": "Success",
     "specify-bootnode-address": "Specify bootnode address",
     "wallet-setup-description": "You should see these three emojis before\nsigning any transaction.",
-    "wallet-setup-warning": "If you see a different combo, cancel\nthe transaction and logout",
+    "wallet-setup-warning": "If you see a different combo, cancel the transaction and logout",
     "currency-display-name-thb": "Thailand Baht",
     "transactions-filter-type": "Type",
     "next": "Next",
