@@ -284,10 +284,8 @@
   view)
 
 (views/defview main-screen-modal-view [current-view & components]
-  (views/letsubs [signing? [:get-in [:wallet :send-transaction :show-password-input?]]]
+  (views/letsubs []
     (let [main-screen-view (create-main-screen-view current-view)]
       [main-screen-view styles/flex
        [keyboard-avoiding-view {:flex 1 :flex-direction :column}
-        (apply vector view styles/flex components)
-        (when (and platform/iphone-x? (not signing?))
-          [view {:flex 0 :height 34}])]])))
+        (apply vector view styles/flex components)]])))
