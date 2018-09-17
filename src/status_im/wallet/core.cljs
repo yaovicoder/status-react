@@ -12,4 +12,5 @@
     :content             (i18n/label :t/wallet-setup-confirm-description)
     :confirm-button-text (i18n/label :t/got-it)
     :cancel-button-text  (i18n/label :t/see-it-again)
-    :on-accept           #(re-frame/dispatch [:accounts.ui/wallet-setup-confirmed modal?])}})
+    :on-accept           #(re-frame/dispatch [:accounts.ui/wallet-setup-confirmed modal?])
+    :options             {:ios-confirm-style "default"}}})
