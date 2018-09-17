@@ -153,8 +153,8 @@
 (def fee-buttons
   {:background-color colors/blue})
 
-(def password-error-tooltip
-  {:bottom-value 15
+(defn password-error-tooltip [sending?]
+  {:bottom-value (if sending? -250 -200)
    :color        colors/red-light})
 
 (defstyle gas-input-error-tooltip
