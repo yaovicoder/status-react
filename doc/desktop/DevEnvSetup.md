@@ -28,8 +28,7 @@ npm install -g
     ``` bash
     git clone https://github.com/status-im/status-react.git
     cd status-react
-    scripts/prepare-for-platform.sh desktop
-    npm install
+    make prepare-desktop
     ln -sf './node_modules/re-natal/index.js' './re-natal'
     ./re-natal use-figwheel
     ./re-natal enable-source-maps
