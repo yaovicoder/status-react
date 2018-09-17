@@ -308,7 +308,8 @@
                                          assoc
                                          :amount (money/formatted->internal value symbol decimals)
                                          :amount-text amount
-                                         :amount-error error)
+                                         :amount-error error
+                                         :show-password-input? true)
                               (choose-recipient.events/fill-request-details
                                (transaction-details recipient-contact symbol))
                               (update-in [:wallet :send-transaction]
