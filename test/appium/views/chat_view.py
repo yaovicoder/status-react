@@ -1,6 +1,8 @@
 import time
 
 from selenium.common.exceptions import TimeoutException, NoSuchElementException
+
+from tests import common_password
 from views.base_element import BaseButton, BaseEditBox, BaseText
 from views.base_view import BaseView, ProgressBar
 from views.profile_view import ProfilePictureElement, PublicKeyText
@@ -335,7 +337,7 @@ class ChatView(BaseView):
         self.clear_history_button.click()
         self.clear_button.click()
 
-    def send_transaction_in_1_1_chat(self, asset, amount, password, wallet_set_up=False):
+    def send_transaction_in_1_1_chat(self, asset, amount, password=common_password, wallet_set_up=False):
         self.commands_button.click()
         self.send_command.click()
         self.asset_by_name(asset).click()
