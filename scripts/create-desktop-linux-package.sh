@@ -11,13 +11,7 @@ STATUSREACTPATH="$SCRIPTPATH/.."
 WORKFOLDER="$STATUSREACTPATH/StatusImPackage"
 LINUXDEPLOYQT="./linuxdeployqt-continuous-x86_64.AppImage"
 QTBIN="$QT_PATH/gcc_64/bin/"
-
-joinStrings() {
-  local arr=("$@")
-  printf -v var "%s;" "${arr[@]}"
-  var=${var%?}
-  echo ${var[@]}
-}
+OS=$(uname -s)
 
 external_modules_dir=( \
   'node_modules/react-native-i18n/desktop' \
@@ -37,115 +31,140 @@ external_fonts=( \
   '../../../../../resources/fonts/SF-Pro-Text-Light.otf' \
 )
 
-# create directory for all work related to bundling
-rm -rf $WORKFOLDER
-mkdir -p $WORKFOLDER
-echo -e "${GREEN}Work folder created: $WORKFOLDER${NC}"
-echo ""
+function is_macos() {
+  [[ "$OS" =~ Darwin ]]
+}
 
-# from index.desktop.js create javascript bundle and resources folder
-echo "Generating StatusIm.jsbundle and assets folder..."
-react-native bundle --entry-file index.desktop.js --bundle-output $WORKFOLDER/StatusIm.jsbundle \
-                    --dev false --platform desktop --assets-dest $WORKFOLDER/assets
-echo -e "${GREEN}Generating done.${NC}"
-echo ""
+function is_linux() {
+  [[ "$OS" =~ Linux ]]
+}
 
-# # show path to javascript bundle and line that should be added to package.json
-jsBundleLine="\"desktopJSBundlePath\": \"$WORKFOLDER/StatusIm.jsbundle\""
-if grep -Fq "$jsBundleLine" "$STATUSREACTPATH/package.json"; then
-  echo -e "${GREEN}Found line in package.json.${NC}"
+function init() {
+  if is_macos; then
+    WORKFOLDER="$STATUSREACTPATH/mac_bundle"
+    QTBIN="$QT_PATH/clang_64/bin/"
+  fi
+}
+
+function joinStrings() {
+  local arr=("$@")
+  printf -v var "%s;" "${arr[@]}"
+  var=${var%?}
+  echo ${var[@]}
+}
+
+function buildClojureScript() {
+  # create directory for all work related to bundling
+  rm -rf $WORKFOLDER
+  mkdir -p $WORKFOLDER
+  echo -e "${GREEN}Work folder created: $WORKFOLDER${NC}"
+  echo ""
+
+  # from index.desktop.js create javascript bundle and resources folder
+  echo "Generating StatusIm.jsbundle and assets folder..."
+  react-native bundle --entry-file index.desktop.js --bundle-output $WORKFOLDER/StatusIm.jsbundle \
+                      --dev false --platform desktop --assets-dest $WORKFOLDER/assets
+  echo -e "${GREEN}Generating done.${NC}"
+  echo ""
+
+  # Add path to javascript bundle to package.json
+  jsBundleLine="\"desktopJSBundlePath\": \"$WORKFOLDER/StatusIm.jsbundle\""
+  if grep -Fq "$jsBundleLine" "$STATUSREACTPATH/desktop_files/package.json"; then
+    echo -e "${GREEN}Found line in package.json.${NC}"
+  else
+    sed -i "/\"dependencies\":/i\  $jsBundleLine," "$STATUSREACTPATH/desktop_files/package.json"
+    echo -e "${YELLOW}Added 'desktopJSBundlePath' line to desktop_files/package.json:${NC}"
+    echo ""
+  fi
+}
+
+function compileLinux() {
+  # Compile
+  pushd desktop
+    rm -rf CMakeFiles CMakeCache.txt cmake_install.cmake Makefile
+    cmake -Wno-dev \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DEXTERNAL_MODULES_DIR="$(joinStrings ${external_modules_dir[@]})" \
+          -DDESKTOP_FONTS="$(joinStrings ${external_fonts[@]})" \
+          -DJS_BUNDLE_PATH="$WORKFOLDER/StatusIm.jsbundle" \
+          -DCMAKE_CXX_FLAGS:='-DBUILD_FOR_BUNDLE=1 -std=c++11'
+    make
+  popd
+}
+
+function bundleLinux() {
+  # invoke linuxdeployqt to create StatusIm.AppImage
+  echo "Creating AppImage..."
+
+  pushd $WORKFOLDER
+    rm -rf StatusImAppImage
+    # TODO this needs to be fixed: status-react/issues/5378
+    [ -f ./StatusImAppImage.zip ] || wget https://github.com/status-im/StatusAppFiles/raw/master/StatusImAppImage.zip
+    unzip ./StatusImAppImage.zip
+    rm -rf AppDir
+    mkdir AppDir
+  popd
+
+  cp -r ./deployment/linux/usr ${WORKFOLDER}/AppDir
+  cp ./deployment/env ${WORKFOLDER}/AppDir/usr/bin
+  cp ./desktop/bin/StatusIm ${WORKFOLDER}/AppDir/usr/bin
+  cp ./desktop/reportApp/reportApp ${WORKFOLDER}/AppDir/usr/bin
+  if [ ! -f $LINUXDEPLOYQT ]; then
+    wget --output-document="$LINUXDEPLOYQT" --show-progress -q https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
+    chmod a+x $LINUXDEPLOYQT
+  fi
+
+  rm -f Application-x86_64.AppImage
+  rm -f StatusIm-x86_64.AppImage
+
+  ldd ${WORKFOLDER}/AppDir/usr/bin/StatusIm
+  $LINUXDEPLOYQT \
+    ${WORKFOLDER}/AppDir/usr/bin/reportApp \
+    -verbose=3 -always-overwrite -no-strip -no-translations -qmake="${QTBIN}/qmake" \
+    -qmldir="${STATUSREACTPATH}/desktop/reportApp"
+
+  $LINUXDEPLOYQT \
+    ${WORKFOLDER}/AppDir/usr/share/applications/StatusIm.desktop \
+    -verbose=3 -always-overwrite -no-strip \
+    -no-translations -bundle-non-qt-libs \
+    -qmake=${QTBIN}/qmake \
+    -extra-plugins=imageformats/libqsvg.so \
+    -qmldir="${STATUSREACTPATH}/node_modules/react-native"
+
+  pushd $WORKFOLDER
+    ldd AppDir/usr/bin/StatusIm
+    cp -r assets/share/assets AppDir/usr/bin
+    cp -rf StatusImAppImage/* AppDir/usr/bin
+    rm -f AppDir/usr/bin/StatusIm.AppImage
+  popd
+
+  $LINUXDEPLOYQT \
+    $WORKFOLDER/AppDir/usr/share/applications/StatusIm.desktop \
+    -verbose=3 -appimage -qmake=${QTBIN}/qmake
+  pushd $WORKFOLDER
+    ldd AppDir/usr/bin/StatusIm
+    cp -r assets/share/assets AppDir/usr/bin
+    cp -rf StatusImAppImage/* AppDir/usr/bin
+    rm -f AppDir/usr/bin/StatusIm.AppImage
+  popd
+  $LINUXDEPLOYQT \
+    "$WORKFOLDER/AppDir/usr/share/applications/StatusIm.desktop" \
+    -verbose=3 -appimage -qmake=${QTBIN}/qmake
+  pushd $WORKFOLDER
+    ldd AppDir/usr/bin/StatusIm
+    rm -rf StatusIm.AppImage
+  popd
+
+  echo -e "${GREEN}Package ready in ./StatusIm-x86_64.AppImage!${NC}"
+  echo ""
+}
+
+init
+
+if [ -z "$@" ]; then
+  buildClojureScript
+  compileLinux
+  bundleLinux
 else
-  echo -e "${YELLOW}Please add the following line to package.json:${NC}"
-  echo "\"desktopJSBundlePath\": \"$WORKFOLDER/StatusIm.jsbundle\""
-  echo ""
-  read -p "When ready, plese press enter to continue"
-  echo ""
+  "$@"
 fi
-
-
-# build desktop app
-#echo "Building StatusIm desktop..."
-#react-native build-desktop
-#echo -e "${GREEN}Building done.${NC}"
-#echo ""
-
-#
-pushd desktop
-  rm -rf CMakeFiles CMakeCache.txt cmake_install.cmake Makefile
-  cmake -Wno-dev \
-        -DCMAKE_BUILD_TYPE=Release \
-        -DEXTERNAL_MODULES_DIR="$(joinStrings ${external_modules_dir[@]})" \
-        -DDESKTOP_FONTS="$(joinStrings ${external_fonts[@]})" \
-        -DJS_BUNDLE_PATH="$WORKFOLDER/StatusIm.jsbundle" \
-        -DCMAKE_CXX_FLAGS:='-DBUILD_FOR_BUNDLE=1 -std=c++11'
-  make
-popd
-
-# invoke linuxdeployqt to create StatusIm.AppImage
-echo "Creating AppImage..."
-
-pushd $WORKFOLDER
-  rm -rf StatusImAppImage
-  # TODO this needs to be fixed: status-react/issues/5378
-  [ -f ./StatusImAppImage.zip ] || curl -o ./StatusImAppImage.zip https://github.com/status-im/StatusAppFiles/raw/master/StatusImAppImage.zip
-  unzip ./StatusImAppImage.zip
-  rm -rf AppDir
-  mkdir AppDir
-popd
-
-cp -r ./deployment/linux/usr ${WORKFOLDER}/AppDir
-cp ./deployment/env ${WORKFOLDER}/AppDir/usr/bin
-cp ./desktop/bin/StatusIm ${WORKFOLDER}/AppDir/usr/bin
-cp ./desktop/reportApp/reportApp ${WORKFOLDER}/AppDir/usr/bin
-if [ ! -f $LINUXDEPLOYQT ]; then
-  wget --output-document="$LINUXDEPLOYQT" --show-progress -q https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
-  chmod a+x $LINUXDEPLOYQT
-fi
-
-rm -f Application-x86_64.AppImage
-rm -f StatusIm-x86_64.AppImage
-
-ldd ${WORKFOLDER}/AppDir/usr/bin/StatusIm
-$LINUXDEPLOYQT \
-  ${WORKFOLDER}/AppDir/usr/bin/reportApp \
-  -verbose=3 -always-overwrite -no-strip -no-translations -qmake="${QTBIN}/qmake" \
-  -qmldir="${STATUSREACTPATH}/desktop/reportApp"
-
-$LINUXDEPLOYQT \
-  ${WORKFOLDER}/AppDir/usr/share/applications/StatusIm.desktop \
-  -verbose=3 -always-overwrite -no-strip \
-  -no-translations -bundle-non-qt-libs \
-  -qmake=${QTBIN}/qmake \
-  -extra-plugins=imageformats/libqsvg.so \
-  -qmldir="${STATUSREACTPATH}/node_modules/react-native"
-
-pushd $WORKFOLDER
-  ldd AppDir/usr/bin/StatusIm
-  cp -r assets/share/assets AppDir/usr/bin
-  cp -rf StatusImAppImage/* AppDir/usr/bin
-  rm -f AppDir/usr/bin/StatusIm.AppImage
-popd
-
-$LINUXDEPLOYQT \
-  $WORKFOLDER/AppDir/usr/share/applications/StatusIm.desktop \
-  -verbose=3 -appimage -qmake=${QTBIN}/qmake
-pushd $WORKFOLDER
-  ldd AppDir/usr/bin/StatusIm
-  cp -r assets/share/assets AppDir/usr/bin
-  cp -rf StatusImAppImage/* AppDir/usr/bin
-  rm -f AppDir/usr/bin/StatusIm.AppImage
-popd
-$LINUXDEPLOYQT \
-  "$WORKFOLDER/AppDir/usr/share/applications/StatusIm.desktop" \
-  -verbose=3 -appimage -qmake=${QTBIN}/qmake
-pushd $WORKFOLDER
-  ldd AppDir/usr/bin/StatusIm
-  rm -rf StatusIm.AppImage
-  mv ../StatusIm-x86_64.AppImage StatusIm-x86_64.local.AppImage
-popd
-
-# Ensure ubuntu-server is not running in the background
-killall -r ".*ubuntu-server"
-
-echo -e "${GREEN}Package ready!${NC}"
-echo ""

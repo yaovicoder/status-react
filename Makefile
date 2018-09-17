@@ -70,6 +70,12 @@ ifeq ($(OS),Darwin)
 	scripts/create-desktop-mac-bundle.sh
 endif
 
+release-desktop-linux: prod-build-desktop ##@build build release for Linux desktop release
+	scripts/create-desktop-linux-package.sh
+
+release-desktop-mac: prod-build-desktop ##@build build release for MacOS desktop release
+	scripts/create-desktop-mac-bundle.sh
+
 prod-build:
 	lein prod-build
 
