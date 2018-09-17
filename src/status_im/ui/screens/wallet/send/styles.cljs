@@ -19,7 +19,7 @@
   {:flex 1
    :border-radius    200
    :border-width     1
-   :height           36
+   ;:height           36 ; don't use heigh, on ios it ruins everything
    :margin-vertical 24
    :padding-vertical 25
    :padding-horizontal 25
@@ -167,7 +167,7 @@
    :padding-vertical 5})
 
 (def emojis-tooltip
-  {:bottom-value -110
+  {:bottom-value 0
    :font-size    12
    :font-color   colors/white
    :color        colors/blue
