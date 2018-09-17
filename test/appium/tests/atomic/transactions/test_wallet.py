@@ -2,8 +2,9 @@ import random
 
 import pytest
 
-from tests import transaction_users, transaction_users_wallet, marks, common_password, unique_password
+from tests import marks, common_password, unique_password, basic_user
 from tests.base_test_case import SingleDeviceTestCase, MultipleDeviceTestCase
+from tests.users import users as transaction_users
 from views.sign_in_view import SignInView
 
 
@@ -13,8 +14,8 @@ class TestTransactionWalletSingleDevice(SingleDeviceTestCase):
     @marks.testrail_id(766)
     @marks.smoke_1
     def test_send_eth_from_wallet_to_contact(self):
-        recipient = transaction_users['F_USER']
-        sender = transaction_users['E_USER']
+        recipient = basic_user
+        sender = transaction_users['E']
         sign_in_view = SignInView(self.driver)
         sign_in_view.recover_access(sender['passphrase'], sender['password'])
         home_view = sign_in_view.get_home_view()
@@ -38,8 +39,8 @@ class TestTransactionWalletSingleDevice(SingleDeviceTestCase):
     @marks.testrail_id(767)
     @marks.smoke_1
     def test_send_eth_from_wallet_to_address(self):
-        recipient = transaction_users['E_USER']
-        sender = transaction_users['F_USER']
+        recipient = basic_user
+        sender = transaction_users['F']
         sign_in_view = SignInView(self.driver)
         home_view = sign_in_view.recover_access(sender['passphrase'], sender['password'])
         wallet_view = home_view.wallet_button.click()
@@ -59,8 +60,8 @@ class TestTransactionWalletSingleDevice(SingleDeviceTestCase):
     @marks.testrail_id(1430)
     @marks.smoke_1
     def test_send_stt_from_wallet(self):
-        sender = transaction_users_wallet['A_USER']
-        recipient = transaction_users_wallet['B_USER']
+        recipient = basic_user
+        sender = transaction_users['I']
         sign_in_view = SignInView(self.driver)
         sign_in_view.recover_access(sender['passphrase'], sender['password'])
         home_view = sign_in_view.get_home_view()
@@ -85,8 +86,8 @@ class TestTransactionWalletSingleDevice(SingleDeviceTestCase):
 
     @marks.testrail_id(2164)
     def test_transaction_wrong_password_wallet(self):
-        recipient = transaction_users['E_USER']
-        sender = transaction_users['F_USER']
+        recipient = basic_user
+        sender = transaction_users['E']
         sign_in_view = SignInView(self.driver)
         sign_in_view.recover_access(sender['passphrase'], sender['password'])
         home_view = sign_in_view.get_home_view()
@@ -109,7 +110,7 @@ class TestTransactionWalletSingleDevice(SingleDeviceTestCase):
 
     @marks.testrail_id(1452)
     def test_transaction_appears_in_history(self):
-        recipient = transaction_users['B_USER']
+        recipient = basic_user
         sign_in_view = SignInView(self.driver)
         sign_in_view.create_user()
         home_view = sign_in_view.get_home_view()
@@ -136,8 +137,8 @@ class TestTransactionWalletSingleDevice(SingleDeviceTestCase):
 
     @marks.testrail_id(2163)
     def test_send_eth_from_wallet_incorrect_address(self):
-        recipient = transaction_users['E_USER']
-        sender = transaction_users['F_USER']
+        recipient = basic_user
+        sender = transaction_users['F']
         sign_in_view = SignInView(self.driver)
         sign_in_view.recover_access(sender['passphrase'], sender['password'])
         home_view = sign_in_view.get_home_view()
@@ -157,8 +158,8 @@ class TestTransactionWalletSingleDevice(SingleDeviceTestCase):
     @marks.logcat
     @marks.testrail_id(3770)
     def test_logcat_send_transaction_from_wallet(self):
-        sender = transaction_users['E_USER']
-        recipient = transaction_users['F_USER']
+        sender = transaction_users['L']
+        recipient = basic_user
         sign_in_view = SignInView(self.driver)
         sign_in_view.recover_access(sender['passphrase'], unique_password)
         home_view = sign_in_view.get_home_view()
@@ -179,8 +180,8 @@ class TestTransactionWalletSingleDevice(SingleDeviceTestCase):
     @marks.testrail_id(3746)
     @marks.smoke_1
     def test_send_token_with_7_decimals(self):
-        sender = transaction_users_wallet['A_USER']
-        recipient = transaction_users_wallet['B_USER']
+        sender = transaction_users['I']
+        recipient = basic_user
         sign_in_view = SignInView(self.driver)
         sign_in_view.recover_access(sender['passphrase'], sender['password'])
         home_view = sign_in_view.get_home_view()
@@ -206,7 +207,7 @@ class TestTransactionWalletSingleDevice(SingleDeviceTestCase):
     @marks.testrail_id(3747)
     @marks.smoke_1
     def test_token_with_more_than_allowed_decimals(self):
-        sender = transaction_users_wallet['A_USER']
+        sender = transaction_users['I']
         sign_in_view = SignInView(self.driver)
         sign_in_view.recover_access(sender['passphrase'], sender['password'])
         wallet_view = sign_in_view.wallet_button.click()
@@ -234,7 +235,7 @@ class TestTransactionWalletSingleDevice(SingleDeviceTestCase):
 
     @marks.testrail_id(1405)
     def test_send_valid_amount_after_insufficient_funds_error(self):
-        sender = transaction_users['G_USER']
+        sender = transaction_users['G']
         sign_in_view = SignInView(self.driver)
         sign_in_view.recover_access(sender['passphrase'], sender['password'])
         wallet_view = sign_in_view.wallet_button.click()
@@ -277,7 +278,7 @@ class TestTransactionWalletSingleDevice(SingleDeviceTestCase):
 
     @marks.testrail_id(3792)
     def test_insufficient_funds_wallet_positive_balance(self):
-        sender = transaction_users_wallet['A_USER']
+        sender = transaction_users['I']
         sign_in_view = SignInView(self.driver)
         sign_in_view.recover_access(sender['passphrase'], sender['password'])
         wallet_view = sign_in_view.wallet_button.click()
@@ -305,7 +306,7 @@ class TestTransactionWalletSingleDevice(SingleDeviceTestCase):
 
     @marks.testrail_id(3728)
     def test_modify_transaction_fee_values(self):
-        sender = transaction_users['H_USER']
+        sender = transaction_users['H']
         sign_in_view = SignInView(self.driver)
         sign_in_view.recover_access(sender['passphrase'], sender['password'])
         wallet_view = sign_in_view.wallet_button.click()
@@ -362,8 +363,8 @@ class TestTransactionWalletMultipleDevice(MultipleDeviceTestCase):
     @marks.testrail_id(3761)
     @marks.smoke_1
     def test_transaction_message_sending_from_wallet(self):
-        recipient = transaction_users['D_USER']
-        sender = transaction_users['C_USER']
+        recipient = basic_user
+        sender = transaction_users['C']
         self.create_drivers(2)
         device_1, device_2 = SignInView(self.drivers[0]), SignInView(self.drivers[1])
         home_1 = device_1.recover_access(passphrase=sender['passphrase'], password=sender['password'])
