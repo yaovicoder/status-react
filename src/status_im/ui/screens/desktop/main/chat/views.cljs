@@ -180,7 +180,7 @@
                     :current-public-key current-public-key)]))]]
        [connectivity/error-view]])))
 
-(views/defview chat-text-input [{:keys [set-container-height-fn]}]
+(views/defview chat-text-input []
   (views/letsubs [inp-ref (atom nil)]
     (let [component              (reagent/current-component)
           set-container-height-fn #(reagent/set-state component {:container-height %})
