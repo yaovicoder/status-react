@@ -81,7 +81,7 @@
             opacity-value   (animation/create-value 0)]
     {:component-did-mount #(send.animations/animate-sign-panel opacity-value bottom-value)}
     (let [{:keys [in-progress? symbol amount-text]} transaction]
-      [react/keyboard-avoiding-view {:style {:top 0 :bottom 0 :right 0 :left 0 :position :absolute}}
+      [react/view {:style {:top 0 :bottom 0 :right 0 :left 0 :position :absolute}}
        [react/touchable-highlight {:style {:position :absolute
                                            :top 0
                                            :left 0
@@ -227,11 +227,12 @@
             advanced?   [:wallet.send/advanced?]
             network     [:get-current-account-network]
             scroll      (atom nil)]
-    [send-transaction-view {:modal? false
-                            :transaction transaction
-                            :scroll scroll
-                            :advanced? advanced?
-                            :network network}]))
+    [react/keyboard-avoiding-view {:flex 1}
+     [send-transaction-view {:modal? false
+                             :transaction transaction
+                             :scroll scroll
+                             :advanced? advanced?
+                             :network network}]]))
 
 ;; SEND TRANSACTION FROM DAPP
 (defview send-transaction-modal []
