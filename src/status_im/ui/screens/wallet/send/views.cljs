@@ -67,7 +67,7 @@
 
 (defn send-button [spinning? sign-handler]
   [react/view {:flex 1}
-   [button/secondary-button {:style              styles/password-button
+   [button/secondary-button {:style               styles/password-button
                              :on-press            sign-handler
                              :disabled?           spinning?
                              :accessibility-label :sign-transaction-button}
@@ -107,9 +107,9 @@
             [react/text {:style               styles/signing-phrase
                          :accessibility-label :signing-phrase-text}
              signing-phrase]]
-           (when (and amount-text symbol)
+           (when amount-text
              [react/text {:style styles/transaction-amount}
-              (str "Send " amount-text " " (name symbol))])
+              (str (i18n/label :t/wallet-send) " " amount-text " " (name symbol))])
            [react/view {:style                       styles/password-container
                         :important-for-accessibility :no-hide-descendants}
             [react/text-input
@@ -122,6 +122,8 @@
               :accessibility-label    :enter-password-input
               :auto-capitalize        :none}]]
            [send-button in-progress? sign-handler]]]]]
+       (when wrong-password?
+         [tooltip/tooltip (i18n/label :t/wrong-password) (styles/password-error-tooltip amount-text)])
        [tooltip/tooltip (i18n/label :t/password-input-drawer-tooltip) styles/emojis-tooltip]
        [react/view styles/spinner-container
         (when in-progress?

@@ -89,7 +89,9 @@
                                        (#{:wallet-send-transaction-modal
                                           :wallet-sign-message-modal}
                                         modal-view)
-                                       (dispatch [:wallet/discard-transaction-navigate-back])
+                                       (if signing?
+                                         (dispatch [:wallet/cancel-entering-password])
+                                         (dispatch [:wallet/discard-transaction-navigate-back]))
 
                                        :else
                                        (dispatch [:navigate-back])))}
