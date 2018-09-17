@@ -74,7 +74,9 @@
    (let [{:keys [data from password]} (get-in db [:wallet :send-transaction])]
      {:db            (assoc-in db [:wallet :send-transaction :in-progress?] true)
       ::sign-message {:params       {:data     data
-                                     :password (security/unmask password)
+                                     :password (if password
+                                                 (security/unmask password)
+                                                 "")
                                      :account  from}
                       :on-completed #(re-frame/dispatch [::transaction-completed (types/json->clj %)])}})))
 
