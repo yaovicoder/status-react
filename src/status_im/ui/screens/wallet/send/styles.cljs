@@ -16,42 +16,41 @@
    :justify-content :center})
 
 (def signing-phrase-container
-  {:flex 1
-   :border-radius    200
-   :border-width     1
-   ;:height           36 ; don't use heigh, on ios it ruins everything
-   :margin-vertical 24
-   :padding-vertical 25
+  {:flex               1
+   :border-radius      200
+   :border-width       1
+   :margin-vertical    24
+   :padding-vertical   12
    :padding-horizontal 25
-   :align-items      :center
-   :justify-content  :center
-   :border-color colors/gray-light})
+   :align-items        :center
+   :justify-content    :center
+   :border-color       colors/gray-light})
 
 (def signing-phrase
   {:font-size      22
    :letter-spacing 10})
 
 (def transaction-amount
-  {:flex 1
-   :font-size 22
+  {:flex           1
+   :font-size      22
    :letter-spacing 0.35
-   :font-weight :bold
-   :text-align :center
-   :line-height 28
-   :margin-bottom 24
-   :color colors/black})
+   :font-weight    :bold
+   :text-align     :center
+   :line-height    28
+   :margin-bottom  24
+   :color          colors/black})
 
 (def signing-phrase-description
   {:padding-top 8})
 
 (def password-container
-  {:flex 1
-   :width "100%"
-   :margin-horizontal 40
-   :padding-vertical 17
+  {:flex               1
+   :width              "100%"
+   :margin-horizontal  40
+   :padding-vertical   17
    :padding-horizontal 14
-   :border-radius 8
-   :background-color colors/gray-lighter})
+   :border-radius      8
+   :background-color   colors/gray-lighter})
 
 (def password
   {:flex 1
@@ -153,22 +152,22 @@
   {:background-color colors/blue})
 
 (defn password-error-tooltip [sending?]
-  {:bottom-value (if sending? -250 -200)
+  {:bottom-value (if sending? -145 -95)
    :color        colors/red-light})
 
 (defstyle gas-input-error-tooltip
   {:android {:bottom-value -38}})
 
 (def password-button
-  {:margin-top 12
-   :margin-bottom 30
-   :width 135
+  {:margin-top         12
+   :margin-bottom      30
+   :width              135
    :padding-horizontal 25
-   :padding-vertical 5})
+   :padding-vertical   5})
 
 (def emojis-tooltip
-  {:bottom-value 0
-   :font-size    12
-   :font-color   colors/white
-   :color        colors/blue
+  {:bottom-value   -5
+   :font-size      12
+   :font-color     colors/white
+   :color          colors/blue
    :fading-timeout 3000})
