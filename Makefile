@@ -29,7 +29,7 @@ HELP_FUN = \
 # Main targets
 
 clean: ##@prepare Remove all output folders
-	git clean -qdxf -f android/ modules/react-native-status/ node_modules/ target/ desktop/
+	git clean -qdxf -f android/ modules/react-native-status/ node_modules/ target/ desktop/ StatusImPackage/
 
 setup: ##@prepare Install all the requirements for status-react
 	./scripts/setup
@@ -65,10 +65,7 @@ release-ios: prod-build-ios ##@build build release for iOS release
 	@echo "Build in XCode, see https://wiki.status.im/TBD for instructions"
 
 release-desktop: prod-build-desktop ##@build build release for desktop release
-	scripts/create-desktop-linux-package.sh
-ifeq ($(OS),Darwin)
-	scripts/create-desktop-mac-bundle.sh
-endif
+	scripts/build-desktop.sh
 
 prod-build:
 	lein prod-build
