@@ -65,16 +65,16 @@
    (when advanced?
      [advanced-cartouche transaction])])
 
-(defn send-button [spinning? sign-handler]
+(defn password-button [label spinning? sign-handler]
   [button/secondary-button {:style               styles/password-button
                             :on-press            sign-handler
                             :disabled?           spinning?
                             :accessibility-label :sign-transaction-button}
-   (i18n/label :t/command-button-send)])
+   (i18n/label label)])
 
 (def cancel-password-event #(re-frame/dispatch [:wallet/cancel-entering-password]))
 
-(defview password-input-drawer [{:keys [transaction sign-handler] :as opt}]
+(defview password-input-drawer [{:keys [transaction sign-handler password-button-label] :as opt}]
   (letsubs [wrong-password? [:wallet.send/wrong-password?]
             signing-phrase  [:wallet/signing-phrase]
             bottom-value    (animation/create-value -250)
@@ -125,7 +125,7 @@
              :style                  styles/password
              :accessibility-label    :enter-password-input
              :auto-capitalize        :none}]]
-          [send-button in-progress? sign-handler]]]
+          [password-button password-button-label in-progress? sign-handler]]]
         (when wrong-password?
           [tooltip/tooltip (i18n/label :t/wrong-password) (styles/password-error-tooltip amount-text)])
         [tooltip/tooltip (i18n/label :t/password-input-drawer-tooltip) styles/emojis-tooltip]
@@ -134,7 +134,9 @@
            [react/activity-indicator {:animating true
                                       :size      :large}]])]])))
 
-(defview sign-view-container [{:keys [modal? transaction toolbar-title-label sign-handler]} current-view]
+(defview sign-view-container [{:keys [modal? transaction toolbar-title-label
+                                      sign-handler password-button-label]}
+                              current-view]
   (let [{:keys [in-progress? show-password-input?]} transaction]
     [react/view {:flex 1
                  :flex-direction :row}
@@ -145,7 +147,8 @@
       current-view]
      (when show-password-input?
        [password-input-drawer {:transaction transaction
-                               :sign-handler sign-handler}])
+                               :sign-handler sign-handler
+                               :password-button-label password-button-label}])
      (when in-progress?
        [react/view styles/processing-view])]))
 
@@ -175,6 +178,7 @@
                           :show-password-input? show-password-input?
                           :transaction transaction
                           :toolbar-title-label :t/send-transaction
+                          :password-button-label :t/command-button-send
                           :sign-handler #(re-frame/dispatch [:wallet/send-transaction])}
      [react/view components.styles/flex
       [common/network-info {:text-color :white}]
@@ -259,6 +263,7 @@
     [sign-view-container {:modal? true
                           :transaction transaction
                           :toolbar-title-label :t/sign-message
+                          :password-button-label :t/transactions-sign
                           :sign-handler #(re-frame/dispatch [:wallet/sign-message])}
      [react/view components.styles/flex
       [react/scroll-view
