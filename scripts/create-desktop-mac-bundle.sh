@@ -27,7 +27,7 @@ command -v gdrive >/dev/null 2>&1 || { echo -e "${RED}gdrive tool need to be ins
 
 # inform user that define should be changed in "desktop/main.cpp"
 echo ""
-echo -e "${YELLOW}In desktop/main.cpp file please uncomment #define BULID_FOR_BUNDLE line.${NC}"
+echo -e "${YELLOW}In desktop/main.cpp file please uncomment #define BUILD_FOR_BUNDLE line.${NC}"
 read -p "When ready, plese press enter to continue"
 echo ""
 
