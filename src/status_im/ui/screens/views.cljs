@@ -312,6 +312,8 @@
       (fn []
         (when (and @view-id main-component)
           [:> @main-component
-           {:ref            navigation/set-navigator-ref
+           {:ref            (fn [r]
+                              (navigation/set-navigator-ref r)
+                              (navigation/navigate-to @view-id))
             ;; see https://reactnavigation.org/docs/en/state-persistence.html#development-mode
             :persistenceKey (when js/goog.DEBUG rand-label)}]))})))
