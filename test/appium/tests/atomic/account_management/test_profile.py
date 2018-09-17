@@ -1,7 +1,8 @@
 import pytest
 
-from tests import marks, group_chat_users, basic_user, bootnode_address, mailserver_address, camera_access_error_text, \
+from tests import marks, basic_user, bootnode_address, mailserver_address, camera_access_error_text, \
     photos_access_error_text
+from tests.users import users
 from tests.base_test_case import SingleDeviceTestCase, MultipleDeviceTestCase
 from views.sign_in_view import SignInView
 
@@ -59,7 +60,7 @@ class TestProfileSingleDevice(SingleDeviceTestCase):
         profile_view.copy_text()
         profile_view.cross_icon.click()
         home = profile_view.home_button.click()
-        chat = home.add_contact(group_chat_users['A_USER']['public_key'])
+        chat = home.add_contact(users['M']['public_key'])
         chat.chat_message_input.click()
         chat.paste_text()
         input_text = chat.chat_message_input.text
@@ -76,7 +77,7 @@ class TestProfileSingleDevice(SingleDeviceTestCase):
         wallet.copy_text()
         wallet.get_back_to_home_view()
         wallet.home_button.click()
-        home.get_chat_with_user(group_chat_users['A_USER']['username']).click()
+        home.get_chat_with_user(users['M']['username']).click()
         chat.chat_message_input.click()
         chat.paste_text()
         if chat.chat_message_input.text != address:
