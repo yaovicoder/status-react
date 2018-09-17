@@ -24,7 +24,9 @@
 
 (defn- send-ethers [params on-completed masked-password]
   (status/send-transaction (types/clj->json params)
-                           (security/unmask masked-password)
+                           (if masked-password
+                             (security/unmask masked-password)
+                             "")
                            on-completed))
 
 (defn- send-tokens [symbol chain {:keys [from to value gas gasPrice]} on-completed masked-password]
