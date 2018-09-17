@@ -691,5 +691,16 @@
     "default-dapps-fun-games": "Fun & Games",
     "default-dapps-social-networks": "Social Networks",
     "default-dapps-social-utilities": "Utilities",
-    "default-dapps-media": "Media"
+    "default-dapps-media": "Media",
+    "send-request-currency": "Currency",
+    "send-request-amount": "Amount",
+    "send-request-invalid-asset": "Invalid Asset",
+    "send-request-amount-must-be-specified": "Amount must be specified",
+    "send-request-unknown-token": "Unknown token - {{asset}}",
+    "send-request-amount-invalid-number": "Amount is not a valid number",
+    "send-request-amount-max-decimals": "Max number of decimals is {{asset-decimals}}",
+    "send-command-send": "send",
+    "send-command-payment": "Send a payment",
+    "request-command-request": "request",
+    "request-command-payment": "Request a payment"
 }
