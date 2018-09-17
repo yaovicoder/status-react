@@ -18,6 +18,7 @@
 #include <QVariantMap>
 #include <QDir>
 #include <QStandardPaths>
+#include <QtConcurrent>
 
 #include "libstatus.h"
 
