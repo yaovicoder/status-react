@@ -8,7 +8,7 @@
                                     (when-not fit-to-text?
                                       {:style styles/button-container})
                                     (when (and on-press (not disabled?))
-                                      {:on-press on-press})
+                                      {:on-press-out on-press})
                                     (when accessibility-label
                                       {:accessibility-label accessibility-label}))
    [react/view {:style (merge styles/button
