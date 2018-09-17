@@ -54,20 +54,21 @@
                      :left               "50%"}})
 
 (def warning
-  {:flex              1
-   :border-color      "rgba(255, 255, 255, 0.3)"
-   :border-width      1
-   :border-radius     8
-   :font-size         14
-   :font-style        :normal
-   :letter-spacing    -0.17
-   :line-height       21
-   :margin-top        12
-   :margin-horizontal 57
-   :padding-vertical  18
-   :opacity           0.6
-   :color             colors/white
-   :text-align        :center})
+  {:flex               1
+   :border-color       "rgba(255, 255, 255, 0.3)"
+   :border-width       1
+   :border-radius      8
+   :font-size          14
+   :font-style         :normal
+   :letter-spacing     -0.17
+   :line-height        21
+   :margin-top         12
+   :margin-horizontal  57
+   :padding-vertical   18
+   :padding-horizontal 24
+   :opacity            0.6
+   :color              colors/white
+   :text-align         :center})
 
 (def bottom-buttons
   {:background-color colors/blue
