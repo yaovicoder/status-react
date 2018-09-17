@@ -65,10 +65,16 @@ release-ios: prod-build-ios ##@build build release for iOS release
 	@echo "Build in XCode, see https://wiki.status.im/TBD for instructions"
 
 release-desktop: prod-build-desktop ##@build build release for desktop release
-	scripts/create-desktop-linux-package.sh
+	scripts/create-desktop-package.sh linux
 ifeq ($(OS),Darwin)
-	scripts/create-desktop-mac-bundle.sh
+	scripts/create-desktop-bundle.sh macos
 endif
+
+release-desktop-linux: prod-build-desktop ##@build build release for Linux desktop release
+	scripts/create-desktop-package.sh linux
+
+release-desktop-mac: prod-build-desktop ##@build build release for MacOS desktop release
+	scripts/create-desktop-bundle.sh macos
 
 prod-build:
 	lein prod-build
