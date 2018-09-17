@@ -100,7 +100,7 @@
                                       :border-top-right-radius 8
                                       :background-color colors/white
                                       :opacity opacity-value
-                                      :padding-top 12}}
+                                      :padding-top 5}}
          [react/view {:style {:flex-direction :column
                               :align-items :center
                               :justify-content :center

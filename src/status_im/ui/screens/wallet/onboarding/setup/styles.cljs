@@ -2,15 +2,15 @@
   (:require [status-im.ui.components.colors :as colors]))
 
 (def signing-phrase
-  {:background-color colors/white
-   :border-radius    8
-   :height          68
+  {:background-color  colors/white
+   :border-radius     8
+   :height            68
    :margin-horizontal 28
-   :flex-direction   :row})
+   :flex-direction    :row})
 
 (def signing-emoji-container
   {:height          68
-   :flex 1
+   :flex            1
    :align-items     :center
    :justify-content :center})
 
@@ -23,51 +23,51 @@
    :letter-spacing -0.2})
 
 (def super-safe-transactions
-  {:margin-top 40
-   :font-size 22
-   :text-align :center
-   :color colors/white
+  {:margin-top  40
+   :font-size   22
+   :text-align  :center
+   :color       colors/white
    :font-weight :bold})
 
 (def description
-  {:margin-top 12
+  {:margin-top     12
    :font-size      14
-   :font-style :normal
+   :font-style     :normal
    :letter-spacing -0.17
-   :line-height 21
-   :opacity 0.6
+   :line-height    21
+   :opacity        0.6
    :color          colors/white
    :text-align     :center})
 
 (def warning-container
   {:flex-direction :row
-   :margin-top 28})
+   :margin-top     28})
 
 (def info-icon
-  {:color colors/white
-   :container-style {:background-color colors/blue
-                     :z-index 5
-                     :position :absolute
-                     :top 0
-                     :margin-left -19
+  {:color           colors/white
+   :container-style {:background-color  colors/blue
+                     :z-index           5
+                     :position          :absolute
+                     :top               0
+                     :margin-left       -19
                      :padding-horizontal 7
-                     :left "50%"}})
+                     :left               "50%"}})
 
 (def warning
-  {:flex 1
-   :border-color "rgba(255, 255, 255, 0.3)"
-   :border-width 1
-   :border-radius 8
-   :font-size      14
-   :font-style :normal
-   :letter-spacing -0.17
-   :line-height 21
-   :margin-top 12
+  {:flex              1
+   :border-color      "rgba(255, 255, 255, 0.3)"
+   :border-width      1
+   :border-radius     8
+   :font-size         14
+   :font-style        :normal
+   :letter-spacing    -0.17
+   :line-height       21
+   :margin-top        12
    :margin-horizontal 57
-   :padding-vertical    18
-   :opacity 0.6
-   :color          colors/white
-   :text-align     :center})
+   :padding-vertical  18
+   :opacity           0.6
+   :color             colors/white
+   :text-align        :center})
 
 (def bottom-buttons
   {:background-color colors/blue
