@@ -9,14 +9,14 @@
     (.. js-dependencies/nfc-manager
         -default
         isSupported
-        (then #(re-frame/dispatch [:hardwallet.callback/set-nfc-support %])))))
+        (then #(re-frame/dispatch [:hardwallet.callback/check-nfc-support-success %])))))
 
 (defn check-nfc-enabled []
   (when platform/android?
     (.. js-dependencies/nfc-manager
         -default
         isEnabled
-        (then #(re-frame/dispatch [:hardwallet.callback/set-nfc-enabled %])))))
+        (then #(re-frame/dispatch [:hardwallet.callback/check-nfc-enabled-success %])))))
 
 (defn set-nfc-support [supported? {:keys [db]}]
   {:db (assoc-in db [:hardwallet :nfc-supported?] supported?)})
@@ -24,7 +24,7 @@
 (defn set-nfc-enabled [enabled? {:keys [db]}]
   {:db (assoc-in db [:hardwallet :nfc-enabled?] enabled?)})
 
-(defn go-to-settings []
+(defn open-nfc-settings []
   (when platform/android?
     (.. js-dependencies/nfc-manager
         -default
@@ -53,5 +53,5 @@
  check-nfc-enabled)
 
 (re-frame/reg-fx
- :hardwallet/go-to-settings
- go-to-settings)
+ :hardwallet/open-nfc-settings
+ open-nfc-settings)
