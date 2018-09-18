@@ -21,8 +21,17 @@ allprojects {
         jcenter()
         maven { url "$rootDir/../node_modules/react-native/android" }
         maven { url "$rootDir/../modules/react-native-status/android/libs" }
+        // for status-go
+        ivy {
+            url "https://github.com/"
+            layout "pattern", {
+                artifact "/[organisation]/[module]/releases/download/[revision]/android.[ext]"
+                // this is a hack, since gradle expects 404 for HEAD request and gets 403
+                ivy "/nothing/ivy.xml"
+            }
+        }
         // for geth
-        flatDir { dirs 'libs' }
+        flatDir { dirs "libs" }
         maven { url "https://jitpack.io" }
         google()
     }
