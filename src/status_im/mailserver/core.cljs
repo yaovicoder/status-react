@@ -48,7 +48,7 @@
 
 (defn- build [id mailserver-name address]
   (assoc (address->mailserver address)
-         :id (keyword (string/replace id "-" ""))
+         :id id
          :name mailserver-name))
 
 (defn connected? [id {:keys [db]}]
