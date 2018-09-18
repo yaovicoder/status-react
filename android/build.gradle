@@ -21,6 +21,13 @@ allprojects {
         jcenter()
         maven { url "$rootDir/../node_modules/react-native/android" }
         maven { url "$rootDir/../modules/react-native-status/android/libs" }
+        // for status-go
+        ivy {
+            url 'https://github.com/'
+            layout 'pattern', {
+                'organisation]/[module]/releases/download/[revision]/android.[ext]'
+            }
+        }
         // for geth
         flatDir { dirs 'libs' }
         maven { url "https://jitpack.io" }
