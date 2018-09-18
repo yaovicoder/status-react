@@ -13,7 +13,7 @@
 
 (defview hardwallet-connect []
   (letsubs [nfc-enabled? [:hardwallet/nfc-enabled?]]
-    [react/view components.styles/flex
+    [react/view styles/container
      [status-bar/status-bar]
      [react/view components.styles/flex
       [toolbar/toolbar {}
@@ -52,9 +52,9 @@
            [react/view styles/nfc-disabled-actions-container
             [react/text {:style      styles/turn-nfc-text
                          :font       :medium
-                         :on-press   #(re-frame/dispatch [:hardwallet.ui/go-to-settings])
+                         :on-press   #(re-frame/dispatch [:hardwallet.ui/go-to-settings-button-pressed])
                          :uppercase? true}
              (i18n/label :t/turn-nfc-on)]
             [react/text {:style    styles/go-to-settings-text
-                         :on-press #(re-frame/dispatch [:hardwallet.ui/go-to-settings])}
+                         :on-press #(re-frame/dispatch [:hardwallet.ui/go-to-settings-button-pressed])}
              (i18n/label :t/go-to-settings)]]])]]]]))

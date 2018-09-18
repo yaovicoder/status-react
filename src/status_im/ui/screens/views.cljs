@@ -126,11 +126,13 @@
     {:screen
      (nav-reagent/stack-navigator
       (stack-screens
-       (cond-> {:login          login
-                :progress       progress
-                :create-account create-account
-                :recover        recover
-                :accounts       accounts}
+       (cond-> {:login                            login
+                :progress                         progress
+                :create-account                   create-account
+                :recover                          recover
+                :accounts                         accounts
+                :hardwallet/authentication-method hardwallet-authentication-method
+                :hardwallet/connect               hardwallet-connect}
          (= :intro view-id)
          (assoc :intro intro)))
       (cond-> {:headerMode "none"}
@@ -248,29 +250,31 @@
        {:screen
         (nav-reagent/stack-navigator
          (stack-screens
-          {:my-profile                 (main-tabs/get-main-tab :my-profile)
-           :profile-photo-capture      profile-photo-capture
-           :about-app                  about-app/about-app
-           :bootnodes-settings         bootnodes-settings
-           :edit-bootnode              edit-bootnode
-           :offline-messaging-settings offline-messaging-settings
-           :edit-mailserver            edit-mailserver
-           :help-center                help-center
-           :extensions-settings        extensions-settings
-           :add-extension              add-extension
-           :show-extension             show-extension
-           :network-settings           network-settings
-           :network-details            network-details
-           :edit-network               edit-network
-           :log-level-settings         log-level-settings
-           :fleet-settings             fleet-settings
-           :currency-settings          currency-settings
-           :backup-seed                backup-seed
-           :login                      login
-           :create-account             create-account
-           :recover                    recover
-           :accounts                   accounts
-           :qr-scanner                 qr-scanner})
+          {:my-profile                       (main-tabs/get-main-tab :my-profile)
+           :profile-photo-capture            profile-photo-capture
+           :about-app                        about-app/about-app
+           :bootnodes-settings               bootnodes-settings
+           :edit-bootnode                    edit-bootnode
+           :offline-messaging-settings       offline-messaging-settings
+           :edit-mailserver                  edit-mailserver
+           :help-center                      help-center
+           :extensions-settings              extensions-settings
+           :add-extension                    add-extension
+           :show-extension                   show-extension
+           :network-settings                 network-settings
+           :network-details                  network-details
+           :edit-network                     edit-network
+           :log-level-settings               log-level-settings
+           :fleet-settings                   fleet-settings
+           :currency-settings                currency-settings
+           :backup-seed                      backup-seed
+           :login                            login
+           :create-account                   create-account
+           :recover                          recover
+           :accounts                         accounts
+           :hardwallet/authentication-method hardwallet-authentication-method
+           :hardwallet/connect               hardwallet-connect
+           :qr-scanner                       qr-scanner})
          {:headerMode       "none"
           :initialRouteName "my-profile"})}
        :profile-qr-viewer

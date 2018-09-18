@@ -93,7 +93,7 @@
      :icons/dots                (js/require "./resources/icons/dots.svg")
      :icons/warning             (js/require "./resources/icons/warning.svg")
      :icons/info                (js/require "./resources/icons/info.svg")
-     :icons/hardwallet          (js/require "./resources/icons/wallet.svg")
+     :icons/hardwallet          (js/require "./resources/icons/hardwallet.svg")
      :icons/password            (js/require "./resources/icons/password.svg")
      :icons/nfc                 (js/require "./resources/icons/nfc.svg")}
     {:icons/discover            (components.svg/slurp-svg "./resources/icons/bottom/discover_gray.svg")
