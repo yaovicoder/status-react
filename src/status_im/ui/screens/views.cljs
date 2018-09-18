@@ -56,6 +56,8 @@
             [status-im.ui.screens.add-new.open-dapp.views :refer [open-dapp dapp-description]]
             [status-im.ui.screens.intro.views :refer [intro]]
             [status-im.ui.screens.accounts.create.views :refer [create-account]]
+            [status-im.ui.screens.hardwallet.authentication-method.views :refer [hardwallet-authentication-method]]
+            [status-im.ui.screens.hardwallet.connect.views :refer [hardwallet-connect]]
             [status-im.ui.screens.profile.seed.views :refer [backup-seed]]
             [status-im.ui.screens.about-app.views :as about-app]
             [status-im.utils.navigation :as navigation]
