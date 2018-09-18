@@ -98,8 +98,7 @@
 (defn get-node-config [db network]
   (-> (get-in (:networks/networks db) [network :config])
       (get-base-node-config)
-      (assoc :PFSEnabled (or config/encryption-enabled?
-                             config/group-chats-enabled?))
+      (assoc :PFSEnabled false)
 
       (assoc :NoDiscovery true)
       (add-log-level config/log-level-status-go)))
