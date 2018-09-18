@@ -16,6 +16,7 @@ dependencies {
     implementation 'com.instabug.library:instabug:3+'
     implementation 'status-im:function:0.0.1'
 
+    // WARNING: If you change this, make sure the GitHub release of the .aar exists
     String statusGoVersion = 'v0.15.0'
     final String statusGoGroup = 'status-im', statusGoName = 'status-go'
 
