@@ -268,7 +268,6 @@
       cofx
       {:db (assoc db :group/selected-contacts #{})}
       (models/add-group-chat random-id chat-name (:current-public-key db) selected-contacts)
-      (navigation/navigate-to-cofx :home nil)
       (navigate-to-chat random-id {})
       (transport.message/send (group-chat/GroupChatCreate. chat-name selected-contacts random-id) random-id)))))
 
