@@ -37,7 +37,7 @@ ExternalProject_Add(StatusGo_ep
   PREFIX ${StatusGo_PREFIX}
   SOURCE_DIR ${StatusGo_SOURCE_DIR}
   GIT_REPOSITORY https://github.com/status-im/status-go.git
-  GIT_TAG 826b5e5b42996370d38dba26b1faf5bc6cb14cea
+  GIT_TAG 6da387ec941a41810dbc044c41a72bf01145fb5b
   BUILD_BYPRODUCTS ${StatusGo_STATIC_LIB}
   CONFIGURE_COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/${CONFIGURE_SCRIPT} ${GO_ROOT_PATH} ${StatusGo_ROOT} ${StatusGo_SOURCE_DIR}
   BUILD_COMMAND ""
