@@ -319,7 +319,9 @@
           [:> @main-component
            {:ref            (fn [r]
                               (navigation/set-navigator-ref r)
-                              (when platform/android?
+                              (when (and
+                                     platform/android?
+                                     (not (contains? #{:intro :login} @view-id)))
                                 (navigation/navigate-to @view-id)))
             ;; see https://reactnavigation.org/docs/en/state-persistence.html#development-mode
             :persistenceKey (when js/goog.DEBUG rand-label)}]))})))
