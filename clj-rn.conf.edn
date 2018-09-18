@@ -37,6 +37,7 @@
               "react-native-background-timer"
               "react-native-fetch-polyfill"
               "react-native-testfairy"
+              "react-native-nfc-manager"
               "text-encoding"
               "js-sha3"]
 

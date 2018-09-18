@@ -684,5 +684,13 @@
     "cost-fee": "Cost/Fee",
     "currency-display-name-usd": "United States Dollar",
     "currency-display-name-uah": "Ukraine Hryvnia",
-    "web3-opt-in": "Opt-in web3 provider access"
+    "web3-opt-in": "Opt-in web3 provider access",
+    "choose-authentication-method": "Choose an authentication method to protect your account",
+    "status-hardwallet-capitalized": "Status Hardwallet",
+    "status-hardwallet": "Status hardwallet",
+    "secure-your-assets": "secure your assets",
+    "link-card": "Link the card and use it to confirm your identity on the platform.",
+    "hold-card": "hold card to the back of your phone",
+    "turn-nfc-on": "turn nfc on",
+    "go-to-settings": "Go to Settings"
 }
