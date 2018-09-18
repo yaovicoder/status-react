@@ -72,16 +72,23 @@
    (save cofx nil))
   ([{{:network/keys [manage]
       :account/keys [account] :as db} :db :as cofx}
-    {:keys [data on-success on-failure]}]
-   (let [data            (or data manage)]
+    {:keys [data success-event on-success on-failure]}]
+   (println data (validate-manage data))
+   (let [data (or data manage)]
      (if (valid-manage? data)
        (let [{:keys [name url chain network-id]} data
-             network      (new-network (:random-id cofx) (:value name) (:value url) (:value chain) (:value network-id))
+             network      (new-network (:random-id cofx)
+                                       (:value name)
+                                       (:value url)
+                                       (:value chain)
+                                       (:value network-id))
              new-networks (merge {(:id network) network} (:networks account))]
          (handlers-macro/merge-fx cofx
                                   {:db (dissoc db :networks/manage)}
                                   (action-handler on-success (:id network))
-                                  (accounts.update/account-update {:networks new-networks})))
+                                  (accounts.update/account-update
+                                   {:networks new-networks}
+                                   success-event)))
        (action-handler on-failure)))))
 
 ;; No edit functionality actually implemented
@@ -130,16 +137,15 @@
   [network {:keys [db now] :as cofx}]
   (let [networks (dissoc (get-in db [:account/account :networks]) network)]
     (handlers-macro/merge-fx cofx
-                             {:dispatch [:navigate-back]}
-                             (accounts.update-update {:networks     networks
-                                                      :last-updated now}))))
+                             (accounts.update/account-update {:networks     networks
+                                                              :last-updated now}
+                                                             [:navigate-back]))))
 
 (defn save-network
   [cofx]
   (save cofx
-        {:data       (get-in cofx [:db :network/manage])
-         :on-success (fn []
-                       {:dispatch [:navigate-back]})}))
+        {:data          (get-in cofx [:db :networks/manage])
+         :success-event [:navigate-back]}))
 
 (defn handle-connection-status-change
   [is-connected? {:keys [db] :as cofx}]
