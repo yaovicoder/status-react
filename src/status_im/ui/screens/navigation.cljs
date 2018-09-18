@@ -113,6 +113,9 @@
             (assoc :navigation-stack navigation-stack'))
         (assoc db :view-id first-in-stack)))))
 
+(defn navigate-back-cofx [{:keys [db] :as cofx}]
+  {:db (navigate-back db)})
+
 (handlers/register-handler-db
  :navigate-back
  (re-frame/enrich -preload-data!)
