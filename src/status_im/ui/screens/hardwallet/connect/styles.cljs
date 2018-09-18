@@ -1,6 +1,10 @@
 (ns status-im.ui.screens.hardwallet.connect.styles
   (:require [status-im.ui.components.colors :as colors]))
 
+(def container
+  {:flex             1
+   :background-color colors/white})
+
 (def hardwallet-connect
   {:flex-direction  :column
    :flex            1

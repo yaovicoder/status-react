@@ -22,7 +22,7 @@
     [vector-icons/icon :icons/forward {:color colors/gray}]]])
 
 (defn hardwallet-authentication-method []
-  [react/view components.styles/flex
+  [react/view styles/container
    [status-bar/status-bar]
    [react/view components.styles/flex
     [toolbar/toolbar {}

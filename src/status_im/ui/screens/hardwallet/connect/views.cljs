@@ -13,7 +13,7 @@
 
 (defview hardwallet-connect []
   (letsubs [nfc-enabled? [:hardwallet/nfc-enabled?]]
-    [react/view components.styles/flex
+    [react/view styles/container
      [status-bar/status-bar]
      [react/view components.styles/flex
       [toolbar/toolbar {}
