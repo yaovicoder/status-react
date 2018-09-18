@@ -705,5 +705,6 @@
     "send-command-payment": "Send a payment",
     "request-command-payment": "Request a payment",
     "see-it-again": "See it again",
-    "wallet-setup-safe-transactions": "Super-safe transactions"
+    "wallet-setup-safe-transactions": "Super-safe transactions",
+    "wallet-sign-contract-transaction": "Sign contract transaction"
 }

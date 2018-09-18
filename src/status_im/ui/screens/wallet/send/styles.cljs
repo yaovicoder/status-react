@@ -28,6 +28,7 @@
 
 (def signing-phrase
   {:font-size      22
+   :color          colors/black
    :letter-spacing 10})
 
 (def transaction-amount

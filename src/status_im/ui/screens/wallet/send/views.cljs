@@ -113,7 +113,9 @@
             signing-phrase]]
           (when amount-text
             [react/text {:style styles/transaction-amount}
-             (str (i18n/label :t/wallet-send) " " amount-text " " (name symbol))])
+             (if (= "0" amount-text)
+               (str (i18n/label :t/wallet-sign-contract-transaction))
+               (str (i18n/label :t/wallet-send) " " amount-text " " (name symbol)))])
           [react/view {:style                       styles/password-container
                        :important-for-accessibility :no-hide-descendants}
            [react/text-input

@@ -35,7 +35,7 @@
    :font-style     :normal
    :letter-spacing -0.17
    :line-height    21
-   :opacity        0.6
+   :opacity        0.8
    :color          colors/white
    :text-align     :center})
 
@@ -66,7 +66,7 @@
    :margin-horizontal  57
    :padding-vertical   18
    :padding-horizontal 24
-   :opacity            0.6
+   :opacity            0.8
    :color              colors/white
    :text-align         :center})
 
