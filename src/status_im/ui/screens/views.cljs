@@ -80,7 +80,7 @@
 (defn wrap-modal [modal-view component]
   (fn []
     (if platform/android?
-      (let [signing? [:wallet.send/show-password-input?]]
+      (let [signing? (re-frame/subscribe [:wallet.send/show-password-input?])]
         [view common-styles/modal
          [modal {:transparent      (not @signing?)
                  :animation-type   :slide
@@ -97,8 +97,8 @@
                                        (dispatch [:navigate-back])))}
           [react/main-screen-modal-view modal-view
            [component]]]])
-        [react/main-screen-modal-view modal-view
-         [component]])))
+      [react/main-screen-modal-view modal-view
+       [component]])))
 
 (defn stack-screens [screens-map]
   (->> screens-map

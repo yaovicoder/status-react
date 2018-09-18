@@ -274,8 +274,8 @@
          (i18n/label :t/message)
          [wallet.components/amount-input
           {:disabled?     true
-          :input-options {:multiline true
-                          :height    100}
+           :input-options {:multiline true
+                           :height    100}
            :amount-text   (:data transaction)}
           nil]]]]
       [bottom-button {:on-press #(re-frame/dispatch [:wallet.send.ui/sign-button-pressed])
