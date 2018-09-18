@@ -143,7 +143,7 @@
    (accounts.create/on-account-created result password false cofx)))
 
 (handlers/register-handler-fx
- :accounts.create.ui/create-new-account
+ :accounts.create.ui/create-new-account-button-pressed
  (fn [cofx _]
    (accounts.create/navigate-to-authentication-method cofx)))
 
@@ -496,21 +496,21 @@
 ;; hardwallet module
 
 (handlers/register-handler-fx
- :hardwallet.callback/set-nfc-support
+ :hardwallet.callback/check-nfc-support-success
  (fn [cofx [_ supported?]]
    (hardwallet/set-nfc-support supported? cofx)))
 
 (handlers/register-handler-fx
- :hardwallet.callback/set-nfc-enabled
+ :hardwallet.callback/check-nfc-enabled-success
  (fn [cofx [_ enabled?]]
    (hardwallet/set-nfc-enabled enabled? cofx)))
 
 (handlers/register-handler-fx
- :hardwallet.ui/navigate-to-connect-screen
- (fn [cofx [_ enabled?]]
+ :hardwallet.ui/status-hardwallet-option-pressed
+ (fn [_ _]
    (hardwallet/navigate-to-connect-screen)))
 
 (handlers/register-handler-fx
- :hardwallet.ui/go-to-settings
+ :hardwallet.ui/go-to-settings-button-pressed
  (fn [_ _]
-   {:hardwallet/go-to-settings nil}))
+   {:hardwallet/open-nfc-settings nil}))

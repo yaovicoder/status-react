@@ -22,7 +22,7 @@
     [vector-icons/icon :icons/forward {:color colors/gray}]]])
 
 (defn hardwallet-authentication-method []
-  [react/view components.styles/flex
+  [react/view styles/container
    [status-bar/status-bar]
    [react/view components.styles/flex
     [toolbar/toolbar {}
@@ -36,7 +36,7 @@
     [react/view styles/authentication-methods
      [authentication-method-row {:title    (i18n/label :t/status-hardwallet-capitalized)
                                  :icon     :icons/hardwallet
-                                 :on-press #(re-frame/dispatch [:hardwallet.ui/navigate-to-connect-screen])}]
+                                 :on-press #(re-frame/dispatch [:hardwallet.ui/status-hardwallet-option-pressed])}]
      [authentication-method-row {:title    (i18n/label :t/password)
                                  :icon     :icons/password
                                  :on-press #(re-frame/dispatch [:navigate-to :create-account])}]]]])
