@@ -7,9 +7,6 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m'
 SCRIPTPATH="$( cd "$(dirname "$0")" ; pwd -P )"
-STATUSREACTPATH="$SCRIPTPATH/.."
-WORKFOLDER="$STATUSREACTPATH/StatusImPackage"
-DEPLOYQT="./linuxdeployqt-continuous-x86_64.AppImage"
 OS=$(uname -s)
 
 external_modules_dir=( \
@@ -37,6 +34,31 @@ function is_macos() {
 function is_linux() {
   [[ "$OS" =~ Linux ]]
 }
+
+function program_exists() {
+  local program=$1
+  command -v "$program" >/dev/null 2>&1
+}
+
+function joinPath() {
+  if program_exists 'realpath'; then
+    realpath -m "$1/$2"
+  else
+    echo "$1/$2" | tr -s
+  fi
+}
+
+function joinExistingPath() {
+  if program_exists 'realpath'; then
+    realpath "$1/$2"
+  else
+    echo "$1/$2" | tr -s
+  fi
+}
+
+STATUSREACTPATH="$(joinExistingPath "$SCRIPTPATH" '..')"
+WORKFOLDER="$(joinExistingPath "$STATUSREACTPATH" 'StatusImPackage')"
+DEPLOYQT="$(joinPath . 'linuxdeployqt-continuous-x86_64.AppImage')"
 
 function init() {
   if [ -z $QT_PATH ]; then
@@ -77,24 +99,25 @@ function buildClojureScript() {
 
   # from index.desktop.js create javascript bundle and resources folder
   echo "Generating StatusIm.jsbundle and assets folder..."
-  react-native bundle --entry-file index.desktop.js --bundle-output $WORKFOLDER/StatusIm.jsbundle \
-                      --dev false --platform desktop --assets-dest $WORKFOLDER/assets
+  react-native bundle --entry-file index.desktop.js --bundle-output "$WORKFOLDER/StatusIm.jsbundle" \
+                      --dev false --platform desktop --assets-dest "$WORKFOLDER/assets"
   echo -e "${GREEN}Generating done.${NC}"
   echo ""
 
   # Add path to javascript bundle to package.json
   jsBundleLine="\"desktopJSBundlePath\": \"$WORKFOLDER/StatusIm.jsbundle\""
-  if grep -Fq "$jsBundleLine" "$STATUSREACTPATH/desktop_files/package.json"; then
+  jsPackagePath=$(joinExistingPath "$STATUSREACTPATH" '/desktop_files/package.json')
+  if grep -Fq "$jsBundleLine" "$jsPackagePath"; then
     echo -e "${GREEN}Found line in package.json.${NC}"
   else
     # Add line to package.json just before "dependencies" line
     if is_macos; then
       sed -i '' -e "/\"dependencies\":/i\\
- \  $jsBundleLine," "$STATUSREACTPATH/desktop_files/package.json"
+ \  $jsBundleLine," "$jsPackagePath"
     else
-      sed -i -- "/\"dependencies\":/i\  $jsBundleLine," "$STATUSREACTPATH/desktop_files/package.json"
+      sed -i -- "/\"dependencies\":/i\  $jsBundleLine," "$jsPackagePath"
     fi
-    echo -e "${YELLOW}Added 'desktopJSBundlePath' line to desktop_files/package.json:${NC}"
+    echo -e "${YELLOW}Added 'desktopJSBundlePath' line to $jsPackagePath:${NC}"
     echo ""
   fi
 }
@@ -134,10 +157,11 @@ function bundleLinux() {
     mkdir AppDir
   popd
 
-  cp -r ./deployment/linux/usr ${WORKFOLDER}/AppDir
-  cp ./deployment/env ${WORKFOLDER}/AppDir/usr/bin
-  cp ./desktop/bin/StatusIm ${WORKFOLDER}/AppDir/usr/bin
-  cp ./desktop/reportApp/reportApp ${WORKFOLDER}/AppDir/usr/bin
+  usrBinPath=$(joinPath "$WORKFOLDER" "/AppDir/usr/bin")
+  cp -r ./deployment/linux/usr $WORKFOLDER/AppDir
+  cp ./deployment/env $usrBinPath
+  cp ./desktop/bin/StatusIm $usrBinPath
+  cp ./desktop/reportApp/reportApp $usrBinPath
   if [ ! -f $DEPLOYQT ]; then
     wget --output-document="$DEPLOYQT" --show-progress -q https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
     chmod a+x $DEPLOYQT
@@ -146,19 +170,20 @@ function bundleLinux() {
   rm -f Application-x86_64.AppImage
   rm -f StatusIm-x86_64.AppImage
 
-  ldd ${WORKFOLDER}/AppDir/usr/bin/StatusIm
+  ldd $(joinExistingPath "$usrBinPath" 'StatusIm')
   $DEPLOYQT \
-    ${WORKFOLDER}/AppDir/usr/bin/reportApp \
+    $(joinExistingPath "$usrBinPath" 'reportApp') \
     -verbose=3 -always-overwrite -no-strip -no-translations -qmake="${QTBIN}/qmake" \
-    -qmldir="${STATUSREACTPATH}/desktop/reportApp"
+    -qmldir="$STATUSREACTPATH/desktop/reportApp"
 
+  desktopFilePath=$(joinExistingPath "$WORKFOLDER" 'AppDir/usr/share/applications/StatusIm.desktop')
   $DEPLOYQT \
-    ${WORKFOLDER}/AppDir/usr/share/applications/StatusIm.desktop \
+    $desktopFilePath \
     -verbose=3 -always-overwrite -no-strip \
     -no-translations -bundle-non-qt-libs \
     -qmake="${QTBIN}/qmake" \
     -extra-plugins=imageformats/libqsvg.so \
-    -qmldir="${STATUSREACTPATH}/node_modules/react-native"
+    -qmldir="$STATUSREACTPATH/node_modules/react-native"
 
   pushd $WORKFOLDER
     ldd AppDir/usr/bin/StatusIm
@@ -168,7 +193,7 @@ function bundleLinux() {
   popd
 
   $DEPLOYQT \
-    $WORKFOLDER/AppDir/usr/share/applications/StatusIm.desktop \
+    $desktopFilePath \
     -verbose=3 -appimage -qmake="${QTBIN}/qmake"
   pushd $WORKFOLDER
     ldd AppDir/usr/bin/StatusIm
@@ -177,7 +202,7 @@ function bundleLinux() {
     rm -f AppDir/usr/bin/StatusIm.AppImage
   popd
   $DEPLOYQT \
-    "$WORKFOLDER/AppDir/usr/share/applications/StatusIm.desktop" \
+    "$desktopFilePath" \
     -verbose=3 -appimage -qmake="${QTBIN}/qmake"
   pushd $WORKFOLDER
     ldd AppDir/usr/bin/StatusIm
@@ -209,12 +234,12 @@ function bundleMacOS() {
     cp -f ../deployment/macos/qt-reportApp.conf Status.app/Contents/Resources
     ln -sf ../Resources/qt-reportApp.conf Status.app/Contents/MacOS/qt.conf
     install_name_tool -add_rpath "@executable_path/../Frameworks" \
-                      -delete_rpath "$QT_PATH/clang_64/lib" \
+                      -delete_rpath "$(joinExistingPath "$QT_PATH" 'clang_64/lib')" \
                       'Status.app/Contents/MacOS/reportApp'
     cp -f ../deployment/macos/Info.plist Status.app/Contents
     cp -f ../deployment/macos/status-icon.icns Status.app/Contents/Resources
     $DEPLOYQT Status.app -verbose=1 \
-      -qmldir="${STATUSREACTPATH}/node_modules/react-native/ReactQt/runtime/src/qml/"
+      -qmldir="$STATUSREACTPATH/node_modules/react-native/ReactQt/runtime/src/qml/"
     rm -f Status.app.zip
   popd
 
