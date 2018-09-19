@@ -11,6 +11,8 @@ target 'StatusIm' do
   # Pods for StatusIm
   pod 'Firebase/Core'
   pod 'Firebase/Messaging'
+  pod 'GoogleUtilities', '5.2.0'
+  pod 'GoogleUtilities/MethodSwizzler'
 
   pod 'React', :path => '../node_modules/react-native'
   pod 'yoga', :path => '../node_modules/react-native/ReactCommon/yoga'
