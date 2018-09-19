@@ -31,6 +31,11 @@
    :align-items     :center
    :flex            1})
 
+(def profile-edit
+  {:margin-top         24
+   :padding-horizontal 24
+   :align-items        :flex-end})
+
 (def profile-photo
   {:border-radius 100
    :width         100
