@@ -3,7 +3,7 @@
 
 (def min-input-container-height 68)
 (def max-input-container-height 180)
-(def chat-vertical-padding 10)
+(def chat-vertical-padding 16)
 (def min-input-area-height 20)
 (def max-input-area-height (- max-input-container-height (* 2 chat-vertical-padding)))
 
@@ -54,21 +54,18 @@
   {:height            (+ height (* 2 chat-vertical-padding))
    :min-height        min-input-container-height
    :max-height        max-input-container-height
-   :border-radius     12
-   :margin-horizontal 24
    :padding-vertical  chat-vertical-padding
+   :flex-direction    :row
    :overflow          :hidden})
 
-(def chat-box-inner
-  {:flex-direction :row
-   :flex           1
-   :max-height     max-input-area-height
-   :overflow       :hidden})
-
 (defn chat-text-input [container-height]
-  {:height     container-height
-   :min-height min-input-area-height
-   :max-height max-input-area-height})
+  {:height            container-height
+   :min-height        min-input-area-height
+   :max-height        max-input-area-height
+   :margin-left       20
+   :margin-right      22
+   :flex              1
+   :align-self       :center})
 
 (def messages-view
   {:flex             1
@@ -133,17 +130,21 @@
 (def not-first-in-group-wrapper
   {:flex-direction :row})
 
+(def send-button
+  {:height           34
+   :width            34
+   :margin-right     24
+   :justify-content  :center
+   :align-items      :center
+   :align-self       :flex-end})
+
 (defn send-icon [not-active?]
-  {:margin-left      16
-   :width            30
-   :height           30
-   :border-radius    15
+  {:height           34
+   :width            34
+   :border-radius    17
    :background-color (if not-active? colors/gray-lighter colors/blue)
    :align-items      :center
    :justify-content  :center
-   :position         :absolute
-   :bottom           10
-   :right            0
    :transform        [{:rotate "90deg"}]})
 
 (defn send-icon-arrow [not-active?]
