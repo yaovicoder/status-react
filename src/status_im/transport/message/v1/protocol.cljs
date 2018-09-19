@@ -118,6 +118,7 @@
 
         :group-user-message
         (when config/group-chats-enabled?
+          (log/debug "Sending group message")
           (send-group-message
            chat-id
            (:success-event params)
