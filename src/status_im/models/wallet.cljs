@@ -125,6 +125,13 @@
                                webview]
            :dispatch          [:navigate-back]}
 
+    (= method constants/web3-personal-sign)
+    (as-> fx
+          (handlers-macro/merge-fx
+           cofx
+           fx
+           (navigation/navigate-back)))
+
     (= method constants/web3-send-transaction)
     (as-> fx
           (handlers-macro/merge-fx
