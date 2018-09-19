@@ -168,6 +168,13 @@
            console-contact
            (assoc :contacts/contacts {constants/console-chat-id console-contact}))}))
 
+(defn initialize-wallet [cofx]
+  (when-not platform/desktop?
+    (handlers-macro/merge-fx cofx
+                             (models.wallet/update-wallet)
+                             (transactions/run-update)
+                             (transactions/start-sync))))
+
 (defn login-only-events [address {:keys [db] :as cofx}]
   (when (not= (:view-id db) :create-account)
     (handlers-macro/merge-fx cofx
@@ -191,9 +198,26 @@
                            (chat/process-pending-messages)
                            (browser/initialize-browsers)
                            (browser/initialize-dapp-permissions)
-                           (models.wallet/update-wallet)
-                           (transactions/run-update)
-                           (transactions/start-sync)
+                           (initialize-wallet)
+                           (accounts.update/update-sign-in-time)
+                           (login-only-events address)))
+
+(defn initialize-account [address {:keys [web3] :as cofx}]
+  (handlers-macro/merge-fx cofx
+                           {:web3/set-default-account    [web3 address]
+                            :web3/fetch-node-version     [web3
+                                                          #(re-frame/dispatch
+                                                            [:web3/fetch-node-version-callback %])]
+                            :notifications/get-fcm-token nil}
+                           (initialize-account-db address)
+                           (protocol/initialize-protocol address)
+                           (models.contacts/load-contacts)
+                           (models.dev-server/start-if-needed)
+                           (chat/initialize-chats)
+                           (chat/process-pending-messages)
+                           (browser/initialize-browsers)
+                           (browser/initialize-dapp-permissions)
+                           (initialize-wallet)
                            (accounts.update/update-sign-in-time)
                            (login-only-events address)))
 
