@@ -81,9 +81,11 @@
             opacity-value   (animation/create-value 0)]
     {:component-did-mount #(send.animations/animate-sign-panel opacity-value bottom-value)}
     (let [{:keys [in-progress? symbol amount-text]} transaction]
-      [react/view {:style {:top 0 :bottom 0 :right 0 :left 0 :position :absolute
-                           :flex 1
-                           :justify-content :flex-end}}
+      [react/view {:style (cond-> {:top              0 :bottom 0 :right 0 :left 0 :position :absolute
+                                   :flex             1
+                                   :justify-content  :flex-end}
+                            platform/android?
+                            (assoc :background-color "rgba(0, 0, 0, 0.5)"))}
        [react/touchable-highlight {:style {:position :absolute
                                            :top 0
                                            :left 0
