@@ -507,8 +507,8 @@
 
 (handlers/register-handler-fx
  :hardwallet.ui/status-hardwallet-option-pressed
- (fn [_ _]
-   (hardwallet/navigate-to-connect-screen)))
+ (fn [cofx _]
+   (hardwallet/navigate-to-connect-screen cofx)))
 
 (handlers/register-handler-fx
  :hardwallet.ui/go-to-settings-button-pressed

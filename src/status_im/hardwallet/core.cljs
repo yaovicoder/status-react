@@ -1,8 +1,10 @@
 (ns status-im.hardwallet.core
+  (:require-macros [status-im.utils.handlers-macro :as handlers-macro])
   (:require [status-im.utils.platform :as platform]
             [status-im.utils.config :as config]
             [status-im.react-native.js-dependencies :as js-dependencies]
-            [re-frame.core :as re-frame]))
+            [re-frame.core :as re-frame]
+            [status-im.ui.screens.navigation :as navigation]))
 
 (defn check-nfc-support []
   (when config/hardwallet-enabled?
@@ -30,9 +32,11 @@
         -default
         goToNfcSetting)))
 
-(defn navigate-to-connect-screen []
-  {:dispatch                     [:navigate-to :hardwallet/connect]
-   :hardwallet/check-nfc-enabled nil})
+(defn navigate-to-connect-screen [cofx]
+  (handlers-macro/merge-fx
+   cofx
+   {:hardwallet/check-nfc-enabled nil}
+   (navigation/navigate-to-cofx :hardwallet/connect nil)))
 
 (defn hardwallet-supported? [db]
   (and config/hardwallet-enabled?
