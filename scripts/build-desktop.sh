@@ -44,7 +44,7 @@ function joinPath() {
   if program_exists 'realpath'; then
     realpath -m "$1/$2"
   else
-    echo "$1/$2" | tr -s
+    echo "$1/$2" | tr -s /
   fi
 }
 
@@ -52,7 +52,7 @@ function joinExistingPath() {
   if program_exists 'realpath'; then
     realpath "$1/$2"
   else
-    echo "$1/$2" | tr -s
+    echo "$1/$2" | tr -s /
   fi
 }
 
