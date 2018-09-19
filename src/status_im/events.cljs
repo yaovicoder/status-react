@@ -414,7 +414,7 @@
 (handlers/register-handler-fx
  :wallet.send.ui/sign-button-pressed
  (fn [cofx _]
-   (wallet/show-password-input cofx)))
+   (navigation/navigate-to-cofx :password-drawer {} cofx)))
 
 (handlers/register-handler-fx
  :wallet.setup.ui/got-it-button-pressed
