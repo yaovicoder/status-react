@@ -53,6 +53,21 @@
   (assoc config
          :Name "StatusIM"))
 
+(defn- pick-nodes
+  "Picks 2 different nodes randomly from the list of nodes
+  if there is more than 2 nodes in the list, otherwise return the list
+  of nodes"
+  [nodes]
+  (if (<= (count nodes) 2)
+    nodes
+    (loop [nodes (into #{} nodes)
+           picked-nodes '()
+           n 2]
+      (if (> n 0)
+        (let [picked-node (rand-nth (vec nodes))]
+          (recur (disj nodes picked-node) (conj picked-nodes picked-node) (dec n)))
+        picked-nodes))))
+
 (defn- get-account-node-config [db address]
   (let [accounts (get db :accounts/accounts)
         current-fleet-key (fleet/current-fleet db address)
@@ -72,9 +87,9 @@
       (assoc :NoDiscovery false
              :ClusterConfig {:Enabled true
                              :Fleet              (name current-fleet-key)
-                             :BootNodes          (vals (get-in current-fleet [:boot]))
-                             :TrustedMailServers (vals (get-in current-fleet [:mail]))
-                             :StaticNodes        (vals (get-in current-fleet [:whisper]))})
+                             :BootNodes          (pick-nodes (vals (:boot current-fleet)))
+                             :TrustedMailServers (pick-nodes (vals (:mail current-fleet)))
+                             :StaticNodes        (pick-nodes (vals (:whisper current-fleet)))})
 
       :always
       (assoc :WhisperConfig {:Enabled true
