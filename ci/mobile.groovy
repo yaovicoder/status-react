@@ -47,11 +47,11 @@ def prep(type = 'nightly') {
     default:
       sh 'cp .env.jenkins .env'; break
   }
-  common.installJSDeps('mobile')
+  sh 'cp patches/js_realm.hpp node_modules/realm/src/js_realm.hpp'
   /* install ruby dependencies */
   sh 'bundle install --quiet'
-  /* install Maven dependencies */
-  sh 'mvn -f modules/react-native-status/ios/RCTStatus dependency:unpack'
+  /* download status-go for mvn */
+  sh "make prepare-${BUILD_PLATFORM}"
   /* generate ios/StatusIm.xcworkspace */
   dir('ios') {
     podUpdate()
