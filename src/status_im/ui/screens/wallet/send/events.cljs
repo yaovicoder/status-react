@@ -103,7 +103,7 @@
         (if dapp-transaction
           (let [{:keys [message-id]} dapp-transaction
                 webview (:webview-bridge db)]
-            (models.wallet/dapp-complete-transaction (int id) result method message-id webview))
+            (models.wallet/dapp-complete-transaction (int id) result method message-id webview cofx))
           {:dispatch [:send-transaction-message whisper-identity {:address to
                                                                   :asset   (name symbol)
                                                                   :amount  amount-text
@@ -174,8 +174,10 @@
    (if-let [send-command (and chat-id (get-in db [:id->command ["send" #{:personal-chats}]]))]
      (handlers-macro/merge-fx cofx
                               (commands-sending/send chat-id send-command params)
+                              (navigation/navigate-back)
                               (navigation/navigate-to-clean :wallet-transaction-sent))
      (handlers-macro/merge-fx cofx
+                              (navigation/navigate-back)
                               (navigation/navigate-to-clean :wallet-transaction-sent)))))
 
 (defn set-and-validate-amount-db [db amount symbol decimals]
@@ -233,11 +235,14 @@
 
 (handlers/register-handler-fx
  :wallet/cancel-entering-password
- (fn [{:keys [db]} _]
-   {:db (update-in db [:wallet :send-transaction] assoc
-                   :show-password-input? false
-                   :wrong-password? false
-                   :password nil)}))
+ (fn [{:keys [db] :as cofx} _]
+   (handlers-macro/merge-fx
+    cofx
+    {:db (update-in db [:wallet :send-transaction] assoc
+                    :show-password-input? false
+                    :wrong-password? false
+                    :password nil)}
+    (navigation/navigate-back))))
 
 (handlers/register-handler-fx
  :wallet.send/set-password

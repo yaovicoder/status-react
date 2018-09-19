@@ -66,7 +66,8 @@
             [status-im.utils.random :as rand]
             [re-frame.core :as re-frame]
             [taoensso.timbre :as log]
-            [status-im.utils.platform :as platform]))
+            [status-im.utils.platform :as platform]
+            [status-im.ui.screens.wallet.send.views :as send.views]))
 
 (defn wrap [view-id component]
   (fn []
@@ -122,6 +123,25 @@
                 [k {:screen screen}])))
        (into {})))
 
+(defn for-modal []
+  (clj->js {:transform [{:translateX 0}
+                        {:translateY 0}]}))
+
+(defn modal-stack-config [config]
+  (merge
+   {:mode             "modal"
+    :headerMode       "none"
+    :initialRouteName "main-stack"
+    :cardStyle        {:backgroundColor :transparent
+                       :opacity         1}
+    :transitionConfig (fn []
+                        (clj->js
+                         {:transitionSpec     {:duration 0
+                                               :timing   (.-timing react/animated)
+                                               :easing   (.-step0 react/easing)}
+                          :screenInterpolator for-modal}))}
+   config))
+
 (defn get-main-component2 [view-id]
   (log/debug :component2 view-id)
   (nav-reagent/switch-navigator
@@ -164,6 +184,9 @@
         :wallet-modal
         (wrap-modal :wallet-modal wallet.main/wallet-modal)
 
+        :password-drawer
+        [:modal send.views/password-input-drawer-screen]
+
         :wallet-send-modal-stack
         {:screens
          {:wallet-send-transaction-modal
@@ -196,56 +219,49 @@
           :initialRouteName "wallet-onboarding-setup-modal"}}
 
         :wallet-sign-message-modal
-        [:modal sign-message-modal]})
-      {:mode             "modal"
-       :headerMode       "none"
-       :initialRouteName "main-stack"})}
+        (wrap-modal :wallet-sign-message-modal sign-message-modal)})
+      (modal-stack-config {:initialRouteName "main-stack"}))}
     :wallet-stack
     {:screen
      (nav-reagent/stack-navigator
-      {:main-stack
-       {:screen
-        (nav-reagent/stack-navigator
-         (stack-screens
-          {:wallet                       (main-tabs/get-main-tab :wallet)
-           :collectibles-list            collectibles-list
-           :wallet-onboarding-setup      wallet.onboarding.setup/screen
-           :wallet-send-transaction-chat send-transaction
-           :contact-code                 contact-code
-           :send-transaction-stack       {:screens {:wallet-send-transaction send-transaction
-                                                    :recent-recipients       recent-recipients
-                                                    :wallet-transaction-sent transaction-sent
-                                                    :recipient-qr-code       recipient-qr-code
-                                                    :wallet-send-assets      wallet.components/send-assets}
-                                          :config  {:headerMode "none"}}
+      (stack-screens
+       {:main-stack
+        {:screens
+         {:wallet                       (main-tabs/get-main-tab :wallet)
+          :collectibles-list            collectibles-list
+          :wallet-onboarding-setup      wallet.onboarding.setup/screen
+          :wallet-send-transaction-chat send-transaction
+          :contact-code                 contact-code
+          :send-transaction-stack       {:screens {:wallet-send-transaction send-transaction
+                                                   :recent-recipients       recent-recipients
+                                                   :wallet-transaction-sent transaction-sent
+                                                   :recipient-qr-code       recipient-qr-code
+                                                   :wallet-send-assets      wallet.components/send-assets}
+                                         :config  {:headerMode "none"}}
 
-           :request-transaction-stack    {:screens {:wallet-request-transaction      request-transaction
-                                                    :wallet-send-transaction-request send-transaction-request
-                                                    :wallet-request-assets           wallet.components/request-assets
-                                                    :recent-recipients               recent-recipients}
-                                          :config  {:headerMode "none"}}
-           :unsigned-transactions        wallet-transactions/transactions
-           :transactions-history         wallet-transactions/transactions
-           :wallet-transaction-details   wallet-transactions/transaction-details})
+          :request-transaction-stack    {:screens {:wallet-request-transaction      request-transaction
+                                                   :wallet-send-transaction-request send-transaction-request
+                                                   :wallet-request-assets           wallet.components/request-assets
+                                                   :recent-recipients               recent-recipients}
+                                         :config  {:headerMode "none"}}
+          :unsigned-transactions        wallet-transactions/transactions
+          :transactions-history         wallet-transactions/transactions
+          :wallet-transaction-details   wallet-transactions/transaction-details}
+         :config
          {:headerMode       "none"
-          :initialRouteName "wallet"})}
-       :wallet-settings-assets
-       {:screen (nav-reagent/stack-screen
-                 (wrap-modal :wallet-settings-assets wallet-settings/manage-assets))}
+          :initialRouteName "wallet"}}
+        :wallet-settings-assets
+        [:modal wallet-settings/manage-assets]
 
-       :wallet-transaction-fee
-       {:screen (nav-reagent/stack-screen
-                 (wrap-modal :wallet-transaction-fee
-                             wallet.transaction-fee/transaction-fee))}
+        :wallet-transaction-fee
+        [:modal wallet.transaction-fee/transaction-fee]
 
-       :wallet-transactions-filter
-       {:screen (nav-reagent/stack-screen
-                 (wrap-modal :wallet-transactions-filter
-                             wallet-transactions/filter-history))}}
+        :wallet-transactions-filter
+        [:modal wallet-transactions/filter-history]
 
-      {:mode             "modal"
-       :headerMode       "none"
-       :initialRouteName "main-stack"})}
+        :password-drawer
+        [:modal send.views/password-input-drawer-screen]})
+      (modal-stack-config {:initialRouteName "main-stack"}))}
     :profile-stack
     {:screen
      (nav-reagent/stack-navigator
