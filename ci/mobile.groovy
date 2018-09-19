@@ -51,6 +51,12 @@ def prep(type = 'nightly') {
   sh 'cp patches/js_realm.hpp node_modules/realm/src/js_realm.hpp'
   /* install ruby dependencies */
   sh 'bundle install --quiet'
+  /* download status-go for mvn */
+  def pomDir = 'modules/react-native-status/ios/RCTStatus'
+  def repo = "${pwd}/${pomDir}/repo/status-im/status-go-ios/0.15.0"
+  def url = 'https://github.com/status-im/status-go/releases/download/v0.15.0/status-go-ios-0.15.0.zip'
+  sh "mkdir -p ${repo}"
+  sh "curl -s ${url} -o ${repo}/status-go-ios-0.15.0.zip"
   /* install Maven dependencies */
   sh 'mvn -f modules/react-native-status/ios/RCTStatus dependency:unpack'
   /* generate ios/StatusIm.xcworkspace */
