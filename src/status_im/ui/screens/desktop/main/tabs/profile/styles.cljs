@@ -46,9 +46,10 @@
 
 (def profile-editing-user-name
   (merge profile-user-name
-         {:height      20
-          :width       80
-          :align-items :flex-end}))
+         {:height           20
+          :width            80
+          :background-color colors/gray-lighter
+          :align-items      :flex-end}))
 
 (def share-contact-code
   {:flex-direction    :row
