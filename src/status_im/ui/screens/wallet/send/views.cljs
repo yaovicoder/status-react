@@ -143,14 +143,16 @@
                                       :size      :large}]])]])))
 
 (defview password-input-drawer-screen []
-  (letsubs [transaction [:wallet.send/transaction]]
-    [password-input-drawer
-     {:transaction           transaction
-      :password-button-label :t/command-button-send
-      :sign-handler          #(re-frame/dispatch [:wallet/send-transaction])}]))
+  (letsubs [transaction [:wallet.send/transaction]
+            {{:keys [password-button-label sign-handler]} :password-drawer} [:get-screen-params]]
+    (when (and transaction
+               password-button-label
+               sign-handler)
+      [password-input-drawer {:transaction           transaction
+                              :password-button-label password-button-label
+                              :sign-handler          sign-handler}])))
 
-(defview sign-view-container [{:keys [modal? transaction toolbar-title-label
-                                      sign-handler password-button-label]}
+(defview send-view-container [{:keys [modal? transaction toolbar-title-label]}
                               current-view]
   (let [{:keys [in-progress?]} transaction]
     [react/view {:flex 1
@@ -182,16 +184,12 @@
 
 (defn- render-send-transaction-view
   [{:keys [online? modal? transaction scroll advanced? network amount-input network-status]}]
-  (let [{:keys [amount amount-text amount-error asset-error show-password-input? to to-name sufficient-funds?
+  (let [{:keys [amount amount-text amount-error asset-error to to-name sufficient-funds?
                 sufficient-gas? in-progress? from-chat? symbol]} transaction
         {:keys [decimals] :as token} (tokens/asset-for (ethereum/network->chain-keyword network) symbol)]
-    [sign-view-container {:modal? modal?
-                          :in-progress? in-progress?
-                          :show-password-input? show-password-input?
+    [send-view-container {:modal? modal?
                           :transaction transaction
-                          :toolbar-title-label :t/send-transaction
-                          :password-button-label :t/command-button-send
-                          :sign-handler #(re-frame/dispatch [:wallet/send-transaction])}
+                          :toolbar-title-label :t/send-transaction}
      [react/view components.styles/flex
       [common/network-info {:text-color :white}]
       [react/scroll-view {:keyboard-should-persist-taps :always
@@ -220,7 +218,12 @@
         [advanced-options advanced? transaction scroll]]]
       [bottom-button {:disabled? (or (not online?)
                                      (not (valid-transaction? modal? transaction)))
-                      :on-press #(re-frame/dispatch [:wallet.send.ui/sign-button-pressed])
+                      :on-press  #(re-frame/dispatch
+                                   [:wallet.send.ui/sign-button-pressed
+                                    {:password-button-label :t/command-button-send
+                                     :sign-handler          (fn []
+                                                              (re-frame/dispatch
+                                                               [:wallet/send-transaction]))}])
                       :label :t/transactions-sign-transaction}]]]))
 
 ;; MAIN SEND TRANSACTION VIEW
@@ -248,7 +251,7 @@
             scroll      (atom nil)
             network-status [:network-status]]
     [react/keyboard-avoiding-view {:flex 1}
-     [send-transaction-view {:modal? false?
+     [send-transaction-view {:modal? false
                              :transaction transaction
                              :scroll scroll
                              :advanced? advanced?
@@ -278,14 +281,11 @@
 
 ;; SIGN MESSAGE FROM DAPP
 (defview sign-message-modal []
-     (letsubs [transaction [:wallet.send/transaction]
-               network-status [:network-status]]
-    [sign-view-container {:modal? true
+  (letsubs [transaction [:wallet.send/transaction]
+            network-status [:network-status]]
+    [send-view-container {:modal? true
                           :transaction transaction
-                          :toolbar-title-label :t/sign-message
-                          :password-button-label :t/transactions-sign
-                          :sign-handler #(re-frame/dispatch [:wallet/sign-message])
-                          :online? (= :online network-status)}
+                          :toolbar-title-label :t/sign-message}
      [react/view components.styles/flex
       [react/scroll-view
        (when (= network-status :offline)
@@ -299,5 +299,11 @@
                            :height    100}
            :amount-text   (:data transaction)}
           nil]]]]
-      [bottom-button {:on-press #(re-frame/dispatch [:wallet.send.ui/sign-button-pressed])
-                      :label :t/transactions-sign}]]]))
+      [bottom-button
+       {:on-press #(re-frame/dispatch
+                    [:wallet.send.ui/sign-button-pressed
+                     {:label    :t/transactions-sign
+                      :on-press (fn []
+                                  (re-frame/dispatch
+                                   [:wallet/sign-message]))}])
+        :label    :t/transactions-sign}]]]))
