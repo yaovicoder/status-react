@@ -21,6 +21,8 @@
                  :style  styles/profile-photo}]
    (if editing?
      [react/text-input {:default-value name
+                        :placeholder   ""
+                        :auto-focus    true
                         :font          :medium
                         :style         styles/profile-editing-user-name
                         :on-change     #(re-frame/dispatch [:my-profile/update-name
