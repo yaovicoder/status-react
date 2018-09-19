@@ -99,10 +99,10 @@
     :enter-password (navigation/navigate-back (:db cofx))
     :confirm-password (reset-account-creation cofx)))
 
-(defn navigate-to-authentication-method [{:keys [db]}]
+(defn navigate-to-authentication-method [{:keys [db] :as cofx}]
   (if (hardwallet/hardwallet-supported? db)
-    {:dispatch [:navigate-to :hardwallet/authentication-method]}
-    {:dispatch [:navigate-to :create-account]}))
+    (navigation/navigate-to-cofx :hardwallet/authentication-method nil cofx)
+    (navigation/navigate-to-cofx :create-account nil cofx)))
 
 ;;;; COFX
 
