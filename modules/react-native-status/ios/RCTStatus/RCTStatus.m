@@ -113,7 +113,8 @@ RCT_EXPORT_METHOD(startNode:(NSString *)configString
     int networkId = [configJSON[@"NetworkId"] integerValue];
     NSString *dataDir = [configJSON objectForKey:@"DataDir"];
     NSString *upstreamURL = [configJSON valueForKeyPath:@"UpstreamConfig.URL"];
-    NSArray *bootnodes = [configJSON valueForKeyPath:@"ClusterConfig.BootNodes"];
+    //NSArray *bootnodes = [configJSON valueForKeyPath:@"ClusterConfig.BootNodes"];
+    NSArray *bootnodes = @[@"enode://ed31f8ada30334e6db81dd8f85ae872ee1879f634ab9171867efdc0cd4b54957ff86a8279ed0a1745152b892c9d29f6bf6d31bede81e1909595b4477caf3c4d7@127.0.0.1:30303"];
     NSString *networkDir = [rootUrl.path stringByAppendingString:dataDir];
     NSString *devCluster = [ReactNativeConfig envFor:@"ETHEREUM_DEV_CLUSTER"];
     NSString *logEnabled = [configJSON objectForKey:@"LogEnabled"];
