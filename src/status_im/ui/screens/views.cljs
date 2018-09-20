@@ -189,7 +189,7 @@
           :initialRouteName "wallet-onboarding-setup-modal"}}
 
         :wallet-sign-message-modal
-        (wrap-modal :wallet-sign-message-modal sign-message-modal)})
+        [:modal sign-message-modal]})
       {:mode             "modal"
        :headerMode       "none"
        :initialRouteName "main-stack"})}
