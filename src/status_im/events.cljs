@@ -137,7 +137,8 @@
 
 (handlers/register-handler-fx
  :accounts.create.callback/create-account-success
- [(re-frame/inject-cofx :accounts.create/get-signing-phrase)
+ [(re-frame/inject-cofx :random-guid-generator)
+  (re-frame/inject-cofx :accounts.create/get-signing-phrase)
   (re-frame/inject-cofx :accounts.create/get-status)]
  (fn [cofx [_ result password]]
    (accounts.create/on-account-created result password false cofx)))
@@ -181,7 +182,8 @@
 
 (handlers/register-handler-fx
  :accounts.recover.callback/recover-account-success
- [(re-frame/inject-cofx :accounts.create/get-signing-phrase)
+ [(re-frame/inject-cofx :random-guid-generator)
+  (re-frame/inject-cofx :accounts.create/get-signing-phrase)
   (re-frame/inject-cofx :accounts.create/get-status)]
  (fn [cofx [_ result password]]
    (accounts.recover/on-account-recovered result password cofx)))
