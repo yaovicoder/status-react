@@ -556,3 +556,8 @@
  :hardwallet.ui/secret-keys-dialog-confirm-pressed
  (fn [{:keys [db]} _]
    {:db (assoc-in db [:hardwallet :setup-step] :complete)}))
+
+(handlers/register-handler-fx
+ :hardwallet.ui/success-button-pressed
+ (fn [cofx _]
+   (navigation/navigate-to-cofx :home nil cofx)))

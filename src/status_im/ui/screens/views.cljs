@@ -59,6 +59,7 @@
             [status-im.ui.screens.hardwallet.authentication-method.views :refer [hardwallet-authentication-method]]
             [status-im.ui.screens.hardwallet.connect.views :refer [hardwallet-connect]]
             [status-im.ui.screens.hardwallet.setup.views :refer [hardwallet-setup]]
+            [status-im.ui.screens.hardwallet.success.views :refer [hardwallet-success]]
             [status-im.ui.screens.profile.seed.views :refer [backup-seed]]
             [status-im.ui.screens.about-app.views :as about-app]
             [status-im.utils.navigation :as navigation]
@@ -134,7 +135,8 @@
                 :accounts                         accounts
                 :hardwallet-authentication-method hardwallet-authentication-method
                 :hardwallet-connect               hardwallet-connect
-                :hardwallet-setup                 hardwallet-setup}
+                :hardwallet-setup                 hardwallet-setup
+                :hardwallet-success               hardwallet-success}
          (= :intro view-id)
          (assoc :intro intro)))
       (cond-> {:headerMode "none"}
@@ -274,9 +276,10 @@
            :create-account                   create-account
            :recover                          recover
            :accounts                         accounts
-           :hardwallet/authentication-method hardwallet-authentication-method
-           :hardwallet/connect               hardwallet-connect
-           :hardwallet/setup                 hardwallet-setup
+           :hardwallet-authentication-method hardwallet-authentication-method
+           :hardwallet-connect               hardwallet-connect
+           :hardwallet-setup                 hardwallet-setup
+           :hardwallet-success               hardwallet-success
            :qr-scanner                       qr-scanner})
          {:headerMode       "none"
           :initialRouteName "my-profile"})}
