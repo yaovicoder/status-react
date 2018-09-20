@@ -196,7 +196,8 @@
          :config
          {:headerMode       "none"
           :initialRouteName "wallet-send-transaction-modal"}}
-
+        :wallet-sign-message-modal
+        [:modal sign-message-modal]
         :wallet-send-modal-stack-with-onboarding
         {:screens
          {:wallet-onboarding-setup-modal
@@ -205,6 +206,9 @@
           :wallet-send-transaction-modal
           [:modal send-transaction-modal]
 
+          :wallet-sign-message-modal
+          [:modal sign-message-modal]
+
           :wallet-transaction-sent
           [:modal transaction-sent-modal]
 
@@ -212,10 +216,7 @@
           [:modal wallet.transaction-fee/transaction-fee]}
          :config
          {:headerMode       "none"
-          :initialRouteName "wallet-onboarding-setup-modal"}}
-
-        :wallet-sign-message-modal
-        (wrap-modal :wallet-sign-message-modal sign-message-modal)})
+          :initialRouteName "wallet-onboarding-setup-modal"}}})
       (modal-stack-config {:initialRouteName "main-stack"}))}
     :wallet-stack
     {:screen
