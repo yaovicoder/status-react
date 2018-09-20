@@ -24,6 +24,8 @@
 (def icon-check-container
   {:width            64
    :height           64
+   :bottom           -40
+   :position         :absolute
    :align-items      :center
    :justify-content  :center
    :background-color colors/green

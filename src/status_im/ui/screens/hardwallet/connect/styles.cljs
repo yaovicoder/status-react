@@ -21,6 +21,10 @@
 (def hardwallet-card-image-small
   {:width        44
    :height       28
+   :position     :absolute
+   :left         58
+   :top          13
+   :z-index      1
    :margin-right 20})
 
 (def status-hardwallet-text-container
@@ -56,6 +60,7 @@
 (def phone-nfc-image
   {:width       54
    :height      72
+   :z-index     2
    :margin-left 20
    :margin-top  8
    :align-items :baseline})
