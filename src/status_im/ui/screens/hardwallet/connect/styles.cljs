@@ -39,8 +39,10 @@
    :padding-horizontal 80
    :padding-vertical   10})
 
-(def bottom-action-container
-  {:background-color colors/gray-lighter
+(defn bottom-action-container [nfc-enabled?]
+  {:background-color (if nfc-enabled?
+                       colors/gray-background
+                       colors/gray-lighter)
    :width            369
    :height           80
    :border-radius    10

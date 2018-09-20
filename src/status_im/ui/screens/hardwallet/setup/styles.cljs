@@ -44,7 +44,7 @@
    :text-align :center})
 
 (def bottom-action-container
-  {:background-color colors/gray-lighter
+  {:background-color colors/gray-background
    :align-items      :center
    :justify-content  :center
    :flex-direction   :row

@@ -514,3 +514,13 @@
  :hardwallet.ui/go-to-settings-button-pressed
  (fn [_ _]
    {:hardwallet/open-nfc-settings nil}))
+
+(handlers/register-handler-fx
+ :hardwallet.ui/hold-card-button-pressed
+ (fn [cofx _]
+   (navigation/navigate-to-cofx :hardwallet-setup nil cofx)))
+
+(handlers/register-handler-fx
+ :hardwallet.ui/begin-setup-button-pressed
+ (fn [cofx _]
+   (navigation/navigate-to-cofx :hardwallet-setup nil cofx)))

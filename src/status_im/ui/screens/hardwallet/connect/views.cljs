@@ -35,10 +35,10 @@
         [react/text {:style           styles/link-card-text
                      :number-of-lines 2}
          (i18n/label :t/link-card)]]
-       [react/view styles/bottom-action-container
+       [react/view (styles/bottom-action-container nfc-enabled?)
         (if nfc-enabled?
           [react/touchable-highlight
-           {:on-press #(re-frame/dispatch [:navigate-to :hardwallet-setup])}
+           {:on-press #(re-frame/dispatch [:hardwallet.ui/hold-card-button-pressed])}
            [react/view styles/nfc-enabled-container
             [react/image {:source (:phone-nfc resources/ui)
                           :style  styles/phone-nfc-image}]

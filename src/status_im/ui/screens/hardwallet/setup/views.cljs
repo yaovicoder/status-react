@@ -23,8 +23,10 @@
       [react/view styles/card-is-empty-text-container
        [react/text {:style styles/card-is-empty-text}
         (i18n/label :t/card-is-empty)]]]
-     [react/view styles/bottom-action-container
-      [react/text {:style      styles/begin-set-up-text
-                   :font       :medium
-                   :uppercase? true}
-       (i18n/label :t/begin-set-up)]]]]])
+     [react/touchable-highlight
+      {:on-press #(re-frame/dispatch [:hardwallet.ui/begin-setup-button-pressed])}
+      [react/view styles/bottom-action-container
+       [react/text {:style      styles/begin-set-up-text
+                    :font       :medium
+                    :uppercase? true}
+        (i18n/label :t/begin-set-up)]]]]]])
