@@ -76,7 +76,8 @@
       (get-base-node-config)
 
       current-fleet
-      (assoc :NoDiscovery false
+      (assoc :NoDiscovery   true
+             :Rendezvous    false
              :ClusterConfig {:Enabled true
                              :Fleet              (name current-fleet-key)
                              :BootNodes          (pick-nodes 4 (vals (:boot current-fleet)))
