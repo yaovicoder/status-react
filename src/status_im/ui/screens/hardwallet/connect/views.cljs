@@ -37,15 +37,18 @@
          (i18n/label :t/link-card)]]
        [react/view styles/bottom-action-container
         (if nfc-enabled?
-          [react/view styles/nfc-enabled-container
-           [react/image {:source (:phone-nfc resources/ui)
-                         :style  styles/phone-nfc-image}]
-           [react/image {:source (:hardwallet-card resources/ui)
-                         :style  styles/hardwallet-card-image-small}]
-           [react/text {:style           styles/hold-card-text
-                        :number-of-lines 2
-                        :uppercase?      true}
-            (i18n/label :t/hold-card)]]
+          [react/touchable-highlight
+           {:on-press #(re-frame/dispatch [:navigate-to :hardwallet-setup])}
+           [react/view styles/nfc-enabled-container
+            [react/image {:source (:phone-nfc resources/ui)
+                          :style  styles/phone-nfc-image}]
+            [react/image {:source (:hardwallet-card resources/ui)
+                          :style  styles/hardwallet-card-image-small}]
+            [react/text {:style           styles/hold-card-text
+                         :number-of-lines 2
+                         :font            :medium
+                         :uppercase?      true}
+             (i18n/label :t/hold-card)]]]
           [react/view styles/nfc-disabled-container
            [vector-icons/icon :icons/nfc {:color           colors/gray
                                           :container-style styles/nfc-icon}]
