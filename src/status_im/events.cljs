@@ -1,4 +1,5 @@
 (ns status-im.events
+  (:require-macros [status-im.utils.handlers-macro :as handlers-macro])
   (:require status-im.ui.screens.accounts.create.navigation
             status-im.ui.screens.accounts.recover.navigation
             [re-frame.core :as re-frame]
@@ -517,10 +518,41 @@
 
 (handlers/register-handler-fx
  :hardwallet.ui/hold-card-button-pressed
- (fn [cofx _]
-   (navigation/navigate-to-cofx :hardwallet-setup nil cofx)))
+ (fn [{:keys [db] :as cofx} _]
+   (handlers-macro/merge-fx cofx
+                            {:db (assoc-in db [:hardwallet :setup-step] :begin)}
+                            (navigation/navigate-to-cofx :hardwallet-setup nil))))
 
 (handlers/register-handler-fx
  :hardwallet.ui/begin-setup-button-pressed
- (fn [cofx _]
-   (navigation/navigate-to-cofx :hardwallet-setup nil cofx)))
+ (fn [{:keys [db]} _]
+   {:db (assoc-in db [:hardwallet :setup-step] :prepare)}))
+
+(handlers/register-handler-fx
+ :hardwallet/connection-error
+ (fn [_ _]
+   {:utils/show-popup {:title      (i18n/label :t/cant-read-card)
+                       :content    (i18n/label :t/cant-read-card-error-explanation)
+                       :on-dismiss #(re-frame/dispatch [:hardwallet.ui/connection-error-confirm-button-pressed])}}))
+
+(handlers/register-handler-fx
+ :hardwallet.ui/connection-error-confirm-button-pressed
+ (fn [{:keys [db] :as cofx} _]
+   (handlers-macro/merge-fx cofx
+                            {:db (assoc-in db [:hardwallet :setup-step] :begin)}
+                            (navigation/navigate-to-cofx :hardwallet-setup nil))))
+
+(handlers/register-handler-fx
+ :hardwallet.ui/secret-keys-next-button-pressed
+ (fn [_ _]
+   {:ui/show-confirmation {:title               (i18n/label :t/secret-keys-confirmation-title)
+                           :content             (i18n/label :t/secret-keys-confirmation-text)
+                           :confirm-button-text (i18n/label :t/secret-keys-confirmation-confirm)
+                           :cancel-button-text  (i18n/label :t/secret-keys-confirmation-cancel)
+                           :on-accept           #(re-frame/dispatch [:hardwallet.ui/secret-keys-dialog-confirm-pressed])
+                           :on-cancel           #()}}))
+
+(handlers/register-handler-fx
+ :hardwallet.ui/secret-keys-dialog-confirm-pressed
+ (fn [{:keys [db]} _]
+   {:db (assoc-in db [:hardwallet :setup-step] :complete)}))
