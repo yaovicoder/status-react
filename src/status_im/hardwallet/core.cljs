@@ -36,7 +36,7 @@
   (handlers-macro/merge-fx
    cofx
    {:hardwallet/check-nfc-enabled nil}
-   (navigation/navigate-to-cofx :hardwallet/connect nil)))
+   (navigation/navigate-to-cofx :hardwallet-connect nil)))
 
 (defn hardwallet-supported? [db]
   (and config/hardwallet-enabled?
@@ -45,7 +45,7 @@
 
 (defn return-back-from-nfc-settings [app-coming-from-background? {:keys [db]}]
   (when (and app-coming-from-background?
-             (= :hardwallet/connect (:view-id db)))
+             (= :hardwallet-connect (:view-id db)))
     {:hardwallet/check-nfc-enabled nil}))
 
 (re-frame/reg-fx
