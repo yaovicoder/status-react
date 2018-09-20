@@ -8,8 +8,7 @@
 
 (handlers/register-handler-fx
  ::wallet-send-chat-request
- [re-frame/trim-v]
- (fn [{:keys [db] :as cofx} [asset amount]]
+ (fn [{:keys [db] :as cofx} [_ asset amount]]
    (handlers-macro/merge-fx cofx
                             {:dispatch [:send-current-message]}
                             (commands/select-chat-input-command
@@ -17,8 +16,7 @@
 
 (handlers/register-handler-fx
  :wallet-send-request
- [re-frame/trim-v]
- (fn [_ [whisper-identity amount symbol decimals]]
+ (fn [_ [_ whisper-identity amount symbol decimals]]
    (assert whisper-identity)
    ;; TODO(janherich) remove this dispatch sequence, there is absolutely no need for that :/
    {:dispatch-n [[:navigate-back]
