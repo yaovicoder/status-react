@@ -239,6 +239,8 @@ class StatusModule extends ReactContextBaseJavaModule implements LifecycleEventL
 
     private void doStartNode(final String defaultConfig, final String fleet) {
 
+        Log.d("IGORM", "-> doStartNode");
+
         Activity currentActivity = getCurrentActivity();
 
         final String root = currentActivity.getApplicationInfo().dataDir;
@@ -654,6 +656,11 @@ class StatusModule extends ReactContextBaseJavaModule implements LifecycleEventL
         Bundle bundle = message.getData();
 
         String event = bundle.getString("event");
+
+        if (event.contains("node.started") || event.contains("node.ready")) {
+            Log.d("IGORM", "signal event " + event);
+        }
+
         signalEvent(event);
 
         return true;

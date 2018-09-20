@@ -67,9 +67,8 @@ RCT_EXPORT_MODULE();
 //////////////////////////////////////////////////////////////////// startNode
 RCT_EXPORT_METHOD(startNode:(NSString *)configString
                       fleet:(NSString *)fleet) {
-#if DEBUG
-    NSLog(@"StartNode() method called");
-#endif
+    NSLog(@"IGORM -> StartNode() method called");
+
     NSFileManager *fileManager = [NSFileManager defaultManager];
     NSError *error = nil;
     NSURL *rootUrl =[[fileManager
@@ -379,10 +378,9 @@ RCT_EXPORT_METHOD(getDeviceUUID:(RCTResponseSenderBlock)callback) {
     }
 
     NSString *sig = [NSString stringWithUTF8String:signal];
-#if DEBUG
-    NSLog(@"SignalEvent");
-    NSLog(sig);
-#endif
+    if ([sig containsString:@"node.started"] || [sig containsString:@"node.ready"]) {
+        NSLog(@"IGORM SignalEvent: %@", sig);
+    }
     [bridge.eventDispatcher sendAppEventWithName:@"gethEvent"
                                             body:@{@"jsonEvent": sig}];
 

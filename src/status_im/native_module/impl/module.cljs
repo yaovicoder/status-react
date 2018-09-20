@@ -60,6 +60,7 @@
 
 (defn start-node [config fleet]
   (when status
+    (log/debug "igorm -> start-node called!")
     (call-module #(.startNode status config fleet))))
 
 (defonce account-creation? (atom false))

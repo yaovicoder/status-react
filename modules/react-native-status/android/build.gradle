@@ -20,9 +20,10 @@ dependencies {
     final String statusGoGroup = 'status-im', statusGoName = 'status-go'
 
     // Check if the local status-go jar exists, and compile against that if it does
-    final String localStatusLibOutputDir = "${rootDir}/../modules/react-native-status/android/libs", localVersion = 'local'
+    final String localStatusLibOutputDir = "${rootDir}/../modules/react-native-status/android/libs", localVersion = 'v0.14.1-local'
     if ( new File("${localStatusLibOutputDir}/${statusGoGroup}/${statusGoName}/${localVersion}/${statusGoName}-${localVersion}.aar").exists() ) {
         // Use the local version
+        logger.quiet("IGORM -> Using a local version: ${localVersion}")
         statusGoVersion = localVersion
     }
 

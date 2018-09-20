@@ -10,6 +10,7 @@
 
 (defn status-node-started
   [{db :db :as cofx}]
+  (log/debug "igorm -> status-node-started")
   (let [fx {:db (assoc db :status-node-started? true)}]
     (if (:password (login/credentials cofx))
       (handlers-macro/merge-fx cofx
