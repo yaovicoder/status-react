@@ -143,8 +143,9 @@
                                       :size      :large}]])]])))
 
 (defview password-input-drawer-screen []
-  (letsubs [transaction [:wallet.send/transaction]
-            {{:keys [password-button-label sign-handler]} :password-drawer} [:get-screen-params]]
+  (letsubs
+    [transaction [:wallet.send/transaction]
+     {{:keys [password-button-label sign-handler]} :password-drawer} [:get-screen-params]]
     (when (and transaction
                password-button-label
                sign-handler)
@@ -302,8 +303,8 @@
       [bottom-button
        {:on-press #(re-frame/dispatch
                     [:wallet.send.ui/sign-button-pressed
-                     {:label    :t/transactions-sign
-                      :on-press (fn []
-                                  (re-frame/dispatch
-                                   [:wallet/sign-message]))}])
+                     {:password-button-label :t/transactions-sign
+                      :sign-handler          (fn []
+                                               (re-frame/dispatch
+                                                [:wallet/sign-message]))}])
         :label    :t/transactions-sign}]]]))

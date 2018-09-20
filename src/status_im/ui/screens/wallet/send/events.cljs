@@ -93,21 +93,25 @@
        ;; ERROR
        (models.wallet/handle-transaction-error (assoc cofx :db db') error)
        ;; RESULT
-       (merge
-        {:db (cond-> (assoc-in db' [:wallet :send-transaction] {})
+       (let [db''
+             (cond-> (assoc-in db' [:wallet :send-transaction] {})
 
                (not= method constants/web3-personal-sign)
                (assoc-in [:wallet :transactions result]
-                         (models.wallet/prepare-unconfirmed-transaction db now result)))}
+                         (models.wallet/prepare-unconfirmed-transaction db now result)))]
 
-        (if dapp-transaction
-          (let [{:keys [message-id]} dapp-transaction
-                webview (:webview-bridge db)]
-            (models.wallet/dapp-complete-transaction (int id) result method message-id webview cofx))
-          {:dispatch [:send-transaction-message whisper-identity {:address to
-                                                                  :asset   (name symbol)
-                                                                  :amount  amount-text
-                                                                  :tx-hash result}]}))))))
+         (if dapp-transaction
+           (let [{:keys [message-id]} dapp-transaction
+                 webview (:webview-bridge db'')]
+             (models.wallet/dapp-complete-transaction
+              (int id) result method message-id webview (assoc cofx :db db'')))
+           {:db       db''
+            :dispatch [:send-transaction-message
+                       whisper-identity
+                       {:address to
+                        :asset   (name symbol)
+                        :amount  amount-text
+                        :tx-hash result}]}))))))
 
 ;; DISCARD TRANSACTION
 (handlers/register-handler-fx
