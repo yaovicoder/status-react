@@ -160,8 +160,7 @@
 
 (handlers/register-handler-fx
  :load-commands
- [re-frame/trim-v]
- (fn [cofx [commands]]
+ (fn [cofx [_ commands]]
    (load-commands commands cofx)))
 
 (defn chat-commands
@@ -204,10 +203,10 @@
       (> input-params-count params-count) :more-than-needed)))
 
 (defn selected-chat-command
-  "Takes input text, text-selection and `protocol/id->command-props` map (result of 
-  the `chat-commands` fn) and returns the corresponding `command-props` entry, 
+  "Takes input text, text-selection and `protocol/id->command-props` map (result of
+  the `chat-commands` fn) and returns the corresponding `command-props` entry,
   or nothing if input text doesn't match any available command.
-  Besides keys `:params` and `:type`, the returned map contains: 
+  Besides keys `:params` and `:type`, the returned map contains:
   * `:input-params` - parsed parameters from the input text as map of `param-id->entered-value`
   # `:current-param-position` - index of the parameter the user is currently focused on (cursor position
   in relation to parameters), could be nil if the input is not selected
