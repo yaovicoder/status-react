@@ -5,11 +5,10 @@
             status-im.ui.screens.db
             status-im.ui.screens.subs
             [re-frame.core :as re-frame]
-            [status-im.models.browser :as model]
+            [status-im.browser.core :as browser]
             [status-im.utils.types :as types]
             [status-im.utils.handlers :as handlers]
-            [status-im.utils.handlers-macro :as handlers-macro]
-            [status-im.models.browser :as browser]))
+            [status-im.utils.handlers-macro :as handlers-macro]))
 
 (defn test-fixtures []
 
@@ -51,163 +50,163 @@
 
   (run-test-sync
 
-   (test-fixtures)
+    (test-fixtures)
 
-   (re-frame/dispatch [:initialize-test])
+    (re-frame/dispatch [:initialize-test])
 
-   (let [browsers  (re-frame/subscribe [:browsers])
-         dapp1-url "cryptokitties.co"
-         dapp2-url "http://test2.com"]
+    (let [browsers  (re-frame/subscribe [:browsers])
+          dapp1-url "cryptokitties.co"
+          dapp2-url "http://test2.com"]
 
-     (testing "open and remove dapps"
-       (is (zero? (count @browsers)))
+      (testing "open and remove dapps"
+        (is (zero? (count @browsers)))
 
-       (re-frame/dispatch [:open-url-in-browser dapp1-url])
+        (re-frame/dispatch [:open-url-in-browser dapp1-url])
 
-       (is (= 1 (count @browsers)))
+        (is (= 1 (count @browsers)))
 
-       (re-frame/dispatch [:open-url-in-browser dapp2-url])
+        (re-frame/dispatch [:open-url-in-browser dapp2-url])
 
-       (is (= 2 (count @browsers)))
+        (is (= 2 (count @browsers)))
 
-       (let [browser1 (first (vals @browsers))
-             browser2 (second (vals @browsers))]
-         (is (and (:dapp? browser1)
-                  (not (:dapp? browser2))))
-         (is (and (zero? (:history-index browser1))
-                  (zero? (:history-index browser2))))
-         (is (and (= [(str "http://" dapp1-url) (:history browser1)])
-                  (= [dapp2-url] (:history browser2)))))
+        (let [browser1 (first (vals @browsers))
+              browser2 (second (vals @browsers))]
+          (is (and (:dapp? browser1)
+                   (not (:dapp? browser2))))
+          (is (and (zero? (:history-index browser1))
+                   (zero? (:history-index browser2))))
+          (is (and (= [(str "http://" dapp1-url) (:history browser1)])
+                   (= [dapp2-url] (:history browser2)))))
 
-       (re-frame/dispatch [:remove-browser dapp1-url])
+        (re-frame/dispatch [:remove-browser dapp1-url])
 
-       (is (= 1 (count @browsers))))
+        (is (= 1 (count @browsers))))
 
-     (testing "navigate dapp"
+      (testing "navigate dapp"
 
-       (re-frame/dispatch [:open-browser (first (vals @browsers))])
+        (re-frame/dispatch [:open-browser (first (vals @browsers))])
 
-       (let [browser    (re-frame/subscribe [:get-current-browser])
-             dapp2-url2 (str dapp2-url "/nav2")
-             dapp2-url3 (str dapp2-url "/nav3")]
+        (let [browser    (re-frame/subscribe [:get-current-browser])
+              dapp2-url2 (str dapp2-url "/nav2")
+              dapp2-url3 (str dapp2-url "/nav3")]
 
-         (is (zero? (:history-index @browser)))
-         (is (= [dapp2-url] (:history @browser)))
+          (is (zero? (:history-index @browser)))
+          (is (= [dapp2-url] (:history @browser)))
 
-         (is (and (not (model/can-go-back? @browser))
-                  (not (model/can-go-forward? @browser))))
+          (is (and (not (browser/can-go-back? @browser))
+                   (not (browser/can-go-forward? @browser))))
 
-         (re-frame/dispatch [:browser-nav-back])
-         (re-frame/dispatch [:browser-nav-forward])
+          (re-frame/dispatch [:browser-nav-back])
+          (re-frame/dispatch [:browser-nav-forward])
 
-         (re-frame/dispatch [:update-browser-on-nav-change @browser dapp2-url2 false])
+          (re-frame/dispatch [:update-browser-on-nav-change @browser dapp2-url2 false])
 
-         (is (= 1 (:history-index @browser)))
-         (is (= [dapp2-url dapp2-url2] (:history @browser)))
+          (is (= 1 (:history-index @browser)))
+          (is (= [dapp2-url dapp2-url2] (:history @browser)))
 
-         (is (and (model/can-go-back? @browser)
-                  (not (model/can-go-forward? @browser))))
+          (is (and (browser/can-go-back? @browser)
+                   (not (browser/can-go-forward? @browser))))
 
-         (re-frame/dispatch [:browser-nav-back @browser])
+          (re-frame/dispatch [:browser-nav-back @browser])
 
-         (is (zero? (:history-index @browser)))
-         (is (= [dapp2-url dapp2-url2] (:history @browser)))
+          (is (zero? (:history-index @browser)))
+          (is (= [dapp2-url dapp2-url2] (:history @browser)))
 
-         (is (and (not (model/can-go-back? @browser))
-                  (model/can-go-forward? @browser)))
+          (is (and (not (browser/can-go-back? @browser))
+                   (browser/can-go-forward? @browser)))
 
-         (re-frame/dispatch [:update-browser-on-nav-change @browser dapp2-url3 false])
+          (re-frame/dispatch [:update-browser-on-nav-change @browser dapp2-url3 false])
 
-         (is (= 1 (:history-index @browser)))
-         (is (= [dapp2-url dapp2-url3] (:history @browser)))
+          (is (= 1 (:history-index @browser)))
+          (is (= [dapp2-url dapp2-url3] (:history @browser)))
 
-         (re-frame/dispatch [:browser-nav-back @browser])
+          (re-frame/dispatch [:browser-nav-back @browser])
 
-         (is (zero? (:history-index @browser)))
-         (is (= [dapp2-url dapp2-url3] (:history @browser)))
+          (is (zero? (:history-index @browser)))
+          (is (= [dapp2-url dapp2-url3] (:history @browser)))
 
-         (re-frame/dispatch [:browser-nav-forward @browser])
+          (re-frame/dispatch [:browser-nav-forward @browser])
 
-         (is (= 1 (:history-index @browser)))
-         (is (= [dapp2-url dapp2-url3] (:history @browser))))))
+          (is (= 1 (:history-index @browser)))
+          (is (= [dapp2-url dapp2-url3] (:history @browser))))))
 
-   (let [dapps-permissions (re-frame/subscribe [:get :dapps/permissions])
-         dapp-name         "test.com"
-         dapp-name2        "test2.org"]
+    (let [dapps-permissions (re-frame/subscribe [:get :dapps/permissions])
+          dapp-name         "test.com"
+          dapp-name2        "test2.org"]
 
-     (testing "dapps permissions"
+      (testing "dapps permissions"
 
-       (is (zero? (count @dapps-permissions)))
+        (is (zero? (count @dapps-permissions)))
 
-       (re-frame/dispatch [:on-bridge-message (types/clj->json {:type        "status-api-request"
-                                                                :host        dapp-name
-                                                                :permissions ["FAKE_PERMISSION"]})
-                           nil nil])
+        (re-frame/dispatch [:on-bridge-message (types/clj->json {:type        "status-api-request"
+                                                                 :host        dapp-name
+                                                                 :permissions ["FAKE_PERMISSION"]})
+                            nil nil])
 
-       (re-frame/dispatch [:next-dapp-permission
-                           {:dapp-name             dapp-name
-                            :index                 0
-                            :requested-permissions ["FAKE_PERMISSION"]
-                            :permissions-data "Data"}])
+        (re-frame/dispatch [:next-dapp-permission
+                            {:dapp-name             dapp-name
+                             :index                 0
+                             :requested-permissions ["FAKE_PERMISSION"]
+                             :permissions-data "Data"}])
 
-       (is (= {:dapp        dapp-name
-               :permissions []}
-              (get @dapps-permissions dapp-name)))
+        (is (= {:dapp        dapp-name
+                :permissions []}
+               (get @dapps-permissions dapp-name)))
 
-       (re-frame/dispatch [:on-bridge-message (types/clj->json {:type        "status-api-request"
-                                                                :host        dapp-name
-                                                                :permissions ["CONTACT_CODE"]})
-                           nil nil])
+        (re-frame/dispatch [:on-bridge-message (types/clj->json {:type        "status-api-request"
+                                                                 :host        dapp-name
+                                                                 :permissions ["CONTACT_CODE"]})
+                            nil nil])
 
-       (re-frame/dispatch [:next-dapp-permission
-                           {:dapp-name             dapp-name
-                            :index                 0
-                            :requested-permissions ["CONTACT_CODE"]
-                            :permissions-data {"CONTACT_CODE" "Data"}}
-                           "CONTACT_CODE"
-                           {"CONTACT_CODE" "Data"}])
+        (re-frame/dispatch [:next-dapp-permission
+                            {:dapp-name             dapp-name
+                             :index                 0
+                             :requested-permissions ["CONTACT_CODE"]
+                             :permissions-data {"CONTACT_CODE" "Data"}}
+                            "CONTACT_CODE"
+                            {"CONTACT_CODE" "Data"}])
 
-       (is (= 1 (count @dapps-permissions)))
+        (is (= 1 (count @dapps-permissions)))
 
-       (is (= {:dapp        dapp-name
-               :permissions ["CONTACT_CODE"]}
-              (get @dapps-permissions dapp-name)))
+        (is (= {:dapp        dapp-name
+                :permissions ["CONTACT_CODE"]}
+               (get @dapps-permissions dapp-name)))
 
-       (re-frame/dispatch [:on-bridge-message (types/clj->json {:type        "status-api-request"
-                                                                :host        dapp-name
-                                                                :permissions ["CONTACT_CODE" "FAKE_PERMISSION"]})
-                           nil nil])
+        (re-frame/dispatch [:on-bridge-message (types/clj->json {:type        "status-api-request"
+                                                                 :host        dapp-name
+                                                                 :permissions ["CONTACT_CODE" "FAKE_PERMISSION"]})
+                            nil nil])
 
-       (is (= 1 (count @dapps-permissions)))
+        (is (= 1 (count @dapps-permissions)))
 
-       (is (= {:dapp        dapp-name
-               :permissions ["CONTACT_CODE"]}
-              (get @dapps-permissions dapp-name)))
+        (is (= {:dapp        dapp-name
+                :permissions ["CONTACT_CODE"]}
+               (get @dapps-permissions dapp-name)))
 
-       (re-frame/dispatch [:on-bridge-message (types/clj->json {:type        "status-api-request"
-                                                                :host        dapp-name
-                                                                :permissions ["FAKE_PERMISSION"]})
-                           nil nil])
+        (re-frame/dispatch [:on-bridge-message (types/clj->json {:type        "status-api-request"
+                                                                 :host        dapp-name
+                                                                 :permissions ["FAKE_PERMISSION"]})
+                            nil nil])
 
-       (is (= 1 (count @dapps-permissions)))
+        (is (= 1 (count @dapps-permissions)))
 
-       (is (= {:dapp        dapp-name
-               :permissions ["CONTACT_CODE"]}
-              (get @dapps-permissions dapp-name)))
+        (is (= {:dapp        dapp-name
+                :permissions ["CONTACT_CODE"]}
+               (get @dapps-permissions dapp-name)))
 
-       (re-frame/dispatch [:on-bridge-message (types/clj->json {:type        "status-api-request"
-                                                                :host        dapp-name2
-                                                                :permissions ["CONTACT_CODE"]})
-                           nil nil])
+        (re-frame/dispatch [:on-bridge-message (types/clj->json {:type        "status-api-request"
+                                                                 :host        dapp-name2
+                                                                 :permissions ["CONTACT_CODE"]})
+                            nil nil])
 
-       (re-frame/dispatch [:next-dapp-permission
-                           {:dapp-name             dapp-name2
-                            :index                 0
-                            :requested-permissions ["CONTACT_CODE" "FAKE_PERMISSION"]
-                            :permissions-data "Data"}])
+        (re-frame/dispatch [:next-dapp-permission
+                            {:dapp-name             dapp-name2
+                             :index                 0
+                             :requested-permissions ["CONTACT_CODE" "FAKE_PERMISSION"]
+                             :permissions-data "Data"}])
 
-       (is (= 2 (count @dapps-permissions)))
+        (is (= 2 (count @dapps-permissions)))
 
-       (is (= {:dapp        dapp-name2
-               :permissions []}
-              (get @dapps-permissions dapp-name2)))))))
+        (is (= {:dapp        dapp-name2
+                :permissions []}
+               (get @dapps-permissions dapp-name2)))))))

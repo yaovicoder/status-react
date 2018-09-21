@@ -21,7 +21,7 @@
             [status-im.ui.screens.browser.styles :as styles]
             [status-im.utils.js-resources :as js-res]
             [status-im.utils.ethereum.core :as ethereum]
-            [status-im.models.browser :as model]
+            [status-im.browser.core :as browser]
             [status-im.utils.http :as http]
             [status-im.utils.platform :as platform]))
 
@@ -174,9 +174,9 @@
                   {:keys [error? loading? url-editing? show-tooltip show-permission resolving?]} [:get :browser/options]
                   rpc-url    [:get :rpc-url]
                   network-id [:get-network-id]]
-    (let [can-go-back?    (model/can-go-back? browser)
-          can-go-forward? (model/can-go-forward? browser)
-          url             (model/get-current-url browser)
+    (let [can-go-back?    (browser/can-go-back? browser)
+          can-go-forward? (browser/can-go-forward? browser)
+          url             (browser/get-current-url browser)
           opt-in?         (:web3-opt-in? settings)]
       [browser-component {:webview         webview
                           :dapp?           dapp?

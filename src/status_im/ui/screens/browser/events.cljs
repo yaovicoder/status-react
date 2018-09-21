@@ -2,7 +2,7 @@
   (:require [re-frame.core :as re-frame]
             [status-im.constants :as constants]
             [status-im.data-store.browser :as browser-store]
-            [status-im.models.browser :as model]
+            [status-im.browser.core :as browser]
             [status-im.native-module.core :as status]
             [status-im.ui.components.list-selection :as list-selection]
             status-im.ui.screens.browser.navigation
@@ -61,7 +61,7 @@
      (handlers-macro/merge-fx
       cofx
       {:db (assoc-in db [:browser/options :resolving?] false)}
-      (model/update-browser-fx
+      (browser/update-browser-fx
        (assoc-in browser [:history history-index] (str "https://ipfs.infura.io/ipfs/" hash)))))))
 
 (handlers/register-handler-fx
@@ -69,7 +69,7 @@
  (fn [cofx [_ url]]
    (let [normalized-url (http/normalize-and-decode-url url)
          host (http/url-host normalized-url)]
-     (model/update-new-browser-and-navigate
+     (browser/update-new-browser-and-navigate
       host
       {:browser-id    (or host (random/id))
        :history-index 0
@@ -84,7 +84,7 @@
 (handlers/register-handler-fx
  :open-browser
  (fn [cofx [_ browser]]
-   (model/update-browser-and-navigate browser cofx)))
+   (browser/update-browser-and-navigate browser cofx)))
 
 (handlers/register-handler-fx
  :update-browser-on-nav-change
@@ -92,8 +92,8 @@
    (let [host (http/url-host url)]
      (handlers-macro/merge-fx
       cofx
-      (model/resolve-multihash-fx host loading error?)
-      (model/update-browser-history-fx browser url loading)))))
+      (browser/resolve-multihash-fx host loading error?)
+      (browser/update-browser-history-fx browser url loading)))))
 
 (handlers/register-handler-fx
  :update-browser-options
@@ -107,7 +107,7 @@
     :data-store/tx [(browser-store/remove-browser-tx browser-id)]}))
 
 (defn nav-update-browser [cofx browser history-index]
-  (model/update-browser-fx (assoc browser :history-index history-index) cofx))
+  (browser/update-browser-fx (assoc browser :history-index history-index) cofx))
 
 (handlers/register-handler-fx
  :browser-nav-back
@@ -134,13 +134,13 @@
      (cond
 
        (and (= type constants/history-state-changed) platform/ios? (not= "about:blank" url))
-       (model/update-browser-history-fx browser url false cofx)
+       (browser/update-browser-history-fx browser url false cofx)
 
        (= type constants/web3-send-async)
-       (model/web3-send-async payload messageId cofx)
+       (browser/web3-send-async payload messageId cofx)
 
        (= type constants/web3-send-async-read-only)
-       (model/web3-send-async-read-only dapp-name payload messageId cofx)
+       (browser/web3-send-async-read-only dapp-name payload messageId cofx)
 
        (= type constants/status-api-request)
        {:db       (update-in db [:browser/options :permissions-queue] conj {:dapp-name   dapp-name
@@ -157,7 +157,7 @@
          (handlers-macro/merge-fx
           cofx
           {:db (update-in db [:browser/options :permissions-queue] drop-last)}
-          (model/request-permission
+          (browser/request-permission
            {:dapp-name             dapp-name
             :index                 0
             :user-permissions      (get-in db [:dapps/permissions dapp-name :permissions])
@@ -169,7 +169,7 @@
 (handlers/register-handler-fx
  :next-dapp-permission
  (fn [cofx [_ params permission permissions-data]]
-   (model/next-permission {:params           params
-                           :permission       permission
-                           :permissions-data permissions-data}
-                          cofx)))
+   (browser/next-permission {:params           params
+                             :permission       permission
+                             :permissions-data permissions-data}
+                            cofx)))
