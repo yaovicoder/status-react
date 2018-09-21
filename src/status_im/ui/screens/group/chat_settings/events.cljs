@@ -2,23 +2,21 @@
   (:require [re-frame.core :as re-frame]
             [status-im.i18n :as i18n]
             [status-im.chat.models.message :as models.message]
-            [status-im.chat.models :as models.chat]
             [status-im.ui.screens.navigation :as navigation]
             [status-im.transport.message.v1.group-chat :as group-chat]
             [status-im.transport.message.core :as transport]
             [status-im.utils.handlers :as handlers]
             [status-im.utils.handlers-macro :as handlers-macro]
-            [status-im.data-store.chats :as chats-store]
-            [status-im.data-store.messages :as messages-store]))
+            [status-im.data-store.chats :as chats-store]))
 
 (handlers/register-handler-fx
  :show-group-chat-profile
- [re-frame/trim-v]
- (fn [{:keys [db]} [chat-id]]
-   {:db (-> db
-            (assoc :new-chat-name (get-in db [:chats chat-id :name])
-                   :group/group-type :chat-group)
-            (navigation/navigate-to :group-chat-profile))}))
+ (fn [{:keys [db] :as cofx} [_ chat-id]]
+   (handlers-macro/merge-fx cofx
+                            {:db (assoc db
+                                        :new-chat-name (get-in db [:chats chat-id :name])
+                                        :group/group-type :chat-group)}
+                            (navigation/navigate-to-cofx :group-chat-profile nil))))
 
 (handlers/register-handler-fx
  :add-new-group-chat-participants
@@ -39,8 +37,8 @@
 
 (handlers/register-handler-fx
  :remove-group-chat-participants
- [re-frame/trim-v (re-frame/inject-cofx :random-id)]
- (fn [{{:keys [current-chat-id] :as db} :db now :now message-id :random-id :as cofx} [removed-participants]]
+ [(re-frame/inject-cofx :random-id)]
+ (fn [{{:keys [current-chat-id] :as db} :db now :now message-id :random-id :as cofx} [_ removed-participants]]
    (let [participants               (remove removed-participants (get-in db [:chats current-chat-id :contacts]))
          contacts                   (:contacts/contacts db)
          removed-participants-names (map #(get-in contacts [% :name]) removed-participants)]

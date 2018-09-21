@@ -1,17 +1,19 @@
 (ns status-im.models.browser
   (:require [re-frame.core :as re-frame]
+            [clojure.string :as string]
             [status-im.constants :as constants]
             [status-im.data-store.browser :as browser-store]
             [status-im.data-store.dapp-permissions :as dapp-permissions]
             [status-im.i18n :as i18n]
+            [status-im.js-dependencies :as dependencies]
             [status-im.ui.screens.browser.default-dapps :as default-dapps]
             [status-im.utils.http :as http]
-            [clojure.string :as string]
             [status-im.utils.ethereum.resolver :as resolver]
             [status-im.utils.ethereum.core :as ethereum]
             [status-im.utils.ethereum.ens :as ens]
             [status-im.utils.multihash :as multihash]
-            [status-im.utils.handlers-macro :as handlers-macro]))
+            [status-im.utils.handlers-macro :as handlers-macro]
+            [status-im.ui.screens.navigation :as navigation]))
 
 (defn get-current-url [{:keys [history history-index]}]
   (when (and history-index history)
@@ -30,8 +32,14 @@
       (assoc browser :dapp? true :name (:name dapp))
       (assoc browser :dapp? false :name (i18n/label :t/browser)))))
 
+(defn check-if-phishing-url [{:keys [history history-index] :as browser}]
+  (let [history-host (http/url-host (try (nth history history-index) (catch js/Error _)))]
+    (assoc browser :unsafe? (dependencies/phishing-detect history-host))))
+
 (defn update-browser-fx [browser {:keys [db now]}]
-  (let [updated-browser (check-if-dapp-in-list (assoc browser :timestamp now))]
+  (let [updated-browser (-> (assoc browser :timestamp now)
+                            (check-if-dapp-in-list)
+                            (check-if-phishing-url))]
     {:db            (update-in db [:browser/browsers (:browser-id updated-browser)]
                                merge updated-browser)
      :data-store/tx [(browser-store/save-browser-tx updated-browser)]}))
@@ -53,7 +61,8 @@
                              cofx))))))
 
 (defn ens? [host]
-  (string/ends-with? host ".eth"))
+  (and (string? host)
+       (string/ends-with? host ".eth")))
 
 (defn ens-multihash-callback [hex]
   (let [hash (when hex (multihash/base58 (multihash/create :sha2-256 (subs hex 2))))]
@@ -73,11 +82,24 @@
                                :cb       ens-multihash-callback}}
       {})))
 
-(defn update-new-browser-and-navigate [host browser cofx]
+(defn navigate-to-browser
+  [{{:keys [view-id]} :db :as cofx}]
+  (if (= view-id :dapp-description)
+    (navigation/navigate-reset
+     {:index   1
+      :actions [{:routeName :home}
+                {:routeName :browser}]}
+     cofx)
+    (navigation/navigate-to-cofx :browser nil cofx)))
+
+(defn update-new-browser-and-navigate
+  [host browser {:keys [db] :as cofx}]
   (handlers-macro/merge-fx
    cofx
-   {:dispatch [:navigate-to :browser {:browser-id (:browser-id browser)
-                                      :resolving? (ens? host)}]}
+   {:db (assoc db :browser/options
+               {:browser-id (:browser-id browser)
+                :resolving? (ens? host)})}
+   (navigate-to-browser)
    (update-browser-fx browser)
    (resolve-multihash-fx host false false)))
 
@@ -122,6 +144,10 @@
                                   :keys (keys permissions-allowed)}
                                  (:webview-bridge db)])
 
+      (and (zero? (count permissions-allowed)) (= constants/dapp-permission-web3 (first requested-permissions)))
+      (assoc :send-to-bridge-fx [{:type constants/web3-permission-request-denied}
+                                 (:webview-bridge db)])
+
       true
       (assoc :dispatch [:check-permissions-queue]))))
 
@@ -146,6 +172,17 @@
                                       :messageId message-id
                                       :error     %1
                                       :result    %2}])]}))
+
+(defn web3-send-async-read-only [dapp-name {:keys [method] :as payload} message-id {:keys [db] :as cofx}]
+  (let [{:dapps/keys [permissions]} db]
+    (if (and (#{"eth_accounts" "eth_coinbase" "eth_sendTransaction" "eth_sign"
+                "eth_signTypedData" "personal_sign" "personal_ecRecover"} method)
+             (not (some #{"WEB3"} (get-in permissions [dapp-name :permissions]))))
+      {:dispatch [:send-to-bridge
+                  {:type      constants/web3-send-async-callback
+                   :messageId message-id
+                   :error     "Denied"}]}
+      (web3-send-async payload message-id cofx))))
 
 (defn initialize-browsers
   [{:keys [db all-stored-browsers]}]

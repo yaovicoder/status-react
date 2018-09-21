@@ -2,6 +2,7 @@
   (:require [status-im.constants :as constants]
             [status-im.chat.commands.protocol :as protocol]
             [status-im.chat.commands.core :as commands]
+            [status-im.chat.commands.input :as commands-input]
             [status-im.chat.models :as chat-model]
             [status-im.chat.models.input :as input-model]
             [status-im.chat.models.message :as message-model]
@@ -31,22 +32,22 @@
 (defn- create-command-message
   "Create message map from chat-id, command & input parameters"
   [chat-id type parameter-map cofx]
-  (let [command-path               (commands/command-id type)
+  (let [command-path                   (commands/command-id type)
         ;; TODO(janherich) this is just for backward compatibility, can be removed later
-        {:keys [content content-type]} (new->old command-path parameter-map)]
+        {:keys [content content-type]} (new->old command-path parameter-map)
+        new-parameter-map              (and (satisfies? protocol/EnhancedParameters type)
+                                            (protocol/enhance-send-parameters type parameter-map cofx))]
     {:chat-id      chat-id
      :content-type content-type
      :content      (merge {:command-path command-path
-                           :params       (if (satisfies? protocol/EnhancedParameters type)
-                                           (protocol/enhance-parameters type parameter-map cofx)
-                                           parameter-map)}
+                           :params       (or new-parameter-map parameter-map)}
                           content)}))
 
 (defn validate-and-send
   "Validates and sends command in current chat"
   [input-text {:keys [type params] :as command} {:keys [db now random-id] :as cofx}]
   (let [chat-id       (:current-chat-id db)
-        parameter-map (commands/parse-parameters params input-text)]
+        parameter-map (commands-input/parse-parameters params input-text)]
     (if-let [validation-error (protocol/validate type parameter-map cofx)]
       ;; errors during validation
       {:db (chat-model/set-chat-ui-props db {:validation-messages  validation-error

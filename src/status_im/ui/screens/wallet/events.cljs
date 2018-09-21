@@ -9,6 +9,7 @@
             [status-im.utils.ethereum.tokens :as tokens]
             [status-im.utils.handlers :as handlers]
             [status-im.utils.money :as money]
+            [status-im.utils.handlers-macro :as handlers-macro]
             [status-im.utils.prices :as prices]
             [status-im.utils.transactions :as transactions]
             [taoensso.timbre :as log]))
@@ -133,39 +134,39 @@
         (and (= :outbound type) (= normalized (ethereum/normalized-address from)))
         (and (= :failed type) (= normalized (ethereum/normalized-address from))))))
 
-(handlers/register-handler-db
+(handlers/register-handler-fx
  :update-transactions-success
- (fn [db [_ transactions address]]
+ (fn [{:keys [db]} [_ transactions address]]
    ;; NOTE(goranjovic): we want to only show transactions that belong to the current account
    ;; this filter is to prevent any late transaction updates initated from another account on the same
    ;; device from being applied in the current account.
    (let [own-transactions (into {} (filter #(own-transaction? address %) transactions))]
-     (-> db
-         (update-in [:wallet :transactions] #(merge-with dedupe-transactions % own-transactions))
-         (assoc-in [:wallet :transactions-loading?] false)))))
+     {:db (-> db
+              (update-in [:wallet :transactions] #(merge-with dedupe-transactions % own-transactions))
+              (assoc-in [:wallet :transactions-loading?] false))})))
 
-(handlers/register-handler-db
+(handlers/register-handler-fx
  :update-transactions-fail
- (fn [db [_ err]]
+ (fn [{:keys [db]} [_ err]]
    (log/debug "Unable to get transactions: " err)
-   (-> db
-       (assoc-error-message :transactions-update :error-unable-to-get-transactions)
-       (assoc-in [:wallet :transactions-loading?] false))))
+   {:db (-> db
+            (assoc-error-message :transactions-update :error-unable-to-get-transactions)
+            (assoc-in [:wallet :transactions-loading?] false))}))
 
-(handlers/register-handler-db
+(handlers/register-handler-fx
  :update-balance-success
- (fn [db [_ balance]]
-   (-> db
-       (assoc-in [:wallet :balance :ETH] balance)
-       (assoc-in [:wallet :balance-loading?] false))))
+ (fn [{:keys [db]} [_ balance]]
+   {:db (-> db
+            (assoc-in [:wallet :balance :ETH] balance)
+            (assoc-in [:wallet :balance-loading?] false))}))
 
-(handlers/register-handler-db
+(handlers/register-handler-fx
  :update-balance-fail
- (fn [db [_ err]]
+ (fn [{:keys [db]} [_ err]]
    (log/debug "Unable to get balance: " err)
-   (-> db
-       (assoc-error-message :balance-update :error-unable-to-get-balance)
-       (assoc-in [:wallet :balance-loading?] false))))
+   {:db (-> db
+            (assoc-error-message :balance-update :error-unable-to-get-balance)
+            (assoc-in [:wallet :balance-loading?] false))}))
 
 (defn update-token-balance-success [symbol balance {:keys [db]}]
   {:db (-> db
@@ -177,28 +178,28 @@
  (fn [cofx [_ symbol balance]]
    (update-token-balance-success symbol balance cofx)))
 
-(handlers/register-handler-db
+(handlers/register-handler-fx
  :update-token-balance-fail
- (fn [db [_ symbol err]]
+ (fn [{:keys [db]} [_ symbol err]]
    (log/debug "Unable to get token " symbol "balance: " err)
-   (-> db
-       (assoc-error-message :balance-update :error-unable-to-get-token-balance)
-       (assoc-in [:wallet :balance-loading?] false))))
+   {:db (-> db
+            (assoc-error-message :balance-update :error-unable-to-get-token-balance)
+            (assoc-in [:wallet :balance-loading?] false))}))
 
-(handlers/register-handler-db
+(handlers/register-handler-fx
  :update-prices-success
- (fn [db [_ prices]]
-   (assoc db
-          :prices prices
-          :prices-loading? false)))
+ (fn [{:keys [db]} [_ prices]]
+   {:db (assoc db
+               :prices prices
+               :prices-loading? false)}))
 
-(handlers/register-handler-db
+(handlers/register-handler-fx
  :update-prices-fail
- (fn [db [_ err]]
+ (fn [{:keys [db]} [_ err]]
    (log/debug "Unable to get prices: " err)
-   (-> db
-       (assoc-error-message :prices-update :error-unable-to-get-prices)
-       (assoc :prices-loading? false))))
+   {:db (-> db
+            (assoc-error-message :prices-update :error-unable-to-get-prices)
+            (assoc :prices-loading? false))}))
 
 (handlers/register-handler-fx
  :show-transaction-details
@@ -212,18 +213,18 @@
    {:db       (assoc-in db [:wallet :send-transaction] {:id         id
                                                         :method     method
                                                         :from-chat? from-chat?})
-    :dispatch [:navigate-to-modal :wallet-send-transaction-modal]}))
+    :dispatch [:navigate-to-clean :wallet-send-transaction-modal]}))
 
-(handlers/register-handler-db
+(handlers/register-handler-fx
  :wallet/update-gas-price-success
- (fn [db [_ price edit?]]
+ (fn [{:keys [db] :as cofx} [_ price edit?]]
    (if edit?
-     (:db (models/edit-value
-           :gas-price
-           (money/to-fixed
-            (money/wei-> :gwei price))
-           {:db db}))
-     (assoc-in db [:wallet :send-transaction :gas-price] price))))
+     (models/edit-value
+      :gas-price
+      (money/to-fixed
+       (money/wei-> :gwei price))
+      cofx)
+     {:db (assoc-in db [:wallet :send-transaction :gas-price] price)})))
 
 (handlers/register-handler-fx
  :wallet/update-estimated-gas
@@ -232,16 +233,16 @@
                            :obj           obj
                            :success-event :wallet/update-estimated-gas-success}}))
 
-(handlers/register-handler-db
+(handlers/register-handler-fx
  :wallet/update-estimated-gas-success
- (fn [db [_ gas]]
-   (if gas
-     (assoc-in db [:wallet :send-transaction :gas] (money/bignumber (int (* gas 1.2))))
-     db)))
+ (fn [{:keys [db]} [_ gas]]
+   (when gas
+     {:db (assoc-in db [:wallet :send-transaction :gas] (money/bignumber (int (* gas 1.2))))})))
 
 (handlers/register-handler-fx
  :wallet-setup-navigate-back
- (fn [{:keys [db]}]
-   {:db (-> db
-            (assoc-in [:wallet :send-transaction] {})
-            (navigation/navigate-back))}))
+ (fn [{:keys [db] :as cofx}]
+   (handlers-macro/merge-fx
+    cofx
+    {:db (assoc-in db [:wallet :send-transaction] {})}
+    (navigation/navigate-back))))

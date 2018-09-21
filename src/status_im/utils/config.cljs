@@ -27,12 +27,16 @@
 (def cached-webviews-enabled? (enabled? (get-config :CACHED_WEBVIEWS_ENABLED 0)))
 (def rn-bridge-threshold-warnings-enabled? (enabled? (get-config :RN_BRIDGE_THRESHOLD_WARNINGS 0)))
 (def extensions-enabled? (enabled? (get-config :EXTENSIONS 0)))
+(def hardwallet-enabled? (enabled? (get-config :HARDWALLET_ENABLED 0)))
 
 ;; CONFIG VALUES
 (def log-level
   (-> (get-config :LOG_LEVEL "error")
       string/lower-case
       keyword))
+(def log-level-status-go
+  (-> (get-config :LOG_LEVEL_STATUS_GO "")
+      string/upper-case))
 (def fleet (get-config :FLEET "eth.beta"))
 (def default-network (get-config :DEFAULT_NETWORK))
 ;; the default value should be a string for `enabled?` to work correctly.

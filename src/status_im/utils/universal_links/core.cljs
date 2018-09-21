@@ -4,7 +4,7 @@
    [re-frame.core :as re-frame]
    [status-im.utils.config :as config]
    [status-im.chat.events :as chat.events]
-   [status-im.models.account :as models.account]
+   [status-im.accounts.db :as accounts.db]
    [status-im.ui.components.list-selection :as list-selection]
    [status-im.ui.components.react  :as react]
    [status-im.utils.handlers-macro :as handlers-macro]
@@ -49,7 +49,7 @@
   (log/info "universal-links: handling view profile" profile-id)
   (if (new-chat.db/own-whisper-identity? db profile-id)
     (navigation/navigate-to-cofx :my-profile nil cofx)
-    (chat.events/show-profile profile-id true cofx)))
+    (chat.events/show-profile profile-id cofx)))
 
 (defn handle-extension [url cofx]
   (log/info "universal-links: handling url profile" url)
@@ -93,7 +93,7 @@
   "Store url in the database if the user is not logged in, to be processed
   on login, otherwise just handle it"
   [url cofx]
-  (if (models.account/logged-in? cofx)
+  (if (accounts.db/logged-in? cofx)
     (route-url url cofx)
     (store-url-for-later url cofx)))
 

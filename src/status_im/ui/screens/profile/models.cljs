@@ -3,9 +3,9 @@
             [re-frame.core :as re-frame]
             [status-im.ui.components.react :as react]
             [status-im.ui.screens.profile.navigation]
-            [status-im.ui.screens.accounts.utils :as accounts.utils]
-            [status-im.chat.events :as chat-events]
-            [status-im.chat.commands.core :as commands]
+            [status-im.accounts.update.core :as accounts.update]
+            [status-im.chat.models :as chat-models]
+            [status-im.chat.commands.input :as commands-input]
             [status-im.utils.handlers-macro :as handlers-macro]
             [status-im.utils.image-processing :as image-processing]
             [taoensso.timbre :as log]))
@@ -24,8 +24,8 @@
 (defn send-transaction [chat-id {:keys [db] :as cofx}]
   (let [send-command (get-in db [:id->command ["send" #{:personal-chats}]])]
     (handlers-macro/merge-fx cofx
-                             (chat-events/start-chat chat-id {:navigation-replace? true})
-                             (commands/select-chat-input-command send-command nil))))
+                             (chat-models/start-chat chat-id {:navigation-replace? true})
+                             (commands-input/select-chat-input-command send-command nil))))
 
 (defn- valid-name? [name]
   (spec/valid? :profile/name name))
@@ -67,7 +67,7 @@
                               {:photo-path photo-path}))]
     (handlers-macro/merge-fx cofx
                              (clear-profile)
-                             (accounts.utils/account-update cleaned-edit))))
+                             (accounts.update/account-update cleaned-edit))))
 
 (defn start-editing-group-chat-profile [{:keys [db]}]
   {:db (assoc db :group-chat-profile/editing? true)})
@@ -89,7 +89,7 @@
 (defn finish [{:keys [db] :as cofx}]
   (handlers-macro/merge-fx cofx
                            {:db (update db :my-profile/seed assoc :step :finish :error nil :word nil)}
-                           (accounts.utils/clean-seed-phrase)))
+                           (accounts.update/clean-seed-phrase)))
 
 (defn copy-to-clipboard! [value]
   (react/copy-to-clipboard value))

@@ -38,7 +38,7 @@
   (for [i (range (.-length array))]
     (aget array i)))
 
-(defn receive-whisper-messages [{:keys [now] :as cofx} [js-error js-messages chat-id]]
+(defn receive-whisper-messages [{:keys [now] :as cofx} [_ js-error js-messages chat-id]]
   (if (and (not js-error)
            js-messages)
     (let [now-in-s (quot now 1000)]
@@ -51,21 +51,13 @@
 
 (handlers/register-handler-fx
  :protocol/receive-whisper-message
- [re-frame/trim-v
-  handlers/logged-in
+ [handlers/logged-in
   (re-frame/inject-cofx :random-id)]
  receive-whisper-messages)
 
 (handlers/register-handler-fx
- :protocol/send-status-message-success
- [re-frame/trim-v]
- (fn [{:keys [db] :as cofx} [_ resp]]
-   (log/debug :send-status-message-success resp)))
-
-(handlers/register-handler-fx
  :protocol/send-status-message-error
- [re-frame/trim-v]
- (fn [{:keys [db] :as cofx} [err]]
+ (fn [{:keys [db] :as cofx} [_ err]]
    (log/error :send-status-message-error err)))
 
 (handlers/register-handler-fx
@@ -124,16 +116,14 @@
 
 (handlers/register-handler-fx
  :group/unsubscribe-from-chat
- [re-frame/trim-v]
- (fn [cofx [chat-id]]
+ (fn [cofx [_ chat-id]]
    (transport.utils/unsubscribe-from-chat chat-id cofx)))
 
 (handlers/register-handler-fx
  :group/send-new-sym-key
- [re-frame/trim-v]
  ;; this is the event that is called when we want to send a message that required first
  ;; some async operations
- (fn [{:keys [db] :as cofx} [{:keys [chat-id message sym-key sym-key-id]}]]
+ (fn [{:keys [db] :as cofx} [_ {:keys [chat-id message sym-key sym-key-id]}]]
    (let [{:keys [web3]} db]
      (handlers-macro/merge-fx cofx
                               {:db             (update-in db [:transport/chats chat-id]
@@ -154,8 +144,8 @@
 
 (handlers/register-handler-fx
  :group/add-new-sym-key
- [re-frame/trim-v (re-frame/inject-cofx :random-id)]
- (fn [{:keys [db] :as cofx} [{:keys [sym-key-id sym-key chat-id signature timestamp message]}]]
+ [(re-frame/inject-cofx :random-id)]
+ (fn [{:keys [db] :as cofx} [_ {:keys [sym-key-id sym-key chat-id signature timestamp message]}]]
    (let [{:keys [web3 current-public-key]} db
          topic                            (transport.utils/get-topic chat-id)
          fx {:db             (assoc-in db
@@ -194,9 +184,8 @@
 
 (handlers/register-handler-fx
  :transport/set-message-envelope-hash
- [re-frame/trim-v]
  ;; message-type is used for tracking
- (fn [{:keys [db]} [chat-id message-id message-type envelope-hash]]
+ (fn [{:keys [db]} [_ chat-id message-id message-type envelope-hash]]
    {:db (assoc-in db [:transport/message-envelopes envelope-hash]
                   {:chat-id      chat-id
                    :message-id   message-id
@@ -204,8 +193,7 @@
 
 (handlers/register-handler-fx
  :transport/set-contact-message-envelope-hash
- [re-frame/trim-v]
- (fn [{:keys [db]} [chat-id envelope-hash]]
+ (fn [{:keys [db]} [_ chat-id envelope-hash]]
    {:db (assoc-in db [:transport/message-envelopes envelope-hash]
                   {:chat-id      chat-id
                    :message-type :contact-message})}))
