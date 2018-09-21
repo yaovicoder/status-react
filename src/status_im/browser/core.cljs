@@ -1,4 +1,4 @@
-(ns status-im.models.browser
+(ns status-im.browser.core
   (:require [re-frame.core :as re-frame]
             [clojure.string :as string]
             [status-im.constants :as constants]

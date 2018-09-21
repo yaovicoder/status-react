@@ -9,7 +9,7 @@
             [status-im.ui.components.icons.vector-icons :as icons]
             [status-im.ui.components.colors :as colors]
             [reagent.core :as reagent]
-            [status-im.models.browser :as model]
+            [status-im.browser.core :as browser]
             [status-im.ui.components.chat-icon.screen :as chat-icon.screen]))
 
 (views/defview permissions-panel [{:keys [dapp? name] :as browser} {:keys [requested-permission params]}]
@@ -28,7 +28,7 @@
                                                         :duration 500})]))}
     (let [_ (when-not requested-permission (js/setTimeout hide-panel 10))
           {:keys [dapp-name]} params
-          {:keys [title description icon]} (get model/permissions requested-permission)]
+          {:keys [title description icon]} (get browser/permissions requested-permission)]
       [react/view styles/permissions-panel-container
        [react/animated-view {:style (styles/permissions-panel-background alpha-value)}]
        [react/animated-view {:style (styles/permissions-panel bottom-anim-value)}

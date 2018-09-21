@@ -18,7 +18,7 @@
             [status-im.ui.components.icons.vector-icons :as vector-icons]
             [status-im.ui.components.chat-icon.screen :as chat-icon.screen]
             [status-im.ui.components.common.common :as components.common]
-            [status-im.models.browser :as model]))
+            [status-im.browser.core :as browser]))
 
 (defview command-short-preview [message]
   (letsubs [id->command [:get-id->command]]
@@ -107,7 +107,7 @@
 
 (defview home-list-browser-item-inner-view [{:keys [name] :as browser}]
   (letsubs [dapp [:get-dapp-by-name name]
-            url  (model/get-current-url browser)]
+            url  (browser/get-current-url browser)]
     [react/touchable-highlight {:on-press #(re-frame/dispatch [:open-browser browser])}
      [react/view styles/chat-container
       [react/view styles/chat-icon-container

@@ -5,11 +5,10 @@
             status-im.ui.screens.db
             status-im.ui.screens.subs
             [re-frame.core :as re-frame]
-            [status-im.models.browser :as model]
+            [status-im.browser.core :as browser]
             [status-im.utils.types :as types]
             [status-im.utils.handlers :as handlers]
-            [status-im.utils.handlers-macro :as handlers-macro]
-            [status-im.models.browser :as browser]))
+            [status-im.utils.handlers-macro :as handlers-macro]))
 
 (defn test-fixtures []
 
@@ -94,8 +93,8 @@
          (is (zero? (:history-index @browser)))
          (is (= [dapp2-url] (:history @browser)))
 
-         (is (and (not (model/can-go-back? @browser))
-                  (not (model/can-go-forward? @browser))))
+         (is (and (not (browser/can-go-back? @browser))
+                  (not (browser/can-go-forward? @browser))))
 
          (re-frame/dispatch [:browser-nav-back])
          (re-frame/dispatch [:browser-nav-forward])
@@ -105,16 +104,16 @@
          (is (= 1 (:history-index @browser)))
          (is (= [dapp2-url dapp2-url2] (:history @browser)))
 
-         (is (and (model/can-go-back? @browser)
-                  (not (model/can-go-forward? @browser))))
+         (is (and (browser/can-go-back? @browser)
+                  (not (browser/can-go-forward? @browser))))
 
          (re-frame/dispatch [:browser-nav-back @browser])
 
          (is (zero? (:history-index @browser)))
          (is (= [dapp2-url dapp2-url2] (:history @browser)))
 
-         (is (and (not (model/can-go-back? @browser))
-                  (model/can-go-forward? @browser)))
+         (is (and (not (browser/can-go-back? @browser))
+                  (browser/can-go-forward? @browser)))
 
          (re-frame/dispatch [:update-browser-on-nav-change @browser dapp2-url3 false])
 
