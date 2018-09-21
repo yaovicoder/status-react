@@ -733,5 +733,8 @@
     "secret-keys-confirmation-text": "Record these now because you won't see this screen again",
     "secret-keys-confirmation-confirm": "GOT IT",
     "secret-keys-confirmation-cancel": "SEE IT AGAIN",
-    "completing-card-setup": "Completing card setup"
+    "completing-card-setup": "Completing card setup",
+    "create-pin": "Create a PIN",
+    "create-pin-description": "You'll need your card + this PIN to log in and to confirm transactions"
+    "repeat-pin": "Repeate your PIN"
 }
