@@ -142,7 +142,7 @@
         :local-storage-enabled                 true
         :render-error                          web-view-error
         :on-navigation-state-change            #(on-navigation-change % browser error?)
-        :on-bridge-message                     #(re-frame/dispatch [:on-bridge-message %])
+        :on-bridge-message                     #(re-frame/dispatch [:browser/bridge-message-received %])
         :on-load                               #(re-frame/dispatch [:update-browser-options {:error? false}])
         :on-error                              #(re-frame/dispatch [:update-browser-options {:error?   true
                                                                                              :loading? false}])

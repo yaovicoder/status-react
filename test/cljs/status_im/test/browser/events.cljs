@@ -138,9 +138,9 @@
 
        (is (zero? (count @dapps-permissions)))
 
-       (re-frame/dispatch [:on-bridge-message (types/clj->json {:type        "status-api-request"
-                                                                :host        dapp-name
-                                                                :permissions ["FAKE_PERMISSION"]})
+       (re-frame/dispatch [:browser/bridge-message-received (types/clj->json {:type        "status-api-request"
+                                                                              :host        dapp-name
+                                                                              :permissions ["FAKE_PERMISSION"]})
                            nil nil])
 
        (re-frame/dispatch [:next-dapp-permission
@@ -153,9 +153,9 @@
                :permissions []}
               (get @dapps-permissions dapp-name)))
 
-       (re-frame/dispatch [:on-bridge-message (types/clj->json {:type        "status-api-request"
-                                                                :host        dapp-name
-                                                                :permissions ["CONTACT_CODE"]})
+       (re-frame/dispatch [:browser/bridge-message-received (types/clj->json {:type        "status-api-request"
+                                                                              :host        dapp-name
+                                                                              :permissions ["CONTACT_CODE"]})
                            nil nil])
 
        (re-frame/dispatch [:next-dapp-permission
@@ -172,9 +172,9 @@
                :permissions ["CONTACT_CODE"]}
               (get @dapps-permissions dapp-name)))
 
-       (re-frame/dispatch [:on-bridge-message (types/clj->json {:type        "status-api-request"
-                                                                :host        dapp-name
-                                                                :permissions ["CONTACT_CODE" "FAKE_PERMISSION"]})
+       (re-frame/dispatch [:browser/bridge-message-received (types/clj->json {:type        "status-api-request"
+                                                                              :host        dapp-name
+                                                                              :permissions ["CONTACT_CODE" "FAKE_PERMISSION"]})
                            nil nil])
 
        (is (= 1 (count @dapps-permissions)))
@@ -183,9 +183,9 @@
                :permissions ["CONTACT_CODE"]}
               (get @dapps-permissions dapp-name)))
 
-       (re-frame/dispatch [:on-bridge-message (types/clj->json {:type        "status-api-request"
-                                                                :host        dapp-name
-                                                                :permissions ["FAKE_PERMISSION"]})
+       (re-frame/dispatch [:browser/bridge-message-received (types/clj->json {:type        "status-api-request"
+                                                                              :host        dapp-name
+                                                                              :permissions ["FAKE_PERMISSION"]})
                            nil nil])
 
        (is (= 1 (count @dapps-permissions)))
@@ -194,9 +194,9 @@
                :permissions ["CONTACT_CODE"]}
               (get @dapps-permissions dapp-name)))
 
-       (re-frame/dispatch [:on-bridge-message (types/clj->json {:type        "status-api-request"
-                                                                :host        dapp-name2
-                                                                :permissions ["CONTACT_CODE"]})
+       (re-frame/dispatch [:browser/bridge-message-received (types/clj->json {:type        "status-api-request"
+                                                                              :host        dapp-name2
+                                                                              :permissions ["CONTACT_CODE"]})
                            nil nil])
 
        (re-frame/dispatch [:next-dapp-permission

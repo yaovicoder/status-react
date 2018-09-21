@@ -11,9 +11,12 @@
             [status-im.utils.ethereum.resolver :as resolver]
             [status-im.utils.ethereum.core :as ethereum]
             [status-im.utils.ethereum.ens :as ens]
+            [status-im.utils.random :as random]
             [status-im.utils.multihash :as multihash]
+            [status-im.utils.platform :as platform]
             [status-im.utils.handlers-macro :as handlers-macro]
-            [status-im.ui.screens.navigation :as navigation]))
+            [status-im.ui.screens.navigation :as navigation]
+            [status-im.utils.types :as types]))
 
 (defn get-current-url [{:keys [history history-index]}]
   (when (and history-index history)
@@ -36,11 +39,12 @@
   (let [history-host (http/url-host (try (nth history history-index) (catch js/Error _)))]
     (assoc browser :unsafe? (dependencies/phishing-detect history-host))))
 
-(defn update-browser-fx [browser {:keys [db now]}]
+(defn update-browser-fx [{:keys [browser-id] :as browser} {:keys [db now]}]
   (let [updated-browser (-> (assoc browser :timestamp now)
                             (check-if-dapp-in-list)
                             (check-if-phishing-url))]
-    {:db            (update-in db [:browser/browsers (:browser-id updated-browser)]
+    {:db            (update-in db
+                               [:browser/browsers browser-id]
                                merge updated-browser)
      :data-store/tx [(browser-store/save-browser-tx updated-browser)]}))
 
@@ -71,16 +75,17 @@
       (re-frame/dispatch [:update-browser-options {:resolving? false}]))))
 
 (defn resolve-multihash-fx [host loading error? {{:keys [web3 network] :as db} :db}]
-  (let [network (get-in db [:account/account :networks network])
-        chain   (ethereum/network->chain-keyword network)]
-    (if (and (not loading) (not error?) (ens? host))
+  (when (and (not loading)
+             (not error?)
+             (ens? host))
+    (let [network (get-in db [:account/account :networks network])
+          chain   (ethereum/network->chain-keyword network)]
       {:db                    (assoc-in db [:browser/options :resolving?] true)
        :resolve-ens-multihash {:web3     web3
                                :registry (get ens/ens-registries
                                               chain)
                                :ens-name host
-                               :cb       ens-multihash-callback}}
-      {})))
+                               :cb       ens-multihash-callback}})))
 
 (defn navigate-to-browser
   [{{:keys [view-id]} :db :as cofx}]
@@ -92,20 +97,26 @@
      cofx)
     (navigation/navigate-to-cofx :browser nil cofx)))
 
-(defn update-new-browser-and-navigate
-  [host browser {:keys [db] :as cofx}]
-  (handlers-macro/merge-fx
-   cofx
-   {:db (assoc db :browser/options
-               {:browser-id (:browser-id browser)
-                :resolving? (ens? host)})}
-   (navigate-to-browser)
-   (update-browser-fx browser)
-   (resolve-multihash-fx host false false)))
+(defn open-url-in-browser
+  [url {:keys [db] :as cofx}]
+  (let [normalized-url (http/normalize-and-decode-url url)
+        host (http/url-host normalized-url)
+        browser {:browser-id    (or host (random/id))
+                 :history-index 0
+                 :history       [normalized-url]}]
+    (handlers-macro/merge-fx cofx
+                             {:db (assoc db :browser/options
+                                         {:browser-id (:browser-id browser)})}
+                             (navigate-to-browser)
+                             (update-browser-fx browser)
+                             (resolve-multihash-fx host false false))))
 
-(defn update-browser-and-navigate [browser cofx]
-  (merge (update-browser-fx browser cofx)
-         {:dispatch [:navigate-to :browser {:browser-id (:browser-id browser)}]}))
+(defn update-browser-and-navigate [browser {:keys [db] :as cofx}]
+  (handlers-macro/merge-fx cofx
+                           {:db (assoc db :browser/options
+                                       {:browser-id (:browser-id browser)})}
+                           (update-browser-fx browser)
+                           (navigation/navigate-to-cofx :browser nil)))
 
 (def permissions {constants/dapp-permission-contact-code {:title       (i18n/label :t/wants-to-access-profile)
                                                           :description (i18n/label :t/your-contact-code)
@@ -193,3 +204,45 @@
   [{:keys [db all-dapp-permissions]}]
   (let [dapp-permissions (into {} (map #(vector (:dapp %) %) all-dapp-permissions))]
     {:db (assoc db :dapps/permissions dapp-permissions)}))
+
+(defn check-permissions-queue
+  [{:keys [db] :as cofx}]
+  (let [{:keys [show-permission permissions-queue]} (:browser/options db)]
+    (when (and (nil? show-permission) (last permissions-queue))
+      (let [{:keys [dapp-name permissions]} (last permissions-queue)
+            {:account/keys [account]} db]
+        (handlers-macro/merge-fx
+         cofx
+         {:db (update-in db [:browser/options :permissions-queue] drop-last)}
+         (request-permission
+          {:dapp-name             dapp-name
+           :index                 0
+           :user-permissions      (get-in db [:dapps/permissions dapp-name :permissions])
+           :requested-permissions permissions
+           :permissions-data      {constants/dapp-permission-contact-code (:public-key account)
+                                   constants/dapp-permission-web3         (ethereum/normalized-address
+                                                                           (:address account))}}))))))
+(defn process-bridge-message
+  [message {:keys [db] :as cofx}]
+  (let [{:browser/keys [options browsers]} db
+        {:keys [browser-id]} options
+        browser (get browsers browser-id)
+        data    (types/json->clj message)
+        {{:keys [url]} :navState :keys [type host permissions payload messageId]} data
+        {:keys [dapp? name]} browser
+        dapp-name (if dapp? name host)]
+    (cond
+
+      (and (= type constants/history-state-changed) platform/ios? (not= "about:blank" url))
+      (update-browser-history-fx browser url false cofx)
+
+      (= type constants/web3-send-async)
+      (web3-send-async payload messageId cofx)
+
+      (= type constants/web3-send-async-read-only)
+      (web3-send-async-read-only dapp-name payload messageId cofx)
+
+      (= type constants/status-api-request)
+      {:db       (update-in db [:browser/options :permissions-queue] conj {:dapp-name   dapp-name
+                                                                           :permissions permissions})
+       :dispatch [:check-permissions-queue]})))

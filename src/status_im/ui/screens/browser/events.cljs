@@ -5,7 +5,6 @@
             [status-im.browser.core :as browser]
             [status-im.native-module.core :as status]
             [status-im.ui.components.list-selection :as list-selection]
-            status-im.ui.screens.browser.navigation
             [status-im.utils.handlers :as handlers]
             [status-im.utils.handlers-macro :as handlers-macro]
             [status-im.utils.http :as http]
@@ -67,14 +66,7 @@
 (handlers/register-handler-fx
  :open-url-in-browser
  (fn [cofx [_ url]]
-   (let [normalized-url (http/normalize-and-decode-url url)
-         host (http/url-host normalized-url)]
-     (browser/update-new-browser-and-navigate
-      host
-      {:browser-id    (or host (random/id))
-       :history-index 0
-       :history       [normalized-url]}
-      cofx))))
+   (browser/open-url-in-browser url cofx)))
 
 (handlers/register-handler-fx
  :send-to-bridge
@@ -122,49 +114,14 @@
      (nav-update-browser cofx browser (inc history-index)))))
 
 (handlers/register-handler-fx
- :on-bridge-message
- (fn [{:keys [db] :as cofx} [_ message]]
-   (let [{:browser/keys [options browsers]} db
-         {:keys [browser-id]} options
-         browser (get browsers browser-id)
-         data    (types/json->clj message)
-         {{:keys [url]} :navState :keys [type host permissions payload messageId]} data
-         {:keys [dapp? name]} browser
-         dapp-name (if dapp? name host)]
-     (cond
-
-       (and (= type constants/history-state-changed) platform/ios? (not= "about:blank" url))
-       (browser/update-browser-history-fx browser url false cofx)
-
-       (= type constants/web3-send-async)
-       (browser/web3-send-async payload messageId cofx)
-
-       (= type constants/web3-send-async-read-only)
-       (browser/web3-send-async-read-only dapp-name payload messageId cofx)
-
-       (= type constants/status-api-request)
-       {:db       (update-in db [:browser/options :permissions-queue] conj {:dapp-name   dapp-name
-                                                                            :permissions permissions})
-        :dispatch [:check-permissions-queue]}))))
+ :browser/bridge-message-received
+ (fn [cofx [_ message]]
+   (browser/process-bridge-message message cofx)))
 
 (handlers/register-handler-fx
  :check-permissions-queue
- (fn [{:keys [db] :as cofx} _]
-   (let [{:keys [show-permission permissions-queue]} (:browser/options db)]
-     (when (and (nil? show-permission) (last permissions-queue))
-       (let [{:keys [dapp-name permissions]} (last permissions-queue)
-             {:account/keys [account]} db]
-         (handlers-macro/merge-fx
-          cofx
-          {:db (update-in db [:browser/options :permissions-queue] drop-last)}
-          (browser/request-permission
-           {:dapp-name             dapp-name
-            :index                 0
-            :user-permissions      (get-in db [:dapps/permissions dapp-name :permissions])
-            :requested-permissions permissions
-            :permissions-data      {constants/dapp-permission-contact-code (:public-key account)
-                                    constants/dapp-permission-web3         (ethereum/normalized-address
-                                                                            (:address account))}})))))))
+ (fn [cofx _]
+   (browser/check-permissions-queue cofx)))
 
 (handlers/register-handler-fx
  :next-dapp-permission
