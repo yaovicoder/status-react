@@ -14,7 +14,7 @@
 
   (re-frame/reg-fx :init/init-store #())
 
-  (re-frame/reg-fx :browse #())
+  (re-frame/reg-fx :browser/browse #())
   (re-frame/reg-fx :data-store/tx #())
 
   (re-frame/reg-cofx
@@ -27,7 +27,7 @@
    (fn [coeffects _]
      (assoc coeffects :all-dapp-permissions [])))
 
-  (re-frame/reg-fx :send-to-bridge-fx #())
+  (re-frame/reg-fx :browser/send-to-bridge #())
 
   (re-frame/reg-fx
    :show-dapp-permission-confirmation-fx
@@ -61,11 +61,11 @@
      (testing "open and remove dapps"
        (is (zero? (count @browsers)))
 
-       (re-frame/dispatch [:open-url-in-browser dapp1-url])
+       (re-frame/dispatch [:browser.ui/dapp-url-submitted dapp1-url])
 
        (is (= 1 (count @browsers)))
 
-       (re-frame/dispatch [:open-url-in-browser dapp2-url])
+       (re-frame/dispatch [:browser.ui/dapp-url-submitted dapp2-url])
 
        (is (= 2 (count @browsers)))
 
@@ -78,13 +78,13 @@
          (is (and (= [(str "http://" dapp1-url) (:history browser1)])
                   (= [dapp2-url] (:history browser2)))))
 
-       (re-frame/dispatch [:remove-browser dapp1-url])
+       (re-frame/dispatch [:browser.ui/remove-browser-pressed dapp1-url])
 
        (is (= 1 (count @browsers))))
 
      (testing "navigate dapp"
 
-       (re-frame/dispatch [:open-browser (first (vals @browsers))])
+       (re-frame/dispatch [:browser.ui/browser-item-selected (first (vals @browsers))])
 
        (let [browser    (re-frame/subscribe [:get-current-browser])
              dapp2-url2 (str dapp2-url "/nav2")
@@ -96,10 +96,14 @@
          (is (and (not (browser/can-go-back? @browser))
                   (not (browser/can-go-forward? @browser))))
 
-         (re-frame/dispatch [:browser-nav-back])
-         (re-frame/dispatch [:browser-nav-forward])
+         (re-frame/dispatch [:browser.ui/previous-page-button-pressed])
+         (re-frame/dispatch [:browser.ui/next-page-button-pressed])
 
-         (re-frame/dispatch [:update-browser-on-nav-change @browser dapp2-url2 false])
+         (re-frame/dispatch [:browser/navigation-state-changed
+                             (clj->js {"url" dapp2-url2
+                                       "loading" false})
+                             @browser
+                             false])
 
          (is (= 1 (:history-index @browser)))
          (is (= [dapp2-url dapp2-url2] (:history @browser)))
@@ -107,7 +111,7 @@
          (is (and (browser/can-go-back? @browser)
                   (not (browser/can-go-forward? @browser))))
 
-         (re-frame/dispatch [:browser-nav-back @browser])
+         (re-frame/dispatch [:browser.ui/previous-page-button-pressed @browser])
 
          (is (zero? (:history-index @browser)))
          (is (= [dapp2-url dapp2-url2] (:history @browser)))
@@ -115,17 +119,21 @@
          (is (and (not (browser/can-go-back? @browser))
                   (browser/can-go-forward? @browser)))
 
-         (re-frame/dispatch [:update-browser-on-nav-change @browser dapp2-url3 false])
+         (re-frame/dispatch [:browser/navigation-state-changed
+                             (clj->js {"url" dapp2-url3
+                                       "loading" false})
+                             @browser
+                             false])
 
          (is (= 1 (:history-index @browser)))
          (is (= [dapp2-url dapp2-url3] (:history @browser)))
 
-         (re-frame/dispatch [:browser-nav-back @browser])
+         (re-frame/dispatch [:browser.ui/previous-page-button-pressed @browser])
 
          (is (zero? (:history-index @browser)))
          (is (= [dapp2-url dapp2-url3] (:history @browser)))
 
-         (re-frame/dispatch [:browser-nav-forward @browser])
+         (re-frame/dispatch [:browser.ui/next-page-button-pressed @browser])
 
          (is (= 1 (:history-index @browser)))
          (is (= [dapp2-url dapp2-url3] (:history @browser))))))

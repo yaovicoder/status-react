@@ -30,7 +30,7 @@
     [react/view styles/buttons-container
      [components.common/button {:on-press (fn []
                                             (let [handler (if can-go-back?
-                                                            :browser-nav-back
+                                                            :browser.ui/previous-page-button-pressed
                                                             :navigate-back)]
                                               (re-frame/dispatch [handler])))
                                 :label    (i18n/label :t/browsing-site-blocked-go-back)}]]]])

@@ -7,6 +7,8 @@
             [status-im.accounts.recover.core :as accounts.recover]
             [status-im.accounts.update.core :as accounts.update]
             [status-im.bootnodes.core :as bootnodes]
+            [status-im.browser.core :as browser]
+            [status-im.browser.permissions :as browser.permissions]
             [status-im.data-store.core :as data-store]
             [status-im.fleet.core :as fleet]
             [status-im.hardwallet.core :as hardwallet]
@@ -522,3 +524,123 @@
  :hardwallet.ui/go-to-settings-button-pressed
  (fn [_ _]
    {:hardwallet/open-nfc-settings nil}))
+
+(handlers/register-handler-fx
+ :hardwallet.ui/connect-info-button-pressed
+ (fn [cofx _]
+   (browser/open-url-in-browser "https://hardwallet.status.im" cofx)))
+
+;; browser module
+
+(handlers/register-handler-fx
+ :browser.ui/browser-item-selected
+ (fn [cofx [_ browser]]
+   (browser/update-browser-and-navigate browser cofx)))
+
+(handlers/register-handler-fx
+ :browser.ui/url-input-pressed
+ (fn [cofx _]
+   (browser/update-browser-options {:url-editing? true} cofx)))
+
+(handlers/register-handler-fx
+ :browser.ui/url-input-blured
+ (fn [cofx _]
+   (browser/update-browser-options {:url-editing? false} cofx)))
+
+(handlers/register-handler-fx
+ :browser.ui/url-submited
+ (fn [cofx [_ browser url loading? error?]]
+   (browser/on-url-submitted browser url cofx)))
+
+(handlers/register-handler-fx
+ :browser.ui/message-link-pressed
+ (fn [_ [_ link]]
+   {:browser/browse link}))
+
+(handlers/register-handler-fx
+ :browser.ui/remove-browser-pressed
+ (fn [cofx [_ browser-id]]
+   (browser/remove-browser browser-id cofx)))
+
+(handlers/register-handler-fx
+ :browser.ui/lock-pressed
+ (fn [cofx [_ secure?]]
+   (browser/update-browser-options {:show-tooltip (if secure? :secure :not-secure)} cofx)))
+
+(handlers/register-handler-fx
+ :browser.ui/close-tooltip-pressed
+ (fn [cofx _]
+   (browser/update-browser-options {:show-tooltip nil} cofx)))
+
+(handlers/register-handler-fx
+ :browser.ui/previous-page-button-pressed
+ (fn [cofx [_ browser]]
+   (browser/navigate-to-previous-page browser cofx)))
+
+(handlers/register-handler-fx
+ :browser.ui/next-page-button-pressed
+ (fn [cofx [_ browser]]
+   (browser/navigate-to-next-page browser cofx)))
+
+(handlers/register-handler-fx
+ :browser/navigation-state-changed
+ (fn [cofx [_ event browser error?]]
+   (browser/navigation-state-changed event browser error? cofx)))
+
+(handlers/register-handler-fx
+ :browser/bridge-message-received
+ (fn [cofx [_ message]]
+   (browser/process-bridge-message message cofx)))
+
+(handlers/register-handler-fx
+ :browser/error-occured
+ (fn [cofx _]
+   (browser/update-browser-options {:error?   true
+                                    :loading? false}
+                                   cofx)))
+
+(handlers/register-handler-fx
+ :browser/loading-started
+ (fn [cofx _]
+   (browser/update-browser-options {:error? false} cofx)))
+
+(handlers/register-handler-fx
+ :browser.callback/resolve-ens-multihash-success
+ (fn [cofx [_ hash]]
+   (browser/resolve-ens-multihash-success hash cofx)))
+
+(handlers/register-handler-fx
+ :browser.callback/resolve-ens-multihash-error
+ (fn [cofx _]
+   (browser/update-browser-options {:resolving? false} cofx)))
+
+(handlers/register-handler-fx
+ :browser.callback/call-rpc
+ (fn [cofx [_ message]]
+   {:browser/send-to-bridge {:message message
+                             :webview (get-in cofx [:db :webview-bridge])}}))
+
+(handlers/register-handler-fx
+ :browser.permissions.ui/dapp-permission-allowed
+ (fn [cofx [_ dapp-name permission]]
+   (browser.permissions/allow-permission dapp-name permission cofx)))
+
+(handlers/register-handler-fx
+ :browser.permissions.ui/dapp-permission-denied
+ (fn [cofx [_ dapp-name]]
+   (browser.permissions/process-next-permission dapp-name cofx)))
+
+(handlers/register-handler-fx
+ :browser.ui/open-in-status-option-selected
+ (fn [cofx [_ url]]
+   (browser/open-url-in-browser url cofx)))
+
+(handlers/register-handler-fx
+ :browser.ui/open-dapp-button-pressed
+ (fn [cofx [_ dapp-url]]
+   (browser/open-url-in-browser dapp-url cofx)))
+
+(handlers/register-handler-fx
+ :browser.ui/dapp-url-submitted
+ (fn [cofx [_ dapp-url]]
+   (browser/open-url-in-browser dapp-url cofx)))

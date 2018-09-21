@@ -1,6 +1,6 @@
-(ns status-im.ui.screens.browser.db
-  (:require-macros [status-im.utils.db :refer [allowed-keys]])
-  (:require [cljs.spec.alpha :as spec]))
+(ns status-im.browser.db
+  (:require [cljs.spec.alpha :as spec])
+  (:require-macros [status-im.utils.db :refer [allowed-keys]]))
 
 (spec/def :browser/browser-id (spec/nilable string?))
 (spec/def :browser/timestamp (spec/nilable int?))
@@ -14,7 +14,10 @@
 (spec/def :browser/url-editing? (spec/nilable boolean?))
 (spec/def :browser/show-tooltip (spec/nilable keyword?))
 (spec/def :browser/show-permission (spec/nilable map?))
-(spec/def :browser/permissions-queue (spec/nilable any?))
+
+(spec/def :browser/pending-permissions set?)
+(spec/def :browser/allowed-permissions set?)
+(spec/def :browser/requested-permissions set?)
 
 (spec/def :browser/options
   (spec/nilable
@@ -25,7 +28,9 @@
              :browser/url-editing?
              :browser/show-tooltip
              :browser/show-permission
-             :browser/permissions-queue
+             :browser/pending-permissions
+             :browser/allowed-permissions
+             :browser/requested-permissions
              :browser/error?])))
 
 (spec/def :browser/browser

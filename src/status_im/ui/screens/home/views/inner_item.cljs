@@ -108,7 +108,7 @@
 (defview home-list-browser-item-inner-view [{:keys [name] :as browser}]
   (letsubs [dapp [:get-dapp-by-name name]
             url  (browser/get-current-url browser)]
-    [react/touchable-highlight {:on-press #(re-frame/dispatch [:open-browser browser])}
+    [react/touchable-highlight {:on-press #(re-frame/dispatch [:browser.ui/browser-item-selected browser])}
      [react/view styles/chat-container
       [react/view styles/chat-icon-container
        (if dapp
