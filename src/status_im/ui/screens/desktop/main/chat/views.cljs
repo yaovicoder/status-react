@@ -180,41 +180,46 @@
                     :current-public-key current-public-key)]))]]
        [connectivity/error-view]])))
 
-(views/defview chat-text-input []
-  (views/letsubs [inp-ref (atom nil)]
-    (let [component              (reagent/current-component)
-          set-container-height-fn #(reagent/set-state component {:container-height %})
-          {:keys [container-height empty?] :or {empty? true}} (reagent/state component)]
-      [react/view {:style (styles/chat-box container-height)}
-       [react/text-input {:placeholder    (i18n/label :t/type-a-message)
-                          :auto-focus     true
-                          :multiline      true
-                          :blur-on-submit true
-                          :style          (styles/chat-text-input container-height)
-                          :font           :default
-                          :ref            #(reset! inp-ref %)
-                          :on-content-size-change #(set-container-height-fn (.-height (.-contentSize (.-nativeEvent %))))
-                          :on-key-press   (fn [e]
-                                            (let [native-event (.-nativeEvent e)
-                                                  key (.-key native-event)
-                                                  modifiers (js->clj (.-modifiers native-event))
-                                                  should-send (and (= key "Enter") (not (contains? (set modifiers) "shift")))]
-                                              (when should-send
-                                                (.clear @inp-ref)
-                                                (.focus @inp-ref)
-                                                (re-frame/dispatch [:send-current-message]))))
-                          :on-change      (fn [e]
-                                            (let [native-event (.-nativeEvent e)
-                                                  text (.-text native-event)]
-                                              (reagent/set-state component {:empty? (= "" text)})
-                                              (re-frame/dispatch [:set-chat-input-text text])))}]
-       [react/touchable-highlight {:style styles/send-button
-                                   :on-press (fn []
-                                               (.clear @inp-ref)
-                                               (.focus @inp-ref)
-                                               (re-frame/dispatch [:send-current-message]))}
-        [react/view {:style (styles/send-icon empty?)}
-         [icons/icon :icons/arrow-left {:style (styles/send-icon-arrow empty?)}]]]])))
+(defn chat-text-input []
+  (let [inp-ref (atom nil)
+        ;; we don't want react on text-input change,
+        ;; it is used only for initial state
+        {:keys [input-text]} @(re-frame.core/subscribe [:get-current-chat])]
+    (fn []
+      (let [component               (reagent/current-component)
+            set-container-height-fn #(reagent/set-state component {:container-height %})
+            {:keys [container-height empty?] :or {empty? true}} (reagent/state component)]
+        [react/view {:style (styles/chat-box container-height)}
+         [react/text-input {:placeholder            (i18n/label :t/type-a-message)
+                            :auto-focus             true
+                            :multiline              true
+                            :blur-on-submit         true
+                            :style                  (styles/chat-text-input container-height)
+                            :font                   :default
+                            :ref                    #(reset! inp-ref %)
+                            :default-value          input-text
+                            :on-content-size-change #(set-container-height-fn (.-height (.-contentSize (.-nativeEvent %))))
+                            :on-key-press           (fn [e]
+                                                      (let [native-event (.-nativeEvent e)
+                                                            key          (.-key native-event)
+                                                            modifiers    (js->clj (.-modifiers native-event))
+                                                            should-send  (and (= key "Enter") (not (contains? (set modifiers) "shift")))]
+                                                        (when should-send
+                                                          (.clear @inp-ref)
+                                                          (.focus @inp-ref)
+                                                          (re-frame/dispatch [:send-current-message]))))
+                            :on-change              (fn [e]
+                                                      (let [native-event (.-nativeEvent e)
+                                                            text         (.-text native-event)]
+                                                        (reagent/set-state component {:empty? (= "" text)})
+                                                        (re-frame/dispatch [:set-chat-input-text text])))}]
+         [react/touchable-highlight {:style    styles/send-button
+                                     :on-press (fn []
+                                                 (.clear @inp-ref)
+                                                 (.focus @inp-ref)
+                                                 (re-frame/dispatch [:send-current-message]))}
+          [react/view {:style (styles/send-icon empty?)}
+           [icons/icon :icons/arrow-left {:style (styles/send-icon-arrow empty?)}]]]]))))
 
 (views/defview chat-view []
   (views/letsubs [current-chat [:get-current-chat]]
