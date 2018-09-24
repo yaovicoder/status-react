@@ -104,7 +104,7 @@
     {:db (assoc-in db [:chats current-chat-id :input-metadata] metadata)}))
 
 (defn- start-cooldown [{:keys [db]} cooldowns]
-  {:dispatch-later        [{:dispatch [:disable-cooldown]
+  {:dispatch-later        [{:dispatch [:chat/disable-cooldown]
                             :ms       (const/cooldown-periods-ms cooldowns
                                                                  const/default-cooldown-period-ms)}]
    :show-cooldown-warning nil

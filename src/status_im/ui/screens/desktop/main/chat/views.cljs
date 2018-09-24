@@ -63,7 +63,7 @@
                    :on-press #(re-frame/dispatch [:chat.ui/clear-history-pressed])}
        (i18n/label :t/clear-history)]
       [react/text {:style (styles/profile-actions-text colors/black)
-                   :on-press #(re-frame/dispatch [:chat.ui/delete-chat-pressed chat-id])}
+                   :on-press #(re-frame/dispatch [:chat.ui/remove-chat-pressed chat-id])}
        (i18n/label :t/delete-chat)]]]))
 
 (views/defview message-author-name [{:keys [outgoing from] :as message}]
@@ -168,7 +168,7 @@
                                                            y (.-y (.-contentOffset ne))]
                                                        (when (<= y 0)
                                                          (when @scroll-timer (js/clearTimeout @scroll-timer))
-                                                         (reset! scroll-timer (js/setTimeout #(re-frame/dispatch [:load-more-messages]) 300)))
+                                                         (reset! scroll-timer (js/setTimeout #(re-frame/dispatch [:chat.ui/load-more-messages]) 300)))
                                                        (reset! scroll-height (+ y (.-height (.-layoutMeasurement ne))))))
                            :ref                    #(reset! scroll-ref %)}
         [react/view

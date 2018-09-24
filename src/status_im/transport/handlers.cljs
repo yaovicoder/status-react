@@ -208,11 +208,11 @@
                   (remove-hash envelope-hash)
                   (update-resend-contact-message chat-id)))
 
-      (when-let [message (get-in db [:chats chat-id :messages message-id])]
+      (when-let [{:keys [from]} (get-in db [:chats chat-id :messages message-id])]
         (let [{:keys [fcm-token]} (get-in db [:contacts/contacts chat-id])]
           (fx/merge cofx
                     (remove-hash envelope-hash)
-                    (models.message/update-message-status message status)
+                    (models.message/update-message-status chat-id message-id status)
                     (models.message/send-push-notification fcm-token status)))))))
 
 (defn- own-info [db]
