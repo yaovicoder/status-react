@@ -7,6 +7,7 @@
             [status-im.utils.ethereum.core :as ethereum]
             [status-im.utils.datetime :as time]
             [status-im.chat.models :as chat-model]
+            [status-im.chat.models.loading :as chat-loading]
             [status-im.chat.models.input :as input]
             [status-im.chat.commands.receiving :as commands-receiving]
             [status-im.utils.clocks :as utils.clocks]
@@ -18,12 +19,10 @@
             [status-im.transport.message.v1.protocol :as protocol]
             [status-im.data-store.messages :as messages-store]
             [status-im.data-store.user-statuses :as user-statuses-store]
-            [status-im.utils.datetime :as datetime]
             [clojure.string :as string]))
 
 (def receive-interceptors
-  [(re-frame/inject-cofx :random-id)
-   re-frame/trim-v])
+  [(re-frame/inject-cofx :random-id)])
 
 (defn- emoji-only-content?
   [content]
@@ -56,31 +55,6 @@
                                              ;; relative datemark shifted, reindex
                                              (assoc groups new-datemark message-refs))))
                              {}))}))
-
-(defn- sort-references
-  "Sorts message-references sequence primary by clock value,
-  breaking ties by `:message-id`"
-  [messages message-references]
-  (sort-by (juxt (comp :clock-value (partial get messages) :message-id)
-                 :message-id)
-           message-references))
-
-(defn- group-messages
-  "Takes chat-id, new messages + cofx and properly groups them
-  into the `:message-groups`index in db"
-  [chat-id messages {:keys [db]}]
-  {:db (reduce (fn [db [datemark grouped-messages]]
-                 (update-in db [:chats chat-id :message-groups datemark]
-                            (fn [message-references]
-                              (->> grouped-messages
-                                   (map (fn [{:keys [message-id timestamp]}]
-                                          {:message-id    message-id
-                                           :timestamp-str (time/timestamp->time timestamp)}))
-                                   (into (or message-references '()))
-                                   (sort-references (get-in db [:chats chat-id :messages]))))))
-               db
-               (group-by (comp time/day-relative :timestamp)
-                         (filter :show? messages)))})
 
 (defn- add-own-status
   [chat-id message-id status {:keys [db]}]
@@ -115,7 +89,7 @@
         (handlers-macro/merge-fx cofx
                                  fx
                                  (re-index-message-groups chat-id)
-                                 (group-messages chat-id [message]))))))
+                                 (chat-loading/group-chat-messages chat-id [message]))))))
 
 (def ^:private- add-single-message (partial add-message false))
 (def ^:private- add-batch-message (partial add-message true))
@@ -175,7 +149,6 @@
                              (display-notification chat-id)
                              (send-message-seen chat-id message-id (and (not public?)
                                                                         current-chat?
-                                                                        (not (chat-model/bot-only-chat? db chat-id))
                                                                         (not (= constants/system from))
                                                                         (not (:outgoing message)))))))
 
@@ -211,7 +184,7 @@
      (fn [chat-id cofx]
        (handlers-macro/merge-fx cofx
                                 (re-index-message-groups chat-id)
-                                (group-messages chat-id (get chat->message chat-id))))
+                                (chat-loading/group-chat-messages chat-id (get chat->message chat-id))))
      chat-ids)))
 
 (defn system-message [chat-id message-id timestamp content]
@@ -239,8 +212,7 @@
 
 (def send-interceptors
   [(re-frame/inject-cofx :random-id)
-   (re-frame/inject-cofx :random-id-seq)
-   re-frame/trim-v])
+   (re-frame/inject-cofx :random-id-seq)])
 
 (defn- send
   [chat-id message-id send-record {{:keys [network-status current-public-key]} :db :as cofx}]

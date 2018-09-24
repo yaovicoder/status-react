@@ -1,7 +1,5 @@
 (ns status-im.events
-  (:require status-im.ui.screens.accounts.create.navigation
-            status-im.ui.screens.accounts.recover.navigation
-            [re-frame.core :as re-frame]
+  (:require [re-frame.core :as re-frame]
             [status-im.accounts.core :as accounts]
             [status-im.accounts.create.core :as accounts.create]
             [status-im.accounts.login.core :as accounts.login]
@@ -11,6 +9,7 @@
             [status-im.bootnodes.core :as bootnodes]
             [status-im.data-store.core :as data-store]
             [status-im.fleet.core :as fleet]
+            [status-im.hardwallet.core :as hardwallet]
             [status-im.i18n :as i18n]
             [status-im.init.core :as init]
             [status-im.log-level.core :as log-level]
@@ -141,7 +140,17 @@
  (fn [cofx [_ result password]]
    (accounts.create/on-account-created result password false cofx)))
 
+(handlers/register-handler-fx
+ :accounts.create.ui/create-new-account-button-pressed
+ (fn [cofx _]
+   (accounts.create/navigate-to-authentication-method cofx)))
+
 ;; accounts recover module
+
+(handlers/register-handler-fx
+ :accounts.recover.ui/recover-account-button-pressed
+ (fn [cofx _]
+   (accounts.recover/navigate-to-recover-account-screen cofx)))
 
 (handlers/register-handler-fx
  :accounts.recover.ui/passphrase-input-changed
@@ -455,7 +464,7 @@
 
 ;; web3 module
 
-(handlers/register-handler-db
+(handlers/register-handler-fx
  :web3.callback/get-syncing-success
  (fn [cofx [_ error sync]]
    (protocol/update-sync-state cofx error sync)))
@@ -472,10 +481,10 @@
  (fn [cofx _]
    (accounts.login/user-login cofx)))
 
-(handlers/register-handler-db
+(handlers/register-handler-fx
  :notifications.callback/get-fcm-token-success
- (fn [db [_ fcm-token]]
-   (assoc-in db [:notifications :fcm-token] fcm-token)))
+ (fn [{:keys [db]} [_ fcm-token]]
+   {:db (assoc-in db [:notifications :fcm-token] fcm-token)}))
 
 (handlers/register-handler-fx
  :notifications.callback/request-notifications-permissions-granted
@@ -486,3 +495,30 @@
  :notifications.callback/request-notifications-permissions-denied
  (fn [cofx _]
    (accounts/show-mainnet-is-default-alert cofx)))
+
+;; hardwallet module
+
+(handlers/register-handler-fx
+ :hardwallet.callback/check-nfc-support-success
+ (fn [cofx [_ supported?]]
+   (hardwallet/set-nfc-support supported? cofx)))
+
+(handlers/register-handler-fx
+ :hardwallet.callback/check-nfc-enabled-success
+ (fn [cofx [_ enabled?]]
+   (hardwallet/set-nfc-enabled enabled? cofx)))
+
+(handlers/register-handler-fx
+ :hardwallet.ui/status-hardwallet-option-pressed
+ (fn [cofx _]
+   (hardwallet/navigate-to-connect-screen cofx)))
+
+(handlers/register-handler-fx
+ :hardwallet.ui/password-option-pressed
+ (fn [cofx _]
+   (accounts.create/navigate-to-create-account-screen cofx)))
+
+(handlers/register-handler-fx
+ :hardwallet.ui/go-to-settings-button-pressed
+ (fn [_ _]
+   {:hardwallet/open-nfc-settings nil}))

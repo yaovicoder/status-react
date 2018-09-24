@@ -2,7 +2,7 @@
   (:require-macros [status-im.utils.views :refer [defview letsubs]])
   (:require [clojure.string :as string]
             [re-frame.core :as re-frame]
-            [status-im.chat.views.photos :as photos]
+            [status-im.ui.screens.chat.photos :as photos]
             [status-im.ui.screens.accounts.styles :as styles]
             [status-im.ui.components.list.views :as list]
             [status-im.ui.components.status-bar.view :as status-bar]
@@ -42,10 +42,10 @@
                         :render-fn (fn [account] [account-view account])
                         :separator [react/view {:height 12}]}]]
       [react/view
-       [components.common/button {:on-press #(re-frame/dispatch [:navigate-to :create-account])
+       [components.common/button {:on-press #(re-frame/dispatch [:accounts.create.ui/create-new-account-button-pressed])
                                   :label    (i18n/label :t/create-new-account)}]
        [react/view styles/bottom-button-container
-        [components.common/button {:on-press    #(re-frame/dispatch [:navigate-to :recover])
+        [components.common/button {:on-press    #(re-frame/dispatch [:accounts.recover.ui/recover-account-button-pressed])
                                    :label       (i18n/label :t/add-existing-account)
                                    :background? false}]]
        [privacy-policy/privacy-policy-button]]]]))

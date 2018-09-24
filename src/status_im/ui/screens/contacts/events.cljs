@@ -1,6 +1,6 @@
 (ns status-im.ui.screens.contacts.events
   (:require [re-frame.core :as re-frame]
-            [status-im.chat.events :as chat.events]
+            [status-im.chat.models :as chat.models]
             [status-im.i18n :as i18n]
             [status-im.models.contact :as models.contact]
             [status-im.ui.screens.add-new.new-chat.db :as new-chat.db]
@@ -15,7 +15,7 @@
   (handlers-macro/merge-fx
    cofx
    (models.contact/add-contact whisper-id)
-   (chat.events/start-chat whisper-id {:navigation-replace? true})))
+   (chat.models/start-chat whisper-id {:navigation-replace? true})))
 
 (re-frame/reg-cofx
  :get-default-contacts
@@ -52,13 +52,14 @@
                                 fx
                                 (add-contact-and-open-chat contact-identity))))))
 
-(handlers/register-handler-db
+(handlers/register-handler-fx
  :open-contact-toggle-list
- (fn [db _]
-   (-> (assoc db
-              :group/selected-contacts #{}
-              :new-chat-name "")
-       (navigation/navigate-to :contact-toggle-list))))
+ (fn [{:keys [db] :as cofx} _]
+   (handlers-macro/merge-fx cofx
+                            {:db (assoc db
+                                        :group/selected-contacts #{}
+                                        :new-chat-name "")}
+                            (navigation/navigate-to-cofx :contact-toggle-list nil))))
 
 (handlers/register-handler-fx
  :open-chat-with-contact

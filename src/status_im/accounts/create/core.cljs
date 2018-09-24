@@ -7,6 +7,7 @@
             [status-im.constants :as constants]
             [status-im.data-store.accounts :as accounts-store]
             [status-im.i18n :as i18n]
+            [status-im.hardwallet.core :as hardwallet]
             [status-im.native-module.core :as status]
             [status-im.ui.screens.navigation :as navigation]
             [status-im.utils.config :as config]
@@ -95,8 +96,21 @@
 
 (defn step-back [step cofx]
   (case step
-    :enter-password (navigation/navigate-back (:db cofx))
+    :enter-password (navigation/navigate-back cofx)
     :confirm-password (reset-account-creation cofx)))
+
+(defn navigate-to-create-account-screen [{:keys [db] :as cofx}]
+  (handlers-macro/merge-fx cofx
+                           {:db (update db :accounts/create
+                                        #(-> %
+                                             (assoc :step :enter-password)
+                                             (dissoc :password :password-confirm :name :error)))}
+                           (navigation/navigate-to-cofx :create-account nil)))
+
+(defn navigate-to-authentication-method [{:keys [db] :as cofx}]
+  (if (hardwallet/hardwallet-supported? db)
+    (navigation/navigate-to-cofx :hardwallet/authentication-method nil cofx)
+    (navigate-to-create-account-screen cofx)))
 
 ;;;; COFX
 

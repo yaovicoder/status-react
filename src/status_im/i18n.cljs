@@ -13,8 +13,12 @@
 
 ;; translations
 (def translations-by-locale
-  (->> (i18n/translations [:en :ko :ru :ms])
-       (map (fn [[k t]] [k (types/json->clj t)]))
+  (->> (i18n/translations [:en :ko :ru :pl :es_419 :zh_Hans_CN :ms])
+       (map (fn [[k t]]
+              (let [k' (-> (name k)
+                           (string/replace "_" "-")
+                           keyword)]
+                [k' (types/json->clj t)])))
        (into {})))
 
 ;; english as source of truth
