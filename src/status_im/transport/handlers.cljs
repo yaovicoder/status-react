@@ -51,7 +51,7 @@
 (handlers/register-handler-fx
  :protocol/receive-whisper-message
  [handlers/logged-in
-  (re-frame/inject-cofx :random-id)]
+  (re-frame/inject-cofx :random-id-generator)]
  receive-whisper-messages)
 
 (handlers/register-handler-fx
@@ -61,7 +61,8 @@
 
 (handlers/register-handler-fx
  :contact/send-new-sym-key
- (fn [{:keys [db random-id] :as cofx} [_ {:keys [chat-id topic message sym-key sym-key-id]}]]
+ (fn [{:keys [db] :as cofx}
+      [_ {:keys [chat-id topic message sym-key sym-key-id]}]]
    (let [{:keys [web3 current-public-key]} db
          chat-transport-info               (-> (get-in db [:transport/chats chat-id])
                                                (assoc :sym-key-id sym-key-id
@@ -162,11 +163,11 @@
                   (remove-hash envelope-hash)
                   (update-resend-contact-message chat-id)))
 
-      (when-let [message (get-in db [:chats chat-id :messages message-id])]
+      (when-let [{:keys [from]} (get-in db [:chats chat-id :messages message-id])]
         (let [{:keys [fcm-token]} (get-in db [:contacts/contacts chat-id])]
           (fx/merge cofx
                     (remove-hash envelope-hash)
-                    (models.message/update-message-status message status)
+                    (models.message/update-message-status chat-id message-id status)
                     (models.message/send-push-notification fcm-token status)))))))
 
 (defn- own-info [db]
