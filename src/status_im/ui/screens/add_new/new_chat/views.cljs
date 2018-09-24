@@ -15,7 +15,7 @@
 
 (defn- render-row [row _ _]
   [contact-view/contact-view {:contact       row
-                              :on-press      #(re-frame/dispatch [:start-chat (:whisper-identity %) {:navigation-replace? true}])
+                              :on-press      #(re-frame/dispatch [:chat.ui/start-chat (:whisper-identity %) {:navigation-replace? true}])
                               :show-forward? true}])
 
 (views/defview new-chat []
