@@ -12,34 +12,34 @@
         :inbox/wnodes {:eth.beta {"mailserver-a" {:sym-key-id sym-key
                                                   :address "enode://wnode-id@ip"}}}}})
 
-(defn peers-summary-change-fx-result [sym-key registered-peer? registered-peer-before?]
-  (inbox/peers-summary-change-fx (if registered-peer-before?
-                                   [{:id "wnode-id"}]
-                                   [])
-                                 (cofx-fixtures sym-key
-                                                registered-peer?)))
+(defn peers-summary-change-result [sym-key registered-peer? registered-peer-before?]
+  (inbox/peers-summary-change (if registered-peer-before?
+                                [{:id "wnode-id"}]
+                                [])
+                              (cofx-fixtures sym-key
+                                             registered-peer?)))
 
-(deftest peers-summary-change-fx
+(deftest peers-summary-change
   (testing "Mailserver connected"
-    (let [result (peers-summary-change-fx-result false true false)]
+    (let [result (peers-summary-change-result false true false)]
       (is (= (into #{} (keys result))
              #{:status-im.transport.inbox/mark-trusted-peer}))))
   (testing "Mailserver disconnected, sym-key exists"
-    (let [result (peers-summary-change-fx-result true false true)]
+    (let [result (peers-summary-change-result true false true)]
       (is (= (into #{} (keys result))
              #{:db :status-im.transport.inbox/add-peer :utils/dispatch-later}))
       (is (= (get-in result [:db :mailserver-status])
              :connecting))))
   (testing "Mailserver disconnected, sym-key doesn't exists (unlikely situation in practice)"
-    (let [result (peers-summary-change-fx-result false false true)]
+    (let [result (peers-summary-change-result false false true)]
       (is (= (into #{} (keys result))
              #{:db :status-im.transport.inbox/add-peer :utils/dispatch-later  :shh/generate-sym-key-from-password}))
       (is (= (get-in result [:db :mailserver-status])
              :connecting))))
   (testing "Mailserver isn't concerned by peer summary changes"
-    (is (= (into #{} (keys (peers-summary-change-fx-result true true true)))
+    (is (= (into #{} (keys (peers-summary-change-result true true true)))
            #{}))
-    (is (= (into #{} (keys (peers-summary-change-fx-result true false false)))
+    (is (= (into #{} (keys (peers-summary-change-result true false false)))
            #{}))))
 
 (deftest connect-to-mailserver

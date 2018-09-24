@@ -1,13 +1,14 @@
-(ns status-im.utils.semaphores)
+(ns status-im.utils.semaphores
+  (:require [status-im.utils.fx :as fx]))
 
-(defn lock [semaphore {:keys [db]}]
-  {:pre [(keyword? semaphore)]}
+(fx/defn lock [{:keys [db]} semaphore]
+  #_{:pre [(keyword? semaphore)]}
   {:db (update db :semaphores conj semaphore)})
 
-(defn free [semaphore {:keys [db]}]
-  {:pre [(keyword? semaphore)]}
+(fx/defn free [{:keys [db]} semaphore]
+  #_{:pre [(keyword? semaphore)]}
   (update db :semaphores disj semaphore))
 
-(defn locked? [semaphore cofx]
-  {:pre [(keyword? semaphore)]}
-  ((get-in cofx [:db :semaphores]) semaphore))
+(fx/defn locked? [{:keys [db]} semaphore]
+  #_{:pre [(keyword? semaphore)]}
+  ((get db :semaphores) semaphore))
