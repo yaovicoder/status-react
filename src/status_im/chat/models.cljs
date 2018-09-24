@@ -16,7 +16,8 @@
             [status-im.utils.clocks :as utils.clocks]
             [status-im.utils.datetime :as time]
             [status-im.utils.gfycat.core :as gfycat]
-            [status-im.utils.fx :as fx]))
+            [status-im.utils.fx :as fx]
+            [status-im.ui.components.colors :as colors]))
 
 (defn multi-user-chat? [cofx chat-id]
   (get-in cofx [:db :chats chat-id :group-chat]))
@@ -41,14 +42,14 @@
 (defn- create-new-chat
   [chat-id {:keys [db now]}]
   (let [name (get-in db [:contacts/contacts chat-id :name])]
-    {:chat-id            chat-id
-     :name               (or name (gfycat/generate-gfy chat-id))
-     :color              (styles/random-chat-color)
-     :group-chat         false
-     :is-active          true
-     :timestamp          now
-     :contacts           [chat-id]
-     :last-clock-value   0}))
+    {:chat-id          chat-id
+     :name             (or name (gfycat/generate-gfy chat-id))
+     :color            (rand-nth colors/chat-colors)
+     :group-chat       false
+     :is-active        true
+     :timestamp        now
+     :contacts         [chat-id]
+     :last-clock-value 0}))
 
 (fx/defn upsert-chat
   "Upsert chat when not deleted"

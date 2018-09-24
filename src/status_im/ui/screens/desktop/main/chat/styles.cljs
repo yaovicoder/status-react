@@ -9,7 +9,7 @@
 
 (defn message-box [{:keys [outgoing] :as message}]
   (let [align (if outgoing :flex-end :flex-start)
-        color (if outgoing colors/hawkes-blue colors/white)]
+        color (if outgoing colors/blue colors/white)]
     {:align-self       align
      :background-color color
      :border-radius    8
