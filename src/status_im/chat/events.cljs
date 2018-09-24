@@ -14,6 +14,7 @@
             [status-im.transport.message.v1.group-chat :as group-chat]
             [status-im.transport.message.v1.public-chat :as public-chat]
             [status-im.ui.screens.navigation :as navigation]
+            [status-im.group-chats.core :as group-chats]
             [status-im.utils.handlers :as handlers]
             [status-im.utils.handlers-macro :as handlers-macro]
             [status-im.utils.utils :as utils]))
@@ -133,19 +134,21 @@
  :create-new-group-chat-and-open
  [(re-frame/inject-cofx :random-id)]
  (fn [{:keys [db random-id] :as cofx} [_ group-name]]
-   (let [selected-contacts (conj (:group/selected-contacts db)
-                                 (:current-public-key db))
+   (let [my-pk             (:current-public-key db)
+         selected-contacts (conj (:group/selected-contacts db)
+                                 my-pk)
          chat-name         (if-not (string/blank? group-name)
                              group-name
                              (group-name-from-contacts selected-contacts
                                                        (:contacts/contacts db)
-                                                       (:username db)))]
+                                                       (:username db)))
+         group-update (group-chat/GroupMembershipUpdate. random-id chat-name my-pk selected-contacts nil nil nil)]
      (handlers-macro/merge-fx
       cofx
       {:db (assoc db :group/selected-contacts #{})}
-      (models/add-group-chat random-id chat-name (:current-public-key db) selected-contacts)
       (models/navigate-to-chat random-id {})
-      (transport.message/send (group-chat/GroupChatCreate. chat-name selected-contacts random-id) random-id)))))
+      (group-chats/handle-membership-update group-update my-pk)
+      (transport.message/send group-update random-id)))))
 
 (defn show-profile [identity {:keys [db]}]
   (navigation/navigate-to-cofx :profile nil {:db (assoc db :contacts/identity identity)}))
