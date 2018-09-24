@@ -1,5 +1,7 @@
 (ns status-im.chat.models.message
-  (:require [re-frame.core :as re-frame]
+  (:require [clojure.string :as string]
+            [re-frame.core :as re-frame]
+            [status-im.native-module.core :as status]
             [status-im.constants :as constants]
             [status-im.i18n :as i18n]
             [status-im.utils.core :as utils]
@@ -12,14 +14,15 @@
             [status-im.chat.commands.receiving :as commands-receiving]
             [status-im.utils.clocks :as utils.clocks]
             [status-im.utils.money :as money]
+            [status-im.utils.types :as types]
             [status-im.notifications.core :as notifications]
             [status-im.transport.utils :as transport.utils]
             [status-im.transport.message.core :as transport]
             [status-im.transport.message.v1.protocol :as protocol]
             [status-im.data-store.messages :as messages-store]
             [status-im.data-store.user-statuses :as user-statuses-store]
-            [clojure.string :as string]
-            [status-im.utils.fx :as fx]))
+            [status-im.utils.fx :as fx]
+            [taoensso.timbre :as log]))
 
 (def receive-interceptors
   [(re-frame/inject-cofx :random-id)])
@@ -72,7 +75,7 @@
   (assoc message :outgoing (= from (:current-public-key db))))
 
 (fx/defn add-message
-  [{:keys [db] :as cofx} batch? {:keys [chat-id message-id clock-value content] :as message} current-chat?]
+  [{:keys [db] :as cofx} batch? {:keys [chat-id message-id clock-value] :as message} current-chat?]
   (let [prepared-message (-> message
                              (prepare-message chat-id current-chat?)
                              (add-outgoing-status cofx))]
@@ -101,10 +104,13 @@
     message
     (assoc message :clock-value (utils.clocks/send last-clock-value))))
 
-(defn- update-legacy-type [{:keys [content-type] :as message}]
+(defn- update-legacy-data [{:keys [content-type content] :as message}]
   (cond-> message
     (= constants/content-type-command-request content-type)
-    (assoc :content-type constants/content-type-command)))
+    (assoc :content-type constants/content-type-command)
+    (and (= constants/text-content-type content-type)
+         (string? content))
+    (assoc :content {:text content})))
 
 (fx/defn display-notification
   [cofx chat-id]
@@ -132,7 +138,7 @@
                                        ;; TODO (cammellos): Refactor so it's not computed twice
                                        (add-outgoing-status cofx)
                                        ;; TODO (janherich): Remove after couple of releases
-                                       update-legacy-type)]
+                                       update-legacy-data)]
     (fx/merge cofx
               {:confirm-messages-processed [{:web3   web3
                                              :js-obj js-obj}]}
@@ -203,10 +209,10 @@
    (re-frame/inject-cofx :random-id-seq)])
 
 (fx/defn send
-  [{{:keys [network-status current-public-key]} :db :as cofx} chat-id message-id send-record]
+  [{{:keys [network-status]} :db :as cofx} chat-id message-id send-record]
   (if (= network-status :offline)
     {:dispatch-later [{:ms       10000
-                       :dispatch [:update-message-status chat-id message-id current-public-key :not-sent]}]}
+                       :dispatch [:message/update-message-status chat-id message-id :not-sent]}]}
     (transport/send send-record chat-id cofx)))
 
 (defn add-message-type [message {:keys [chat-id group-chat public?]}]
@@ -241,8 +247,9 @@
                                    :sound notifications/sound-name}
                          :tokens  [fcm-token]}}))
 
-(fx/defn update-message-status [{:keys [db]} {:keys [chat-id message-id from]} status]
-  (let [updated-status (-> db
+(fx/defn update-message-status [{:keys [db]} chat-id message-id status]
+  (let [from           (get-in db [:chats chat-id :messages message-id :from])
+        updated-status (-> db
                            (get-in [:chats chat-id :message-statuses message-id from])
                            (assoc :status status))]
     {:db            (assoc-in db
@@ -258,7 +265,7 @@
                         protocol/map->Message)]
     (fx/merge cofx
               (send chat-id message-id send-record)
-              (update-message-status message :sending))))
+              (update-message-status chat-id message-id :sending))))
 
 (fx/defn remove-message-from-group
   [{:keys [db]} chat-id {:keys [timestamp message-id]}]
@@ -294,3 +301,18 @@
                                                        :show?       true)
                                                 (add-message-type chat))]
     (upsert-and-send cofx message-data)))
+
+;; effects
+
+(re-frame.core/reg-fx
+ :chat-received-message/add-fx
+ (fn [messages]
+   (re-frame/dispatch [:chat-received-message/add messages])))
+
+(re-frame/reg-fx
+ :send-notification
+ (fn [{:keys [message payload tokens]}]
+   (let [payload-json (types/clj->json payload)
+         tokens-json  (types/clj->json tokens)]
+     (log/debug "send-notification message: " message " payload-json: " payload-json " tokens-json: " tokens-json)
+     (status/notify-users {:message message :payload payload-json :tokens tokens-json} #(log/debug "send-notification cb result: " %)))))

@@ -29,10 +29,10 @@
                      :icon     :icons/refresh
                      :on-press #(do
                                   (close-message-options-fn)
-                                  (re-frame/dispatch [:resend-message chat-id message-id]))}]
+                                  (re-frame/dispatch [:chat.ui/resend-message chat-id message-id]))}]
        [action-item {:label    :delete-message
                      :icon     :icons/delete
                      :style    {:color colors/red}
                      :on-press #(do
                                   (close-message-options-fn)
-                                  (re-frame/dispatch [:delete-message chat-id message-id]))}]]]]))
+                                  (re-frame/dispatch [:chat.ui/delete-message chat-id message-id]))}]]]]))

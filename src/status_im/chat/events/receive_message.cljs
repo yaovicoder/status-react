@@ -7,11 +7,6 @@
 
 ;;;; Handlers
 
-(re-frame.core/reg-fx
- :chat-received-message/add-fx
- (fn [messages]
-   (re-frame/dispatch [:chat-received-message/add messages])))
-
 (defn- filter-messages [cofx messages]
   (:accumulated (reduce (fn [{:keys [seen-ids] :as acc}
                              {:keys [message-id] :as message}]
