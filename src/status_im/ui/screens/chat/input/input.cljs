@@ -22,23 +22,23 @@
             cooldown-enabled?    [:chat-cooldown-enabled?]]
     [react/text-input
      (merge
-      {:ref                    #(when % (re-frame/dispatch [:set-chat-ui-props {:input-ref %}]))
+      {:ref                    #(when % (re-frame/dispatch [:chat.ui/set-chat-ui-props {:input-ref %}]))
        :accessibility-label    :chat-message-input
        :multiline              (not single-line-input?)
        :default-value          (or input-text "")
        :editable               (not cooldown-enabled?)
        :blur-on-submit         false
-       :on-focus               #(re-frame/dispatch [:set-chat-ui-props {:input-focused?    true
-                                                                        :messages-focused? false}])
-       :on-blur                #(re-frame/dispatch [:set-chat-ui-props {:input-focused? false}])
+       :on-focus               #(re-frame/dispatch [:chat.ui/set-chat-ui-props {:input-focused?    true
+                                                                                :messages-focused? false}])
+       :on-blur                #(re-frame/dispatch [:chat.ui/set-chat-ui-props {:input-focused? false}])
        :on-submit-editing      #(when single-line-input?
-                                  (re-frame/dispatch [:send-current-message]))
+                                  (re-frame/dispatch [:chat.ui/send-current-message]))
        :on-layout              #(set-container-width-fn (.-width (.-layout (.-nativeEvent %))))
-       :on-change              #(re-frame/dispatch [:set-chat-input-text (.-text (.-nativeEvent %))])
+       :on-change              #(re-frame/dispatch [:chat.ui/set-chat-input-text (.-text (.-nativeEvent %))])
        :on-selection-change    #(let [s (-> (.-nativeEvent %)
                                             (.-selection))
                                       end (.-end s)]
-                                  (re-frame/dispatch [:update-text-selection end]))
+                                  (re-frame/dispatch [:chat.ui/set-chat-ui-props {:selection end}]))
        :style                  (style/input-view single-line-input?)
        :placeholder-text-color colors/gray
        :auto-capitalize        :sentences}
@@ -95,8 +95,8 @@
   (letsubs [commands [:get-all-available-commands]]
     (when (seq commands)
       [react/touchable-highlight
-       {:on-press            #(do (re-frame/dispatch [:set-chat-input-text constants/command-char])
-                                  (re-frame/dispatch [:chat-input-focus :input-ref]))
+       {:on-press            #(do (re-frame/dispatch [:chat.ui/set-chat-input-text constants/command-char])
+                                  (re-frame/dispatch [:chat.ui/chat-input-focus :input-ref]))
         :accessibility-label :chat-commands-button}
        [react/view
         [vi/icon :icons/input-commands {:container-style style/input-commands-icon
@@ -112,7 +112,7 @@
                                            (.-layout)
                                            (.-height))]
                                  (when (> h 0)
-                                   (re-frame/dispatch [:set-chat-ui-props {:input-height h}])))}
+                                   (re-frame/dispatch [:chat.ui/set-chat-ui-props {:input-height h}])))}
        [react/view {:style style/input-container}
         [input-view {:single-line-input? single-line-input?}]
         (if (string/blank? input-text)
