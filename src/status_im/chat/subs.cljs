@@ -1,10 +1,9 @@
 (ns status-im.chat.subs
   (:require [clojure.string :as string]
             [re-frame.core :refer [reg-sub subscribe]]
-            [status-im.chat.constants :as chat-constants]
-            [status-im.chat.models.input :as input-model]
+            [status-im.chat.constants :as chat.constants]
             [status-im.chat.commands.core :as commands]
-            [status-im.chat.commands.input :as commands-input]
+            [status-im.chat.commands.input :as commands.input]
             [status-im.utils.datetime :as time]
             [status-im.utils.platform :as platform]
             [status-im.utils.gfycat.core :as gfycat]
@@ -232,7 +231,7 @@
   (->> commands
        map->sorted-seq
        (filter (fn [{:keys [type]}]
-                 (when (input-model/starts-as-command? input-text)
+                 (when (commands.input/starts-as-command? input-text)
                    (string/includes? (commands/command-name type) input-text))))))
 
 (reg-sub
@@ -253,14 +252,14 @@
  :<- [:get-current-chat-ui-prop :selection]
  :<- [:get-commands-for-chat]
  (fn [[{:keys [input-text]} selection commands]]
-   (commands-input/selected-chat-command input-text selection commands)))
+   (commands.input/selected-chat-command input-text selection commands)))
 
 (reg-sub
  :chat-input-placeholder
  :<- [:get-current-chat]
  :<- [:selected-chat-command]
  (fn [[{:keys [input-text]} {:keys [params current-param-position]}]]
-   (when (string/ends-with? (or input-text "") chat-constants/spacing-char)
+   (when (string/ends-with? (or input-text "") chat.constants/spacing-char)
      (get-in params [current-param-position :placeholder]))))
 
 (reg-sub
@@ -290,7 +289,7 @@
  :<- [:get-all-available-commands]
  (fn [[show-suggestions? {:keys [input-text]} commands]]
    (and (or show-suggestions?
-            (input-model/starts-as-command? (string/trim (or input-text ""))))
+            (commands.input/starts-as-command? (string/trim (or input-text ""))))
         (seq commands))))
 
 (reg-sub

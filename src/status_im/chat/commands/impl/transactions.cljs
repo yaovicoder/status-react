@@ -425,7 +425,7 @@
                status-initialized?
                (not outgoing)
                (not answered?))
-        [react/touchable-highlight {:on-press #(re-frame/dispatch [:select-chat-input-command
+        [react/touchable-highlight {:on-press #(re-frame/dispatch [:chat.ui/select-chat-input-command
                                                                    command
                                                                    [(or asset "ETH") amount]
                                                                    {:responding-to message-id}])}
