@@ -6,6 +6,7 @@
             [status-im.utils.handlers-macro :as handlers-macro]
             [status-im.utils.config :as config]
             [status-im.chat.core :as chat]
+            [status-im.group-chats.core :as group-chats]
             [status-im.transport.db :as transport.db]
             [status-im.transport.message.core :as message]
             [status-im.transport.utils :as transport.utils]))
@@ -76,7 +77,7 @@
                               :success-event success-event
                               :src     current-public-key
                               :dsts    recipients
-                              :payload payload}}))
+                              :payload (group-chats/wrap-group-message chat-id payload cofx)}}))
 
 (defn send-with-pubkey
   "Sends the payload using asymetric key (`:current-public-key` in db) and fixed discovery topic"
