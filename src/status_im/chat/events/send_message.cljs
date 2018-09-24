@@ -1,9 +1,7 @@
 (ns status-im.chat.events.send-message
   (:require [taoensso.timbre :as log]
             [re-frame.core :as re-frame]
-            [status-im.chat.models.message :as message-model]
             [status-im.native-module.core :as status]
-            [status-im.utils.handlers :as handlers]
             [status-im.utils.types :as types]))
 
 (re-frame/reg-fx

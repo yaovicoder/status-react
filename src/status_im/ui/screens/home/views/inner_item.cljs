@@ -38,11 +38,11 @@
      [react/text {:style styles/last-message-text}
       ""]
 
-     (:content content)
+     (:text content)
      [react/text {:style               styles/last-message-text
                   :number-of-lines     1
                   :accessibility-label :chat-message-text}
-      (:content content)]
+      (:text content)]
 
      (contains? #{constants/content-type-command
                   constants/content-type-command-request}

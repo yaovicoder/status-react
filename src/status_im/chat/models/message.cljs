@@ -72,7 +72,7 @@
   (assoc message :outgoing (= from (:current-public-key db))))
 
 (defn- add-message
-  [batch? {:keys [chat-id message-id clock-value content] :as message} current-chat? {:keys [db] :as cofx}]
+  [batch? {:keys [chat-id message-id clock-value] :as message} current-chat? {:keys [db] :as cofx}]
   (let [prepared-message (-> message
                              (prepare-message chat-id current-chat?)
                              (add-outgoing-status cofx))]
@@ -103,10 +103,13 @@
     message
     (assoc message :clock-value (utils.clocks/send last-clock-value))))
 
-(defn- update-legacy-type [{:keys [content-type] :as message}]
+(defn- update-legacy-data [{:keys [content-type content] :as message}]
   (cond-> message
     (= constants/content-type-command-request content-type)
-    (assoc :content-type constants/content-type-command)))
+    (assoc :content-type constants/content-type-command)
+    (and (= constants/text-content-type content-type)
+         (string? content))
+    (assoc :content {:text content})))
 
 (defn- display-notification [chat-id cofx]
   (when config/in-app-notifications-enabled?
@@ -134,7 +137,7 @@
                                        ;; TODO (cammellos): Refactor so it's not computed twice
                                        (add-outgoing-status cofx)
                                        ;; TODO (janherich): Remove after couple of releases
-                                       update-legacy-type)]
+                                       update-legacy-data)]
     (handlers-macro/merge-fx cofx
                              {:confirm-messages-processed [{:web3   web3
                                                             :js-obj js-obj}]}
