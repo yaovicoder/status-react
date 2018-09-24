@@ -21,14 +21,15 @@
             [status-im.utils.random :as random]
             [status-im.utils.types :as types]
             [status-im.utils.universal-links.core :as utils.universal-links]
-            [taoensso.timbre :as log]))
+            [taoensso.timbre :as log]
+            [status-im.utils.fx :as fx]))
 
-(defn initialize-browsers
+(fx/defn initialize-browsers
   [{:keys [db all-stored-browsers]}]
   (let [browsers (into {} (map #(vector (:browser-id %) %) all-stored-browsers))]
     {:db (assoc db :browser/browsers browsers)}))
 
-(defn  initialize-dapp-permissions
+(fx/defn  initialize-dapp-permissions
   [{:keys [db all-dapp-permissions]}]
   (let [dapp-permissions (into {} (map #(vector (:dapp %) %) all-dapp-permissions))]
     {:db (assoc db :dapps/permissions dapp-permissions)}))

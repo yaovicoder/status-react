@@ -6,7 +6,8 @@
             [status-im.utils.ethereum.core :as ethereum]
             [status-im.utils.handlers-macro :as handlers-macro]
             [status-im.utils.semaphores :as semaphores]
-            [status-im.utils.utils :as utils]))
+            [status-im.utils.utils :as utils]
+            [status-im.utils.fx :as fx]))
 
 (defn update-sync-state
   [{{:keys [sync-state sync-data] :as db} :db} error sync]
@@ -43,8 +44,8 @@
                              (check-sync-state)
                              (semaphores/lock :check-sync-state?))))
 
-(defn initialize-protocol
-  [address {:data-store/keys [transport mailservers] :keys [db web3] :as cofx}]
+(fx/defn initialize-protocol
+  [{:data-store/keys [transport mailservers] :keys [db web3] :as cofx} address]
   (let [network (get-in db [:account/account :network])
         network-id (str (get-in db [:account/account :networks network :config :NetworkId]))]
     (handlers-macro/merge-fx cofx

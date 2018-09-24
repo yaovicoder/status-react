@@ -7,7 +7,8 @@
             [status-im.chat.commands.core :as commands]
             [status-im.chat.models :as chat-model]
             [status-im.utils.datetime :as time]
-            [status-im.utils.handlers-macro :as handlers-macro]))
+            [status-im.utils.handlers-macro :as handlers-macro]
+            [status-im.utils.fx :as fx]))
 
 (def index-messages (partial into {} (map (juxt :message-id identity))))
 
@@ -67,7 +68,7 @@
              {:db db}
              (:chats db)))
 
-(defn initialize-chats
+(fx/defn initialize-chats
   "Initialize all persisted chats on startup"
   [{:keys [db default-dapps all-stored-chats get-stored-messages get-stored-user-statuses
            get-stored-unviewed-messages stored-message-ids] :as cofx}]
@@ -93,7 +94,7 @@
                              (add-default-contacts)
                              (commands/load-commands commands/register))))
 
-(defn initialize-pending-messages
+(fx/defn initialize-pending-messages
   "Change status of own messages which are still in `sending` status to `not-sent`
   (If signal from status-go has not been received)"
   [{:keys [db]}]

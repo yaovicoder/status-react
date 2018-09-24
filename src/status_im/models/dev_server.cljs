@@ -2,9 +2,10 @@
   (:require [clojure.string :as string]
             [status-im.browser.core :as browser]
             [status-im.network.core :as network]
-            [status-im.utils.handlers-macro :as handlers-macro]))
+            [status-im.utils.handlers-macro :as handlers-macro]
+            [status-im.utils.fx :as fx]))
 
-(defn start-if-needed
+(fx/defn start-if-needed
   [{{:account/keys [account]} :db}]
   (let [{:keys [dev-mode?]} account]
     (when dev-mode?

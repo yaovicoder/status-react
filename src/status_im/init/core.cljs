@@ -26,7 +26,8 @@
             [status-im.utils.platform :as platform]
             [status-im.utils.universal-links.core :as universal-links]
             [status-im.utils.utils :as utils]
-            [taoensso.timbre :as log]))
+            [taoensso.timbre :as log]
+            [status-im.utils.fx :as fx]))
 
 (defn init-store!
   "Try to decrypt the database, move on if successful otherwise go back to
@@ -137,7 +138,7 @@
                            (load-accounts)
                            (initialize-views)))
 
-(defn initialize-account-db [address {:keys [db web3]}]
+(fx/defn initialize-account-db [{:keys [db web3]} address]
   (let [{:universal-links/keys [url]
          :keys [accounts/accounts accounts/create contacts/contacts networks/networks
                 network network-status peers-count peers-summary view-id navigation-stack
@@ -168,38 +169,38 @@
            (assoc-in [:accounts/create :step] :enter-name))}))
 
 (defn initialize-wallet [cofx]
-  (when-not platform/desktop?
-    (handlers-macro/merge-fx cofx
-                             (models.wallet/update-wallet)
-                             (transactions/run-update)
-                             (transactions/start-sync))))
-
-(defn login-only-events [address {:keys [db] :as cofx}]
-  (when (not= (:view-id db) :create-account)
-    (handlers-macro/merge-fx cofx
-                             {:notifications/request-notifications-permissions nil}
-                             (navigation/navigate-to-cofx :home nil)
-                             (universal-links/process-stored-event)
-                             (notifications/process-stored-event address))))
-
-(defn initialize-account [address {:keys [web3] :as cofx}]
   (handlers-macro/merge-fx cofx
-                           {:web3/set-default-account    [web3 address]
-                            :web3/fetch-node-version     [web3
-                                                          #(re-frame/dispatch
-                                                            [:web3/fetch-node-version-callback %])]
-                            :notifications/get-fcm-token nil}
-                           (initialize-account-db address)
-                           (protocol/initialize-protocol address)
-                           (models.contacts/load-contacts)
-                           (models.dev-server/start-if-needed)
-                           (chat-loading/initialize-chats)
-                           (chat-loading/initialize-pending-messages)
-                           (browser/initialize-browsers)
-                           (browser/initialize-dapp-permissions)
-                           (initialize-wallet)
-                           (accounts.update/update-sign-in-time)
-                           (login-only-events address)))
+                           (models.wallet/update-wallet)
+                           (transactions/run-update)
+                           (transactions/start-sync)))
+
+(defn login-only-events [address cofx]
+  (handlers-macro/merge-fx cofx
+                           {:notifications/request-notifications-permissions nil}
+                           (navigation/navigate-to-cofx :home nil)
+                           (universal-links/process-stored-event)
+                           (notifications/process-stored-event address)))
+
+(defn initialize-account [address {:keys [db web3] :as cofx}]
+  (fx/merge cofx
+            {:web3/set-default-account    [web3 address]
+             :web3/fetch-node-version     [web3
+                                           #(re-frame/dispatch
+                                             [:web3/fetch-node-version-callback %])]
+             :notifications/get-fcm-token nil}
+            (initialize-account-db address)
+            (protocol/initialize-protocol address)
+            (models.contacts/load-contacts)
+            (models.dev-server/start-if-needed)
+            (chat-loading/initialize-chats)
+            (chat-loading/initialize-pending-messages)
+            (browser/initialize-browsers)
+            (browser/initialize-dapp-permissions)
+            #(when-not platform/desktop?
+               (initialize-wallet %))
+            (accounts.update/update-sign-in-time)
+            #(when (not= (:view-id db) :create-account)
+               (login-only-events address %))))
 
 (re-frame/reg-fx
  :init/init-store

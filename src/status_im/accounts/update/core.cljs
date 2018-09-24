@@ -2,7 +2,8 @@
   (:require [status-im.data-store.accounts :as accounts-store]
             [status-im.transport.message.core :as transport]
             [status-im.transport.message.v1.contact :as message.contact]
-            [status-im.utils.handlers-macro :as handlers-macro]))
+            [status-im.utils.handlers-macro :as handlers-macro]
+            [status-im.utils.fx :as fx]))
 
 (defn account-update
   "Takes effects (containing :db) + new account fields, adds all effects necessary for account update.
@@ -31,7 +32,7 @@
                    :mnemonic        nil}
                   cofx))
 
-(defn  update-sign-in-time
+(fx/defn update-sign-in-time
   [{db :db now :now :as cofx}]
   (account-update {:last-sign-in now} cofx))
 
