@@ -99,7 +99,7 @@
                                    :on-press #(when-not topic-error
                                                 (do
                                                   (re-frame/dispatch [:set :public-group-topic nil])
-                                                  (re-frame/dispatch [:create-new-public-chat topic])))}
+                                                  (re-frame/dispatch [:chat.ui/start-public-chat topic])))}
         [react/view {:style (styles/add-contact-button topic-error)}
          [react/text {:style (styles/add-contact-button-text topic-error)}
           (i18n/label :new-public-group-chat)]]]]
@@ -111,7 +111,7 @@
           ^{:key topic}
           [react/touchable-highlight {:on-press #(do
                                                    (re-frame/dispatch [:set :public-group-topic nil])
-                                                   (re-frame/dispatch [:create-new-public-chat topic]))}
+                                                   (re-frame/dispatch [:chat.ui/start-public-chat topic]))}
            [react/view {:style styles/suggested-contact-view}
             [react/view {:style styles/suggested-topic-image}
              [react/text {:style styles/suggested-topic-text} (string/capitalize (first topic))]]
