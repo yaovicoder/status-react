@@ -42,8 +42,8 @@
 
 (defn command-send-status-icon [outgoing]
   {:background-color (if outgoing
-                       colors/blue-darker
-                       colors/blue-transparent)
+                       colors/blue-light
+                       colors/blue-light)
    :width            24
    :height           24
    :border-radius    16
@@ -81,13 +81,13 @@
 
 (defn command-amount-currency-separator [outgoing]
   {:opacity 0
-   :color (if outgoing colors/hawkes-blue colors/white)})
+   :color (if outgoing colors/blue colors/white)})
 
 (defn command-send-currency-text [outgoing]
   {:font-size      22
    :margin-left    4
    :letter-spacing 1
-   :color          (if outgoing colors/wild-blue-yonder colors/blue-transparent-40)})
+   :color          (if outgoing colors/wild-blue-yonder colors/blue-light)})
 
 (defn command-request-currency-text [outgoing]
   {:font-size      22
@@ -143,7 +143,7 @@
 (defn command-request-message-view [outgoing]
   {:border-radius    14
    :padding-vertical 4
-   :background-color (if outgoing colors/hawkes-blue styles/color-white)})
+   :background-color (if outgoing colors/blue colors/white)})
 
 (defn command-request-header-text [outgoing]
   {:font-size 12

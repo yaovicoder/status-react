@@ -96,7 +96,7 @@
    [react/view {:style styles/message-wrapper}
     [react/text {:style           (styles/message-text message)
                  :selectable      true
-                 :selection-color (if outgoing colors/white colors/hawkes-blue)}
+                 :selection-color (if outgoing colors/white colors/blue)}
      text]
     [react/text {:style (styles/message-timestamp-placeholder)}
      (time/timestamp->time timestamp)]
@@ -289,4 +289,4 @@
         [react/text {:style styles/chat-profile-contact-code} (i18n/label :t/contact-code)]
         [react/text {:style           {:font-size 14}
                      :selectable      true
-                     :selection-color colors/hawkes-blue} whisper-identity]]])))
+                     :selection-color colors/blue} whisper-identity]]])))
