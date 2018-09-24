@@ -45,7 +45,7 @@
 
 (deftype MessageHandler []
   Object
-  (tag [this v] "c4")
+  (tag [this v] "c7")
   (rep [this {:keys [content content-type message-type clock-value timestamp]}]
     #js [content content-type message-type clock-value timestamp]))
 
@@ -92,6 +92,8 @@
                               "c3" (fn [[name profile-image address fcm-token]]
                                      (v1.contact/ContactRequestConfirmed. name profile-image address fcm-token))
                               "c4" (fn [[content content-type message-type clock-value timestamp]]
+                                     (v1.protocol/Message. (if (string? content) {:text content} content) content-type message-type clock-value timestamp))
+                              "c7" (fn [[content content-type message-type clock-value timestamp]]
                                      (v1.protocol/Message. content content-type message-type clock-value timestamp))
                               "c5" (fn [message-ids]
                                      (v1.protocol/MessagesSeen. message-ids))
