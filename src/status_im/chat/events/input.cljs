@@ -105,7 +105,7 @@
               (input-model/set-chat-input-metadata nil)
               (message-model/send-message {:chat-id      current-chat-id
                                            :content-type constants/text-content-type
-                                           :content      input-text}))))
+                                           :content      {:text input-text}}))))
 
 (handlers/register-handler-fx
  :send-current-message
