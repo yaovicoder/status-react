@@ -47,14 +47,11 @@
                            transit/deserialize)]
     (when (and sig status-message)
       (try
-        (if-let [valid-chat-id (validate-chat-id (or chat-id
-                                                     (:chat-id status-message))
-                                                 sig
-                                                 cofx)]
-          (handlers-macro/merge-fx
-           (assoc cofx :js-obj js-message)
-           (message/receive status-message valid-chat-id sig timestamp)
-           (update-last-received-from-inbox now-in-s timestamp ttl)))
+
+        (handlers-macro/merge-fx
+         (assoc cofx :js-obj js-message)
+         (message/receive status-message chat-id sig timestamp)
+         (update-last-received-from-inbox now-in-s timestamp ttl))
         (catch :default e nil))))) ; ignore unknown message types
 
 (defn- js-array->seq [array]
