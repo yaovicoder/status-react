@@ -14,25 +14,6 @@
             [taoensso.timbre :as log]
             [status-im.transport.message.v1.protocol :as protocol]))
 
-(defn validate-chat-id
-  "Check the signing user has permission to write to that chat and return
-  a valid chat-id"
-  [chat-id signature cofx]
-  (cond
-
-   ;; one-to-one
-    (or (nil? chat-id)
-        (= chat-id signature))
-    chat-id
-
-   ;; public chat
-    (get-in cofx [:db :chats chat-id :public?])
-    chat-id
-
-   ;; group chat
-    (get-in cofx [:db :chats chat-id :contacts signature])
-    chat-id))
-
 (defn update-last-received-from-inbox
   "Distinguishes messages that are expired from those that are not
    Expired messages are coming from offline inboxing"
@@ -47,14 +28,11 @@
                            transit/deserialize)]
     (when (and sig status-message)
       (try
-        (if-let [valid-chat-id (validate-chat-id (or chat-id
-                                                     (:chat-id status-message))
-                                                 sig
-                                                 cofx)]
-          (handlers-macro/merge-fx
-           (assoc cofx :js-obj js-message)
-           (message/receive status-message valid-chat-id sig timestamp)
-           (update-last-received-from-inbox now-in-s timestamp ttl)))
+
+        (handlers-macro/merge-fx
+         (assoc cofx :js-obj js-message)
+         (message/receive status-message (or chat-id sig) sig timestamp)
+         (update-last-received-from-inbox now-in-s timestamp ttl))
         (catch :default e nil))))) ; ignore unknown message types
 
 (defn- js-array->seq [array]
