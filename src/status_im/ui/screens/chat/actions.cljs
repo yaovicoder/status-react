@@ -4,7 +4,7 @@
 
 (defn view-profile [chat-id]
   {:label  (i18n/label :t/view-profile)
-   :action #(re-frame/dispatch [:show-profile chat-id])})
+   :action #(re-frame/dispatch [:chat.ui/show-profile chat-id])})
 
 (defn group-info [chat-id]
   {:label  (i18n/label :t/group-info)
@@ -12,11 +12,11 @@
 
 (defn- clear-history []
   {:label  (i18n/label :t/clear-history)
-   :action #(re-frame/dispatch [:clear-history?])})
+   :action #(re-frame/dispatch [:chat.ui/clear-history-pressed])})
 
 (defn- delete-chat [chat-id group?]
   {:label  (i18n/label :t/delete-chat)
-   :action #(re-frame/dispatch [:remove-chat-and-navigate-home? chat-id group?])})
+   :action #(re-frame/dispatch [:chat.ui/remove-chat-pressed chat-id group?])})
 
 (defn- chat-actions [chat-id]
   [(view-profile chat-id)

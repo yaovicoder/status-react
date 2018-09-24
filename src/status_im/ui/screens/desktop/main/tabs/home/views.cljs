@@ -59,7 +59,7 @@
         [chat-item/message-timestamp (:timestamp last-message)]]])))
 
 (defn chat-list-item [[chat-id chat]]
-  [react/touchable-highlight {:on-press #(re-frame/dispatch [:navigate-to-chat chat-id])}
+  [react/touchable-highlight {:on-press #(re-frame/dispatch [:chat.ui/navigate-to-chat chat-id])}
    [chat-list-item-inner-view (assoc chat :chat-id chat-id)]])
 
 (views/defview chat-list-view []
