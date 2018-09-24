@@ -12,21 +12,23 @@
             (:url content))
     (.share react/sharing (clj->js content))))
 
-(defn share-options [text]
-  [{:label  (i18n/label :t/sharing-copy-to-clipboard)
-    :action #(react/copy-to-clipboard text)}
-   {:label  (i18n/label :t/sharing-share)
-    :action #(open-share {:message text})}])
+(defn- message-options [allow-reply? message-id text]
+  (cond-> (list {:label  (i18n/label :t/sharing-copy-to-clipboard)
+                 :action #(react/copy-to-clipboard text)}
+                {:label  (i18n/label :t/sharing-share)
+                 :action #(open-share {:message text})})
+    allow-reply? (conj {:label  (i18n/label :t/message-reply)
+                        :action #(re-frame/dispatch [:chat.ui/reply-to-message message-id])})))
 
 (defn show [options]
   (if platform/ios?
     (action-sheet/show options)
     (dialog/show options)))
 
-(defn share [text dialog-title]
+(defn chat-message [message-id {:keys [text response-to]} dialog-title]
   (show {:title       dialog-title
-         :options     (share-options text)
-         :cancel-text (i18n/label :t/sharing-cancel)}))
+         :options     (message-options (not response-to) message-id text)
+         :cancel-text (i18n/label :t/message-options-cancel)}))
 
 (defn browse [link]
   (show {:title       (i18n/label :t/browsing-title)
