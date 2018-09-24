@@ -26,6 +26,22 @@
                  (transport.db/create-chat {:topic   topic
                                             :resend? resend?}))})
 
+(defn- init-chat-if-new [chat-id cofx]
+  (if (nil? (get-in cofx [:db :transport/chats chat-id]))
+    (init-chat {:chat-id chat-id} cofx)))
+
+(defrecord GroupMembershipUpdate [chat-id chat-name admin participants leaves signature message]
+  message/StatusMessage
+  (send [this chat-id cofx]
+    (let [{:keys [current-public-key web3]} (:db cofx)]
+      (handlers-macro/merge-fx
+       cofx
+       {:shh/send-group-message {:web3 web3
+                                 :src     current-public-key
+                                 :dsts    (disj participants current-public-key)
+                                 :payload this}}
+       (init-chat-if-new chat-id)))))
+
 #_(defn requires-ack [message-id chat-id {:keys [db] :as cofx}]
     {:db (update-in db [:transport/chats chat-id :pending-ack] conj message-id)})
 
@@ -65,6 +81,17 @@
                                 :src     current-public-key
                                 :chat    chat-id
                                 :payload payload}]}))
+(defn wrap-group-message [chat-id message cofx]
+  (when-let [chat (get-in cofx [:db :chats chat-id])]
+    (GroupMembershipUpdate.
+     chat-id
+     (:chat-name chat)
+     (:group-admin chat)
+     (:contacts chat)
+     nil
+     nil
+     message)))
+
 (defn send-group-message
   "Sends the payload using to dst"
   [chat-id success-event payload {:keys [db] :as cofx}]
@@ -76,7 +103,7 @@
                               :success-event success-event
                               :src     current-public-key
                               :dsts    recipients
-                              :payload payload}}))
+                              :payload (wrap-group-message chat-id payload cofx)}}))
 
 (defn send-with-pubkey
   "Sends the payload using asymetric key (`:current-public-key` in db) and fixed discovery topic"
@@ -106,9 +133,9 @@
   (send [this cofx chat-id])
   (receive [this chat-id sig timestamp cofx]))
 
-(defrecord Message [content content-type message-type clock-value timestamp chat-id]
+(defrecord Message [content content-type message-type clock-value timestamp]
   message/StatusMessage
-  (send [this _ cofx]
+  (send [this chat-id cofx]
     (let [params     {:chat-id       chat-id
                       :payload       this
                       :success-event [:transport/set-message-envelope-hash
