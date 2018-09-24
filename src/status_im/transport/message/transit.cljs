@@ -45,7 +45,7 @@
 
 (deftype MessageHandler []
   Object
-  (tag [this v] "c4")
+  (tag [this v] "c7")
   (rep [this {:keys [content content-type message-type clock-value timestamp]}]
     #js [content content-type message-type clock-value timestamp]))
 
