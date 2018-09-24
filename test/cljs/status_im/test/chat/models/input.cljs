@@ -61,7 +61,7 @@
                                                       :chat/spam-messages-frequency 0
                                                       :chat/cooldown-enabled? true)
                         :show-cooldown-warning nil
-                        :dispatch-later        [{:dispatch [:disable-cooldown]
+                        :dispatch-later        [{:dispatch [:chat/disable-cooldown]
                                                  :ms       (constants/cooldown-periods-ms 1)}]}
               actual (input/process-cooldown {:db db})]
           (is (= expected actual))))
@@ -77,7 +77,7 @@
                                                       :chat/spam-messages-frequency 0
                                                       :chat/cooldown-enabled? true)
                         :show-cooldown-warning nil
-                        :dispatch-later        [{:dispatch [:disable-cooldown]
+                        :dispatch-later        [{:dispatch [:chat/disable-cooldown]
                                                  :ms       (constants/cooldown-periods-ms 2)}]}
               actual (input/process-cooldown {:db db})]
           (is (= expected actual))))
@@ -93,7 +93,7 @@
                                                       :chat/spam-messages-frequency 0
                                                       :chat/cooldown-enabled? true)
                         :show-cooldown-warning nil
-                        :dispatch-later        [{:dispatch [:disable-cooldown]
+                        :dispatch-later        [{:dispatch [:chat/disable-cooldown]
                                                  :ms       (constants/cooldown-periods-ms 3)}]}
               actual (input/process-cooldown {:db db})]
           (is (= expected actual)))))))

@@ -22,15 +22,15 @@
             cooldown-enabled?    [:chat-cooldown-enabled?]]
     [react/text-input
      (merge
-      {:ref                    #(when % (re-frame/dispatch [:set-chat-ui-props {:input-ref %}]))
+      {:ref                    #(when % (re-frame/dispatch [:chat.ui/set-chat-ui-props {:input-ref %}]))
        :accessibility-label    :chat-message-input
        :multiline              (not single-line-input?)
        :default-value          (or input-text "")
        :editable               (not cooldown-enabled?)
        :blur-on-submit         false
-       :on-focus               #(re-frame/dispatch [:set-chat-ui-props {:input-focused?    true
-                                                                        :messages-focused? false}])
-       :on-blur                #(re-frame/dispatch [:set-chat-ui-props {:input-focused? false}])
+       :on-focus               #(re-frame/dispatch [:chat.ui/set-chat-ui-props {:input-focused?    true
+                                                                                :messages-focused? false}])
+       :on-blur                #(re-frame/dispatch [:chat.ui/set-chat-ui-props {:input-focused? false}])
        :on-submit-editing      #(when single-line-input?
                                   (re-frame/dispatch [:send-current-message]))
        :on-layout              #(set-container-width-fn (.-width (.-layout (.-nativeEvent %))))
@@ -112,7 +112,7 @@
                                            (.-layout)
                                            (.-height))]
                                  (when (> h 0)
-                                   (re-frame/dispatch [:set-chat-ui-props {:input-height h}])))}
+                                   (re-frame/dispatch [:chat.ui/set-chat-ui-props {:input-height h}])))}
        [react/view {:style style/input-container}
         [input-view {:single-line-input? single-line-input?}]
         (if (string/blank? input-text)
