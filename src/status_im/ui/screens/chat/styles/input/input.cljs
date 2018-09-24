@@ -15,6 +15,30 @@
    :border-top-color colors/gray-light
    :elevation        2})
 
+(def reply-message
+  {:flex-direction :row
+   :align-items    :center
+   :border-width   1
+   :border-radius  10
+   :border-color   colors/gray-light
+   :padding-top    10
+   :padding-bottom 10
+   :padding-right  14
+   :padding-left   7
+   :margin-left    12
+   :margin-right   14
+   :margin-top     10
+   :margin-bottom  10})
+
+(def reply-message-content
+  {:flex-direction :column
+   :padding-left   7})
+
+(def reply-message-author
+  {:font-size      12
+   :color          colors/gray
+   :padding-bottom 6})
+
 (def input-container
   {:flex-direction   :row
    :align-items      :flex-end
