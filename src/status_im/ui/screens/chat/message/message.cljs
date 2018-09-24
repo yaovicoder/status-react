@@ -57,7 +57,7 @@
 
 (defview message-timestamp [t justify-timestamp? outgoing command? content]
   (when-not command?
-    (let [rtl? (right-to-left-text? content)]
+    (let [rtl? (right-to-left-text? (:text content))]
       [react/text {:style (style/message-timestamp-text justify-timestamp? outgoing rtl?)} t])))
 
 (defn message-view
@@ -165,12 +165,23 @@
                :on-press on-press}
    (i18n/label (if @collapsed? :show-more :show-less))])
 
+(defview quoted-message [{:keys [from text]} outgoing current-public-key]
+  (letsubs [username [:get-contact-name-by-identity from]]
+    [react/view {:style (style/quoted-message-container outgoing)}
+     [react/view {:style style/quoted-message-author-container}
+      [vector-icons/icon :icons/reply {:color (if outgoing colors/wild-blue-yonder colors/gray)}]
+      [react/text {:style (style/quoted-message-author outgoing)} (or (and (= from current-public-key)
+                                                                           (i18n/label :t/You))
+                                                                      username
+                                                                      (gfycat/generate-gfy from))]]
+     [react/text {:style (style/quoted-message-text outgoing)} text]]))
+
 (defn text-message
-  [{:keys [content timestamp-str group-chat outgoing] :as message}]
+  [{:keys [content timestamp-str group-chat outgoing current-public-key] :as message}]
   [message-view message
-   (let [parsed-text (cached-parse-text content :browser.ui/message-link-pressed)
+   (let [parsed-text (cached-parse-text (:text content) :browser.ui/message-link-pressed)
          ref (reagent/atom nil)
-         collapsible? (should-collapse? content group-chat)
+         collapsible? (should-collapse? (:text content) group-chat)
          collapsed? (reagent/atom collapsible?)
          on-press (when collapsible?
                     #(do
@@ -180,6 +191,8 @@
                                                     number-of-lines)}))
                        (reset! collapsed? (not @collapsed?))))]
      [react/view
+      (when (:response-to content)
+        [quoted-message (:response-to content) outgoing current-public-key])
       [react/text {:style           (style/text-message collapsible?)
                    :number-of-lines (when collapsible? number-of-lines)
                    :ref             (partial reset! ref)}
@@ -197,10 +210,6 @@
 (defmulti message-content (fn [_ message _] (message :content-type)))
 
 (defmethod message-content constants/text-content-type
-  [wrapper message]
-  [wrapper message [text-message message]])
-
-(defmethod message-content constants/content-type-log-message
   [wrapper message]
   [wrapper message [text-message message]])
 
@@ -248,9 +257,9 @@
       (if (or seen-by-everyone (zero? delivery-statuses-count))
         [text-status (or seen-by-everyone outgoing-status)]
         [react/touchable-highlight
-         {:on-press #(re-frame/dispatch [:show-message-details {:message-status outgoing-status
-                                                                :user-statuses  delivery-statuses
-                                                                :participants   participants}])}
+         {:on-press #(re-frame/dispatch [:chat.ui/show-message-details {:message-status outgoing-status
+                                                                        :user-statuses  delivery-statuses
+                                                                        :participants   participants}])}
          [react/view style/delivery-view
           (for [[whisper-identity] (take 3 delivery-statuses)]
             ^{:key whisper-identity}
@@ -272,13 +281,13 @@
   [react/touchable-highlight {:on-press (fn [] (if platform/ios?
                                                  (action-sheet/show {:title   (i18n/label :message-not-sent)
                                                                      :options [{:label  (i18n/label :resend-message)
-                                                                                :action #(re-frame/dispatch [:resend-message chat-id message-id])}
+                                                                                :action #(re-frame/dispatch [:chat.ui/resend-message chat-id message-id])}
                                                                                {:label        (i18n/label :delete-message)
                                                                                 :destructive? true
-                                                                                :action       #(re-frame/dispatch [:delete-message chat-id message-id])}]})
+                                                                                :action       #(re-frame/dispatch [:chat.ui/delete-message chat-id message-id])}]})
                                                  (re-frame/dispatch
-                                                  [:show-message-options {:chat-id    chat-id
-                                                                          :message-id message-id}])))}
+                                                  [:chat.ui/show-message-options {:chat-id    chat-id
+                                                                                  :message-id message-id}])))}
    [react/view style/not-sent-view
     [react/text {:style style/not-sent-text}
      (i18n/message-status-label (if platform/desktop?
@@ -333,7 +342,7 @@
     (when display-photo?
       [react/view style/message-author
        (when last-in-group?
-         [react/touchable-highlight {:on-press #(when-not modal? (re-frame/dispatch [:show-profile from]))}
+         [react/touchable-highlight {:on-press #(when-not modal? (re-frame/dispatch [:chat.ui/show-profile from]))}
           [react/view
            [photos/member-photo from]]])])
     [react/view (style/group-message-view outgoing)
@@ -344,13 +353,13 @@
    [react/view (style/delivery-status outgoing)
     [message-delivery-status message]]])
 
-(defn chat-message [{:keys [outgoing group-chat modal? current-public-key content-type content] :as message}]
+(defn chat-message [{:keys [message-id outgoing group-chat modal? current-public-key content-type content] :as message}]
   [react/view
    [react/touchable-highlight {:on-press      (fn [_]
-                                                (re-frame/dispatch [:set-chat-ui-props {:messages-focused? true}])
+                                                (re-frame/dispatch [:chat.ui/set-chat-ui-props {:messages-focused? true}])
                                                 (react/dismiss-keyboard!))
                                :on-long-press #(when (= content-type constants/text-content-type)
-                                                 (list-selection/share content (i18n/label :t/message)))}
+                                                 (list-selection/chat-message message-id content (i18n/label :t/message)))}
     [react/view {:accessibility-label :chat-item}
      (let [incoming-group (and group-chat (not outgoing))]
        [message-content message-body (merge message
