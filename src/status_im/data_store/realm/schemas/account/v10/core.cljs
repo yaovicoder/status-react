@@ -8,7 +8,7 @@
             [status-im.data-store.realm.schemas.account.v2.mailserver :as mailserver]
             [status-im.data-store.realm.schemas.account.v8.browser :as browser]
             [status-im.data-store.realm.schemas.account.v9.dapp-permissions :as dapp-permissions]
-            [cljs.reader :as reader]
+            [cljs.tools.reader.edn :as edn]
             [taoensso.timbre :as log]))
 
 (def schema [chat/schema
@@ -35,6 +35,6 @@
           (.map (fn [request _ _]
                   (let [message-id  (aget request "message-id")
                         message     (message-by-id new-realm message-id)
-                        content     (reader/read-string (aget message "content"))
+                        content     (edn/read-string (aget message "content"))
                         new-content (assoc-in content [:params :answered?] true)]
                     (aset message "content" (pr-str new-content)))))))
