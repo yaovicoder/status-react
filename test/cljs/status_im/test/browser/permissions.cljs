@@ -2,7 +2,6 @@
   (:require [cljs.test :refer-macros [deftest is testing]]
             [status-im.browser.permissions :as permissions]
             [status-im.utils.types :as types]
-            [status-im.utils.handlers-macro :as handlers-macro]
             [status-im.browser.core :as browser]))
 
 (deftest permissions-test

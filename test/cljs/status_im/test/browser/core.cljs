@@ -1,8 +1,7 @@
 (ns status-im.test.browser.core
   (:require [cljs.test :refer-macros [deftest is testing]]
             [status-im.browser.core :as browser]
-            [status-im.utils.types :as types]
-            [status-im.utils.handlers-macro :as handlers-macro]))
+            [status-im.utils.types :as types]))
 
 (defn has-navigated-to-browser? [result]
   (and (= (get result :status-im.ui.screens.navigation/navigate-to)

@@ -5,19 +5,20 @@
             [status-im.chat.core :as chat]
             [status-im.transport.db :as transport.db]
             [status-im.transport.message.core :as message]
-            [status-im.transport.utils :as transport.utils]))
+            [status-im.transport.utils :as transport.utils]
+            [status-im.utils.fx :as fx]))
 
 (def ^:private whisper-opts
   {:ttl       10 ;; ttl of 10 sec
    :powTarget config/pow-target
    :powTime   config/pow-time})
 
-(defn init-chat
+(fx/defn init-chat
   "Initialises chat on protocol layer.
   If topic is not passed as argument it is derived from `chat-id`"
-  [{:keys [chat-id topic resend?]
-    :or   {topic   (transport.utils/get-topic chat-id)}}
-   {:keys [db]}]
+  [{:keys [db]}
+   {:keys [chat-id topic resend?]
+    :or   {topic   (transport.utils/get-topic chat-id)}}]
   {:db (assoc-in db
                  [:transport/chats chat-id]
                  (transport.db/create-chat {:topic   topic
@@ -43,9 +44,9 @@
                                         :topic    topic}
                                        whisper-opts)}]}))
 
-(defn send-with-pubkey
+(fx/defn send-with-pubkey
   "Sends the payload using asymetric key (`:current-public-key` in db) and fixed discovery topic"
-  [{:keys [payload chat-id success-event]} {:keys [db] :as cofx}]
+  [{:keys [db] :as cofx} {:keys [payload chat-id success-event]}]
   (let [{:keys [current-public-key web3]} db]
     {:shh/post [{:web3          web3
                  :success-event success-event

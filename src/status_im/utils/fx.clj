@@ -30,12 +30,12 @@
                 (next fdecl)
                 fdecl)
         [cofx & args] (first fdecl)
-        fdecl (second fdecl)]
+        fdecl (next fdecl)]
     `(clojure.core/defn ~(with-meta name m)
        ([~@args] (fn [cofx#] (~name cofx# ~@args)))
        ([cofx# ~@args]
         (if (and (map? cofx#)
                  (not (nil? (:db cofx#))))
           (let [~cofx cofx#]
-            ~fdecl)
-          (throw (js/Error. "fx/defn expects a map of cofx as first argument")))))))
+            ~@fdecl)
+          (throw (js/Error. (str "fx/defn expects a map of cofx as first argument got " cofx#))))))))
