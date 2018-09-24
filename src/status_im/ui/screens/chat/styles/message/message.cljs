@@ -200,3 +200,21 @@
   {:font-size      12
    :padding-top    6
    :color          colors/gray})
+
+(defn quoted-message-container [outgoing]
+  {:margin-bottom       6
+   :padding-bottom      6
+   :border-bottom-color (if outgoing colors/wild-blue-yonder colors/gray)
+   :border-bottom-width 1})
+
+(def quoted-message-author-container
+  {:flex-direction  :row
+   :align-items     :center
+   :justify-content :flex-start})
+
+(defn quoted-message-author [outgoing]
+  {:font-size 12
+   :color     (if outgoing colors/wild-blue-yonder colors/gray)})
+
+(defn quoted-message-text [outgoing]
+  {:color (if outgoing colors/wild-blue-yonder colors/gray)})
