@@ -54,7 +54,7 @@
     (actions/close (fn []
                      (when @webview
                        (.sendToBridge @webview "navigate-to-blank"))
-                     (re-frame/dispatch [:navigate-back])
+                     (re-frame/dispatch [:navigate-to :home])
                      (when error?
                        (re-frame/dispatch [:browser.ui/remove-browser-pressed browser-id]))))]
    [toolbar-content url browser url-editing?]
