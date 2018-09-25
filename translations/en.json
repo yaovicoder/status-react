@@ -732,5 +732,13 @@
     "create-pin-description": "You'll need your card + this PIN to log in and to confirm transactions",
     "repeat-pin": "Repeate your PIN",
     "pin-mismatch": "PIN does not match",
+    "pair-card": "pair card",
+    "pair-card-question": "Do you want to pair card to this device?",
+    "enter-pair-code": "Enter pair code",
+    "enter-pair-code-description": "Needed to link your card to this device",
+    "no-pairing-slots-available": "No pairing slots are available.\n You could unpair the device\n that already paired with the card",
+    "card-already-linked": "Card is already linked to another account",
+    "help": "help",
+    "pairing-card": "Pairing card",
     "view-my-wallet": "View my wallet"
 }

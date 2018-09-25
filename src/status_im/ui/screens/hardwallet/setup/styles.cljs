@@ -16,9 +16,9 @@
 (def maintain-card-container
   {:flex-direction  :row
    :align-items     :center
-   :justify-content :center
+   :justify-content :space-between
    :margin-top      81
-   :width           369
+   :width           "90%"
    :height          60
    :border-radius   10
    :border-width    1
@@ -28,24 +28,43 @@
 (def maintain-card-text
   {:padding-horizontal 20
    :font-size          12
+   :width              232
    :color              colors/blue})
 
+(def hardwallet-icon-container
+  {:margin-left    20
+   :flex-direction :row
+   :align-items    :center})
+
+(defn hardwallet-icon-indicator-small-container [opacity]
+  {:margin-left 4
+   :opacity     opacity})
+
+(defn hardwallet-icon-indicator-middle-container [opacity]
+  {:margin-left 1
+   :opacity     opacity})
+
+(defn hardwallet-icon-indicator-big-container [opacity]
+  {:opacity opacity})
+
 (def hardwallet-card-image-container
-  {:margin-top -50})
+  {:margin-top  81
+   :flex        1
+   :align-items :center})
 
 (def hardwallet-card-image
   {:width  255
    :height 160})
 
-(def card-is-empty-text-container
+(def center-text-container
   {:margin-top 37})
 
-(def card-is-empty-text
+(def center-text
   {:font-size  15
    :color      colors/gray
    :text-align :center})
 
-(def bottom-action-container
+(def bottom-button-container
   {:background-color colors/gray-background
    :align-items      :center
    :justify-content  :center
@@ -55,7 +74,7 @@
    :border-radius    10
    :margin-bottom    40})
 
-(def begin-set-up-text
+(def bottom-button-text
   {:font-size      14
    :color          colors/blue
    :line-height    20
@@ -109,8 +128,8 @@
    :padding-top 5
    :color       colors/gray})
 
-(def puk-code-numbers-container
-  {:width           369
+(defn puk-code-numbers-container [width]
+  {:width           (* 0.9 width)
    :height          64
    :margin-top      20
    :align-items     :center
@@ -140,3 +159,23 @@
   {:flex-direction    :row
    :margin-horizontal 12
    :margin-vertical   15})
+
+;; enter pair code
+
+(def enter-pair-code-title-container
+  {:flex-direction :column
+   :align-items    :center})
+
+(defn enter-pair-code-input-container [width]
+  {:width      (* width 0.9)
+   :margin-top 10})
+
+(def enter-pair-code-title-text
+  {:font-size  22
+   :text-align :center
+   :color      colors/black})
+
+(def enter-pair-code-explanation-text
+  {:font-size   15
+   :padding-top 5
+   :color       colors/gray})
