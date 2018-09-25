@@ -102,6 +102,12 @@
         [vi/icon :icons/input-commands {:container-style style/input-commands-icon
                                         :color           :dark}]]])))
 
+(defview replied-message-view []
+  (letsubs [{:keys [content] :as message} [:get-reply-message]]
+    (when message
+      [react/view {:style {}}
+       [react/text (:text content)]])))
+
 (defview input-container []
   (letsubs [margin               [:chat-input-margin]
             {:keys [input-text]} [:get-current-chat]
@@ -114,6 +120,7 @@
                                  (when (> h 0)
                                    (re-frame/dispatch [:chat.ui/set-chat-ui-props {:input-height h}])))}
        [react/view {:style style/input-container}
+        [replied-message-view]
         [input-view {:single-line-input? single-line-input?}]
         (if (string/blank? input-text)
           [commands-button]

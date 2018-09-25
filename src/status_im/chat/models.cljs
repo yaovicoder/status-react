@@ -173,6 +173,7 @@
   [{:keys [db] :as cofx} chat-id]
   (fx/merge cofx
             {:db (-> (assoc db :current-chat-id chat-id)
+                     (assoc-in [:chats chat-id :metadata] nil)
                      (set-chat-ui-props {:validation-messages nil}))}
             (mark-messages-seen chat-id)))
 

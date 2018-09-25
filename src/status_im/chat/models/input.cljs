@@ -72,11 +72,19 @@
 
 (fx/defn select-chat-input-command
   "Sets chat command in current chat input"
-  [{:keys [db] :as cofx} command params metadata]
+  [{:keys [db] :as cofx} command params previous-command-message]
   (fx/merge cofx
-            (commands.input/set-command-input-metadata metadata)
+            (commands.input/set-command-reference previous-command-message)
             (commands.input/select-chat-input-command command params)
             (chat-input-focus :input-ref)))
+
+(fx/defn reply-to-message
+  "Sets reference to previous chat message and focuses on input"
+  [{:keys [db] :as cofx} message-id]
+  (let [current-chat-id (:current-chat-id db)]
+    (fx/merge cofx
+              {:db (assoc-in db [:chats current-chat-id :metadata :responding-to-message] message-id)}
+              (chat-input-focus :input-ref))))
 
 (defn command-complete-fx
   "command is complete, proceed with command processing"
@@ -102,7 +110,7 @@
               (chat.message/send-message {:chat-id      current-chat-id
                                           :content-type constants/text-content-type
                                           :content      {:text input-text}})
-              (commands.input/set-command-input-metadata nil)
+              (commands.input/set-command-reference nil)
               (set-chat-input-text nil)
               (process-cooldown))))
 

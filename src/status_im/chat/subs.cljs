@@ -360,3 +360,9 @@
  (fn [[{:keys [public?]} cooldown-enabled?]]
    (and public?
         cooldown-enabled?)))
+
+(reg-sub
+ :get-reply-message
+ :<- [:get-current-chat]
+ (fn [{:keys [metadata messages]}]
+   (get messages (:responding-to-message metadata))))

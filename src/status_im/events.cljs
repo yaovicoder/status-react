@@ -536,8 +536,13 @@
 
 (handlers/register-handler-fx
  :chat.ui/select-chat-input-command
- (fn [cofx [_ command params metadata]]
-   (chat.input/select-chat-input-command cofx command params metadata)))
+ (fn [cofx [_ command params previous-command-message]]
+   (chat.input/select-chat-input-command cofx command params previous-command-message)))
+
+(handlers/register-handler-fx
+ :chat.ui/reply-to-message
+ (fn [cofx [_ message-id]]
+   (chat.input/reply-to-message cofx message-id)))
 
 (handlers/register-handler-fx
  :chat.ui/set-command-parameter

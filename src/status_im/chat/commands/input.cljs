@@ -165,8 +165,8 @@
                             chat.constants/spacing-char
                             (join-command-args input-params))))}))
 
-(fx/defn set-command-input-metadata
-  "Sets user invisible command input metadata for current-chat"
-  [{:keys [db] :as cofx} metadata]
+(fx/defn set-command-reference
+  "Set reference to previous command message"
+  [{:keys [db] :as cofx} command-message-id]
   (let [current-chat-id (:current-chat-id db)]
-    {:db (assoc-in db [:chats current-chat-id :input-metadata] metadata)}))
+    {:db (assoc-in db [:chats current-chat-id :metadata :responding-to-command] command-message-id)}))

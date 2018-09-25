@@ -58,7 +58,7 @@
         (let [command-message (create-command-message chat-id type parameter-map cofx)]
           (fx/merge cofx
                     #(protocol/on-send type command-message %)
-                    (commands.input/set-command-input-metadata nil)
+                    (commands.input/set-command-reference nil)
                     (chat.message/send-message command-message)))))))
 
 (fx/defn send
@@ -67,5 +67,5 @@
   (let [command-message (create-command-message chat-id type parameter-map cofx)]
     (fx/merge cofx
               #(protocol/on-send type command-message %)
-              (commands.input/set-command-input-metadata nil)
+              (commands.input/set-command-reference nil)
               (chat.message/send-message command-message))))
