@@ -1,6 +1,8 @@
 (ns status-im.ui.screens.network-settings.subs
   (:require [re-frame.core :refer [reg-sub subscribe]]
             [status-im.utils.ethereum.core :as ethereum]
+            [taoensso.timbre :as log]
+            [status-im.fleet.core :as fleet-core]
             status-im.ui.screens.network-settings.edit-network.subs))
 
 (reg-sub
