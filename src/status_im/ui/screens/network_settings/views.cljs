@@ -3,6 +3,8 @@
   (:require [re-frame.core :as re-frame]
             [reagent.core :as reagent]
             [status-im.i18n :as i18n]
+            [taoensso.timbre :as log]
+            [status-im.fleet.core :as fleet-core]
             [status-im.ui.components.react :as react]
             [status-im.ui.components.icons.vector-icons :as vector-icons]
             [status-im.ui.components.list.views :as list]
@@ -30,17 +32,18 @@
   #{"mainnet" "mainnet_rpc"})
 
 (defn navigate-to-network [network]
-  (re-frame/dispatch [:navigate-to :network-details {:networks/selected-network network}]))
+  (re-frame/dispatch [:ui/network-entry-clicked network]))
 
 (defn render-network [current-network]
   (fn [{:keys [id name] :as network}]
-    (let [connected? (= id current-network)]
+    (let [connected? (= id current-network)
+          rpc?       (get-in network [:config :UpstreamConfig :Enabled] false)]
       [list/touchable-item #(navigate-to-network network)
        [react/view styles/network-item
         [network-icon connected? 40]
         [react/view {:padding-horizontal 16}
          [react/text {:style styles/network-item-name-text}
-          name]
+          (if rpc? name (str name " " "(LES)"))]
          (when connected?
            [react/text {:style               styles/network-item-connected-text
                         :accessibility-label :connected-text}
