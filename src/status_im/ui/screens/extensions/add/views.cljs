@@ -31,6 +31,7 @@
   (views/letsubs [{:keys [data errors]} [:get-staged-extension]]
     [react/view components.styles/flex
      [status-bar/status-bar]
+     (println "Extensions" data errors)
      [react/keyboard-avoiding-view components.styles/flex
       [toolbar/simple-toolbar (i18n/label :t/extension)]
       [react/scroll-view {:keyboard-should-persist-taps :handled}
