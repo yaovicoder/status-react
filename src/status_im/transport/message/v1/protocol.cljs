@@ -73,11 +73,10 @@
                                         :topic   (transport.utils/get-topic constants/contact-discovery)}
                                        whisper-opts)}]}))
 
-(extend-type transport/Message
+(defrecord Message [content content-type message-type clock-value timestamp]
   message/StatusMessage
   (send [this chat-id cofx]
-    (let [message-type (:message-type this)
-          params     {:chat-id       chat-id
+    (let [params     {:chat-id       chat-id
                       :payload       this
                       :success-event [:transport/set-message-envelope-hash
                                       chat-id
@@ -110,7 +109,7 @@
              :from       signature
              :js-obj     (:js-obj cofx))]}))
 
-(extend-type transport/MessagesSeen
+(defrecord MessagesSeen [message-ids]
   message/StatusMessage
   (send [this chat-id cofx]
     (if config/pfs-encryption-enabled?

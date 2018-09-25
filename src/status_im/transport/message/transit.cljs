@@ -1,6 +1,8 @@
 (ns ^{:doc "Transit custom readers and writers, required when adding a new record implementing StatusMessage protocol"}
- status-im.transport.message.transit
-  (:require [status-im.transport.message.v1.core :as v1]
+  status-im.transport.message.transit
+  (:require [status-im.transport.message.v1.contact :as v1.contact]
+            [status-im.transport.message.v1.protocol :as v1.protocol]
+            [status-im.transport.message.v1.core :as v1]
             [cognitect.transit :as transit]))
 
 ;; When adding a new reccord implenting the StatusMessage protocol it is required to implement:
@@ -67,12 +69,12 @@
 
 (def writer (transit/writer :json
                             {:handlers
-                             {v1/NewContactKey            (NewContactKeyHandler.)
-                              v1/ContactRequest           (ContactRequestHandler.)
-                              v1/ContactRequestConfirmed  (ContactRequestConfirmedHandler.)
-                              v1/ContactUpdate            (ContactUpdateHandler.)
-                              v1/Message                  (MessageHandler.)
-                              v1/MessagesSeen             (MessagesSeenHandler.)
+                             {v1.contact/NewContactKey            (NewContactKeyHandler.)
+                              v1.contact/ContactRequest           (ContactRequestHandler.)
+                              v1.contact/ContactRequestConfirmed  (ContactRequestConfirmedHandler.)
+                              v1.contact/ContactUpdate            (ContactUpdateHandler.)
+                              v1.protocol/Message                  (MessageHandler.)
+                              v1.protocol/MessagesSeen             (MessagesSeenHandler.)
                               v1/GroupLeave               (GroupLeaveHandler.)
                               v1/GroupMembershipUpdate    (GroupMembershipUpdateHandler.)}}))
 

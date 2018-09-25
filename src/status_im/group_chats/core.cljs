@@ -19,14 +19,14 @@
      nil
      message)))
 
-(fx/defn update-membership [cofx previous-chat {:keys [chat-id chat-name participants leaves signature version]}]
+(defn update-membership [cofx previous-chat {:keys [chat-id chat-name participants leaves signature version]}]
   (when (< (:membership-version previous-chat)
            version)
     (models.chat/upsert-chat cofx
                              {:chat-id chat-id
                               :membership-version version})))
 
-(fx/defn send-membership-update [cofx payload chat-id]
+(defn send-membership-update [cofx payload chat-id]
   (let [{:keys [participants]} payload
         {:keys [current-public-key web3]} (:db cofx)]
     (fx/merge

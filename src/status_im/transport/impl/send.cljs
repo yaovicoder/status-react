@@ -7,7 +7,7 @@
 (extend-type transport/GroupMembershipUpdate
   message/StatusMessage
   (send [this chat-id cofx]
-    (group-chats/send-membership-update this chat-id cofx)))
+    (group-chats/send-membership-update cofx this chat-id)))
 
 (extend-type transport/GroupLeave
   message/StatusMessage
