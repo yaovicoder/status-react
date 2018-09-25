@@ -1,6 +1,6 @@
 (ns status-im.test.ui.screens.accounts.recover.models
   (:require [cljs.test :refer-macros [deftest is testing]]
-            [status-im.accounts.recover.core :as models]
+            [status-im.accounts.access.core :as models]
             [clojure.string :as string]
             [status-im.utils.security :as security]
             [status-im.i18n :as i18n]))

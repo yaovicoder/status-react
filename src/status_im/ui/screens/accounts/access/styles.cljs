@@ -1,4 +1,4 @@
-(ns status-im.ui.screens.accounts.recover.styles
+(ns status-im.ui.screens.accounts.access.styles
   (:require [status-im.ui.components.colors :as colors]))
 
 (def screen-container

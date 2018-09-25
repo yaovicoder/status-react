@@ -1,4 +1,4 @@
-(ns status-im.accounts.recover.core
+(ns status-im.accounts.access.core
   (:require [clojure.string :as string]
             [re-frame.core :as re-frame]
             [status-im.accounts.create.core :as accounts.create]
@@ -24,8 +24,8 @@
   (when (not (mnemonic/status-generated-phrase? recovery-phrase))
     :recovery-phrase-unknown-words))
 
-(defn recover-account! [masked-passphrase password]
-  (status/recover-account
+(defn access-account! [masked-passphrase password]
+  (status/access-account
    (mnemonic/sanitize-passphrase (security/unmask masked-passphrase))
    password
    (fn [result]
@@ -35,67 +35,82 @@
      (let [data (-> (types/json->clj result)
                     (dissoc :mnemonic)
                     (types/clj->json))]
-       (re-frame/dispatch [:accounts.recover.callback/recover-account-success data password])))))
+       (re-frame/dispatch [:accounts.access.callback/access-account-success data password])))))
 
 (defn set-phrase [masked-recovery-phrase {:keys [db]}]
   (let [recovery-phrase (security/unmask masked-recovery-phrase)]
-    {:db (update db :accounts/recover assoc
+    {:db (update db :accounts/access assoc
                  :passphrase (string/lower-case recovery-phrase)
                  :passphrase-valid? (not (check-phrase-errors recovery-phrase)))}))
 
 (defn validate-phrase [{:keys [db]}]
-  (let [recovery-phrase (get-in db [:accounts/recover :passphrase])]
-    {:db (update db :accounts/recover assoc
+  (let [recovery-phrase (get-in db [:accounts/access :passphrase])]
+    {:db (update db :accounts/access assoc
                  :passphrase-error (check-phrase-errors recovery-phrase)
                  :passphrase-warning (check-phrase-warnings recovery-phrase))}))
 
 (defn set-password [masked-password {:keys [db]}]
   (let [password (security/unmask masked-password)]
-    {:db (update db :accounts/recover assoc
+    {:db (update db :accounts/access assoc
                  :password password
                  :password-valid? (not (check-password-errors password)))}))
 
 (defn validate-password [{:keys [db]}]
-  (let [password (get-in db [:accounts/recover :password])]
-    {:db (assoc-in db [:accounts/recover :password-error] (check-password-errors password))}))
+  (let [password (get-in db [:accounts/access :password])]
+    {:db (assoc-in db [:accounts/access :password-error] (check-password-errors password))}))
 
-(defn validate-recover-result [{:keys [error pubkey address]} password {:keys [db] :as cofx}]
+(defn validate-access-result [{:keys [error pubkey address]} password {:keys [db] :as cofx}]
   (if (empty? error)
     (let [account {:pubkey     pubkey
                    :address    address
                    :photo-path (identicon/identicon pubkey)
                    :mnemonic   ""}]
       (accounts.create/on-account-created account password true cofx))
-    {:db (assoc-in db [:accounts/recover :password-error] :recover-password-invalid)}))
+    {:db (assoc-in db [:accounts/access :password-error] :recover-password-invalid)}))
 
-(defn on-account-recovered [result password {:keys [db] :as cofx}]
+(defn on-account-accessed [result password {:keys [db] :as cofx}]
   (let [data (types/json->clj result)]
     (handlers-macro/merge-fx cofx
-                             {:db (dissoc db :accounts/recover)}
-                             (validate-recover-result data password))))
+                             {:db (dissoc db :accounts/access)}
+                             (validate-access-result data password))))
 
-(defn recover-account [{:keys [db]}]
-  (let [{:keys [password passphrase]} (:accounts/recover db)]
-    {:db (assoc-in db [:accounts/recover :processing?] true)
-     :accounts.recover/recover-account [(security/mask-data passphrase) password]}))
+(defn access-account [{:keys [db]}]
+  (let [{:keys [password passphrase]} (:accounts/access db)]
+    {:db (assoc-in db [:accounts/access :processing?] true)
+     :accounts.access/access-account [(security/mask-data passphrase) password]}))
 
-(defn recover-account-with-checks [{:keys [db] :as cofx}]
-  (let [{:keys [passphrase processing?]} (:accounts/recover db)]
+(defn access-account-with-checks [{:keys [db] :as cofx}]
+  (let [{:keys [passphrase processing?]} (:accounts/access db)]
     (when-not processing?
       (if (mnemonic/status-generated-phrase? passphrase)
-        (recover-account cofx)
+        (access-account cofx)
         {:ui/show-confirmation
          {:title               (i18n/label :recovery-typo-dialog-title)
           :content             (i18n/label :recovery-typo-dialog-description)
           :confirm-button-text (i18n/label :recovery-confirm-phrase)
-          :on-accept           #(re-frame/dispatch [:accounts.recover.ui/recover-account-confirmed])}}))))
+          :on-accept           #(re-frame/dispatch [:accounts.access.ui/access-account-confirmed])}}))))
 
-(defn navigate-to-recover-account-screen [{:keys [db] :as cofx}]
+(defn next-step [step {:keys [db] :as cofx}]
+  (case step
+    :passphrase {:db (assoc-in db [:accounts/access :step] :enter-password)}
+    :enter-password {:db (assoc-in db [:accounts/access :step] :confirm-password)}
+    :confirm-password (access-account-with-checks cofx)))
+
+(defn step-back [step {:keys [db] :as cofx}]
+  (case step
+    :passphrase (navigation/navigate-back cofx)
+    :enter-password {:db (assoc-in db [:accounts/access :step] :passphrase)}
+    :confirm-password {:db (assoc-in db [:accounts/access :step] :enter-password)}))
+
+(defn account-set-input-text [input-key text {db :db}]
+  {:db (update db :accounts/access merge {input-key text :error nil})})
+
+(defn navigate-to-access-account-screen [{:keys [db] :as cofx}]
   (handlers-macro/merge-fx cofx
-                           {:db (dissoc db :accounts/recover)}
-                           (navigation/navigate-to-cofx :recover nil)))
+                           {:db (assoc db :accounts/access {:step :passphrase})}
+                           (navigation/navigate-to-cofx :access-account nil)))
 
 (re-frame/reg-fx
- :accounts.recover/recover-account
+ :accounts.access/access-account
  (fn [[masked-passphrase password]]
-   (recover-account! masked-passphrase password)))
+   (access-account! masked-passphrase password)))

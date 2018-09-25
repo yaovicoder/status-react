@@ -5,7 +5,7 @@
             [status-im.accounts.create.core :as accounts.create]
             [status-im.accounts.login.core :as accounts.login]
             [status-im.accounts.logout.core :as accounts.logout]
-            [status-im.accounts.recover.core :as accounts.recover]
+            [status-im.accounts.access.core :as accounts.access]
             [status-im.accounts.update.core :as accounts.update]
             [status-im.bootnodes.core :as bootnodes]
             [status-im.browser.core :as browser]
@@ -23,9 +23,7 @@
             [status-im.protocol.core :as protocol]
             [status-im.qr-scanner.core :as qr-scanner]
             [status-im.signals.core :as signals]
-            [status-im.ui.screens.currency-settings.models
-             :as
-             currency-settings.models]
+            [status-im.ui.screens.currency-settings.models :as currency-settings.models]
             [status-im.ui.screens.navigation :as navigation]
             [status-im.utils.handlers :as handlers]
             [taoensso.timbre :as log]))
@@ -151,46 +149,46 @@
 ;; accounts recover module
 
 (handlers/register-handler-fx
- :accounts.recover.ui/recover-account-button-pressed
+ :accounts.access.ui/access-account-button-pressed
  (fn [cofx _]
-   (accounts.recover/navigate-to-recover-account-screen cofx)))
+   (accounts.access/navigate-to-access-account-screen cofx)))
 
 (handlers/register-handler-fx
- :accounts.recover.ui/passphrase-input-changed
+ :accounts.access.ui/next-step-pressed
+ (fn [cofx [_ step]]
+   (accounts.access/next-step step cofx)))
+
+(handlers/register-handler-fx
+ :accounts.access.ui/step-back-pressed
+ (fn [cofx [_ step passphrase password password-confirm]]
+   (accounts.access/step-back step cofx)))
+
+(handlers/register-handler-fx
+ :accounts.access.ui/input-text-changed
+ (fn [cofx [_ input-key text]]
+   (accounts.access/account-set-input-text input-key text cofx)))
+
+(handlers/register-handler-fx
+ :accounts.access.ui/passphrase-input-changed
  (fn [cofx [_ recovery-phrase]]
-   (accounts.recover/set-phrase recovery-phrase cofx)))
+   (accounts.access/set-phrase recovery-phrase cofx)))
 
 (handlers/register-handler-fx
- :accounts.recover.ui/passphrase-input-blured
+ :accounts.access.ui/passphrase-input-blured
  (fn [cofx _]
-   (accounts.recover/validate-phrase cofx)))
+   (accounts.access/validate-phrase cofx)))
 
 (handlers/register-handler-fx
- :accounts.recover.ui/password-input-changed
- (fn [cofx [_ masked-password]]
-   (accounts.recover/set-password masked-password cofx)))
-
-(handlers/register-handler-fx
- :accounts.recover.ui/password-input-blured
+ :accounts.access.ui/access-account-confirmed
  (fn [cofx _]
-   (accounts.recover/validate-password cofx)))
+   (accounts.access/access-account cofx)))
 
 (handlers/register-handler-fx
- :accounts.recover.ui/sign-in-button-pressed
- (fn [cofx _]
-   (accounts.recover/recover-account-with-checks cofx)))
-
-(handlers/register-handler-fx
- :accounts.recover.ui/recover-account-confirmed
- (fn [cofx _]
-   (accounts.recover/recover-account cofx)))
-
-(handlers/register-handler-fx
- :accounts.recover.callback/recover-account-success
+ :accounts.access.callback/access-account-success
  [(re-frame/inject-cofx :accounts.create/get-signing-phrase)
   (re-frame/inject-cofx :accounts.create/get-status)]
  (fn [cofx [_ result password]]
-   (accounts.recover/on-account-recovered result password cofx)))
+   (accounts.access/on-account-accessed result password cofx)))
 
 ;; accounts login module
 

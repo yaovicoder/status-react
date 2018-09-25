@@ -35,6 +35,14 @@
          (and name (= :enter-name step) (not (string/blank? name)))))))
 
 (re-frame/reg-sub
- :get-recover-account
+ :get-account-access-next-enabled?
+ (fn [{:accounts/keys [access]}]
+   (let [{:keys [step passphrase passphrase-valid? password password-confirm]} access]
+     (or (and passphrase (= :passphrase step) passphrase-valid?)
+         (and password (= :enter-password step) (spec/valid? ::db/password password))
+         (and password-confirm (= :confirm-password step) (spec/valid? ::db/password password-confirm))))))
+
+(re-frame/reg-sub
+ :get-access-account
  (fn [db]
-   (:accounts/recover db)))
+   (:accounts/access db)))
