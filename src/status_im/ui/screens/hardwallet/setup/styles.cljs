@@ -115,8 +115,8 @@
    :padding-top 5
    :color       colors/gray})
 
-(def puk-code-numbers-container
-  {:width           369
+(defn puk-code-numbers-container [width]
+  {:width           (* 0.9 width)
    :height          64
    :margin-top      20
    :align-items     :center

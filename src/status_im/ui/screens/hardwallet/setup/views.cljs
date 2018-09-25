@@ -19,40 +19,41 @@
                 :number-of-lines 2}
     (i18n/label :t/maintain-card-to-phone-contact)]])
 
-(defn secret-keys []
-  [react/view styles/container
-   [react/view styles/inner-container
-    [maintain-card]
-    [react/view styles/secret-keys-container
-     [react/view styles/secret-keys-title-container
-      [react/text {:style           styles/secret-keys-title-text
-                   :number-of-lines 2
-                   :font            :bold}
-       (i18n/label :t/write-down-and-store-securely)]]
-     [react/text {:style styles/puk-code-title-text
-                  :font  :bold}
-      (i18n/label :t/puk-code)]
-     [react/text {:style styles/puk-code-explanation-text}
-      (i18n/label :t/puk-code-explanation)]
-     [react/view styles/puk-code-numbers-container
-      [react/text {:style styles/puk-code-text
-                   :font  :bold}
-       "1234 5678 9123"]]
-     [react/text {:style styles/pair-code-title-text
-                  :font  :bold}
-      (i18n/label :t/pair-code)]
-     [react/text {:style           styles/pair-code-explanation-text
-                  :number-of-lines 2}
-      (i18n/label :t/pair-code-explanation)]
-     [react/view styles/pair-code-text-container
-      [react/text {:style styles/pair-code-text
-                   :font  :bold}
-       "a12k52kh0x"]]]
-    [react/view styles/next-button-container
-     [react/view components.styles/flex]
-     [components.common/bottom-button
-      {:on-press #(re-frame/dispatch [:hardwallet.ui/secret-keys-next-button-pressed])
-       :forward? true}]]]])
+(defview secret-keys []
+  (letsubs [width [:dimensions/window-width]]
+    [react/view styles/container
+     [react/view styles/inner-container
+      [maintain-card]
+      [react/view styles/secret-keys-container
+       [react/view styles/secret-keys-title-container
+        [react/text {:style           styles/secret-keys-title-text
+                     :number-of-lines 2
+                     :font            :bold}
+         (i18n/label :t/write-down-and-store-securely)]]
+       [react/text {:style styles/puk-code-title-text
+                    :font  :bold}
+        (i18n/label :t/puk-code)]
+       [react/text {:style styles/puk-code-explanation-text}
+        (i18n/label :t/puk-code-explanation)]
+       [react/view (styles/puk-code-numbers-container width)
+        [react/text {:style styles/puk-code-text
+                     :font  :bold}
+         "1234 5678 9123"]]
+       [react/text {:style styles/pair-code-title-text
+                    :font  :bold}
+        (i18n/label :t/pair-code)]
+       [react/text {:style           styles/pair-code-explanation-text
+                    :number-of-lines 2}
+        (i18n/label :t/pair-code-explanation)]
+       [react/view (styles/pair-code-text-container width)
+        [react/text {:style styles/pair-code-text
+                     :font  :bold}
+         "a12k52kh0x"]]]
+      [react/view styles/next-button-container
+       [react/view components.styles/flex]
+       [components.common/bottom-button
+        {:on-press #(re-frame/dispatch [:hardwallet.ui/secret-keys-next-button-pressed])
+         :forward? true}]]]]))
 
 (defview enter-pair-code []
   (letsubs [pair-code [:hardwallet-pair-code]
