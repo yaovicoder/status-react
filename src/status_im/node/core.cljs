@@ -107,10 +107,10 @@
       (add-log-level log-level))))
 
 (defn get-node-config [db network]
-  (-> (get-in (:networks/networks db) [network :config])
+  (log/info "Preparing node config for network: " network)
+  (-> (get-in db [:networks/networks network :config])
       (get-base-node-config)
-      (assoc :NetworkId (get-in constants/default-network [:config :NetworkId])
-             :PFSEnabled false
+      (assoc :PFSEnabled false
              :NoDiscovery true)
       (add-log-level config/log-level-status-go)))
 
