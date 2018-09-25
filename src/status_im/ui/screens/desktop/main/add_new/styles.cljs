@@ -95,7 +95,6 @@
    :align-items      :center
    :flex 1
    :height           24
-
    :border-radius    8
    :padding-left     10
    :padding-right    10
