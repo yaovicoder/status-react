@@ -40,7 +40,7 @@
 (defn process [event-str cofx]
   (let [{:keys [type event]} (types/json->clj event-str)]
     (case type
-      "node.started"       (status-node-started cofx)
+      "node.ready"         (status-node-started cofx)
       "node.stopped"       (status-node-stopped cofx)
       "module.initialized" (status-module-initialized cofx)
       "envelope.sent"      (transport.handlers/update-envelope-status (:hash event) :sent cofx)
