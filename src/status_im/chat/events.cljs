@@ -10,7 +10,7 @@
             [status-im.data-store.user-statuses :as user-statuses-store]
             [status-im.i18n :as i18n]
             [status-im.transport.message.core :as transport.message]
-            [status-im.transport.message.v1.protocol :as protocol]
+            [status-im.transport.message.v1.core :as protocol]
             [status-im.transport.message.v1.public-chat :as public-chat]
             [status-im.ui.screens.navigation :as navigation]
             [status-im.utils.fx :as fx]

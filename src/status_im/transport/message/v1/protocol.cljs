@@ -64,7 +64,7 @@
   (when-let [chat (get-in cofx [:db :chats chat-id])]
     (GroupMembershipUpdate.
      chat-id
-     (:chat-name chat)
+     (:name chat)
      (:group-admin chat)
      (:contacts chat)
      nil
@@ -100,17 +100,6 @@
   (map (fn [public-key]
          (select-keys (get-in db [:transport/chats public-key]) [:topic :sym-key-id]))
        public-keys))
-
-;; TODO currently not used
-(defrecord Ack [message-ids]
-  message/StatusMessage
-  (send [this cofx chat-id])
-  (receive [this chat-id sig timestamp cofx]))
-
-(defrecord Seen [message-ids]
-  message/StatusMessage
-  (send [this cofx chat-id])
-  (receive [this chat-id sig timestamp cofx]))
 
 (defrecord Message [content content-type message-type clock-value timestamp]
   message/StatusMessage
@@ -156,7 +145,7 @@
              :show?      true
              :chat-id    chat-id
              :from       signature
-             :js-obj     (:js-obj cofx))]}))
+             :js-obj     (:js-obj cofx))]})))
 
 (defrecord MessagesSeen [message-ids]
   message/StatusMessage
