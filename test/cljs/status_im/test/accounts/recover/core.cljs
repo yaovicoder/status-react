@@ -1,21 +1,11 @@
 (ns status-im.test.accounts.recover.core
   (:require [cljs.test :refer-macros [deftest is testing]]
-            [status-im.accounts.recover.core :as models]
+            [status-im.accounts.access.core :as models]
             [clojure.string :as string]
             [status-im.utils.security :as security]
             [status-im.i18n :as i18n]))
 
 ;;;; helpers
-
-(deftest check-password-errors
-  (is (= :required-field (models/check-password-errors nil)))
-  (is (= :required-field (models/check-password-errors " ")))
-  (is (= :required-field (models/check-password-errors " \t\n ")))
-  (is (= :recover-password-too-short) (models/check-password-errors "a"))
-  (is (= :recover-password-too-short) (models/check-password-errors "abc"))
-  (is (= :recover-password-too-short) (models/check-password-errors "12345"))
-  (is (nil? (models/check-password-errors "123456")))
-  (is (nil? (models/check-password-errors "thisisapasswoord"))))
 
 (deftest check-phrase-errors
   (is (= :required-field (models/check-phrase-errors nil)))
@@ -41,23 +31,6 @@
 
 ;;;; handlers
 
-(deftest set-phrase
-  (is (= {:db {:accounts/recover {:passphrase        "game buzz method pretty olympic fat quit display velvet unveil marine crater"
-                                  :passphrase-valid? true}}}
-         (models/set-phrase {:db {}} (security/mask-data "game buzz method pretty olympic fat quit display velvet unveil marine crater"))))
-  (is (= {:db {:accounts/recover {:passphrase        "game buzz method pretty olympic fat quit display velvet unveil marine crater"
-                                  :passphrase-valid? true}}}
-         (models/set-phrase {:db {}} (security/mask-data "Game buzz method pretty Olympic fat quit DISPLAY velvet unveil marine crater"))))
-  (is (= {:db {:accounts/recover {:passphrase        "game buzz method pretty zeus fat quit display velvet unveil marine crater"
-                                  :passphrase-valid? true}}}
-         (models/set-phrase {:db {}} (security/mask-data "game buzz method pretty zeus fat quit display velvet unveil marine crater"))))
-  (is (= {:db {:accounts/recover {:passphrase        "   game\t  buzz method pretty olympic fat quit\t   display velvet unveil marine crater  "
-                                  :passphrase-valid? true}}}
-         (models/set-phrase {:db {}} (security/mask-data "   game\t  buzz method pretty olympic fat quit\t   display velvet unveil marine crater  "))))
-  (is (= {:db {:accounts/recover {:passphrase        "game buzz method pretty 1234 fat quit display velvet unveil marine crater"
-                                  :passphrase-valid? false}}}
-         (models/set-phrase {:db {}} (security/mask-data "game buzz method pretty 1234 fat quit display velvet unveil marine crater")))))
-
 (deftest validate-phrase
   (is (= {:db {:accounts/recover {:passphrase-error   nil
                                   :passphrase-warning nil
@@ -71,28 +44,6 @@
                                   :passphrase-warning :recovery-phrase-unknown-words
                                   :passphrase         "game buzz method pretty 1234 fat quit display velvet unveil marine crater"}}}
          (models/validate-phrase {:db {:accounts/recover {:passphrase "game buzz method pretty 1234 fat quit display velvet unveil marine crater"}}}))))
-
-(deftest set-password
-  (is (= {:db {:accounts/recover {:password        "     "
-                                  :password-valid? false}}}
-         (models/set-password {:db {}} (security/mask-data "     "))))
-  (is (= {:db {:accounts/recover {:password        "abc"
-                                  :password-valid? false}}}
-         (models/set-password {:db {}} (security/mask-data "abc"))))
-  (is (= {:db {:accounts/recover {:password        "thisisapaswoord"
-                                  :password-valid? true}}}
-         (models/set-password {:db {}} (security/mask-data "thisisapaswoord")))))
-
-(deftest validate-password
-  (is (= {:db {:accounts/recover {:password       "     "
-                                  :password-error :required-field}}}
-         (models/validate-password {:db {:accounts/recover {:password "     "}}})))
-  (is (= {:db {:accounts/recover {:password       "abc"
-                                  :password-error :recover-password-too-short}}}
-         (models/validate-password {:db {:accounts/recover {:password "abc"}}})))
-  (is (= {:db {:accounts/recover {:password       "thisisapaswoord"
-                                  :password-error nil}}}
-         (models/validate-password {:db {:accounts/recover {:password "thisisapaswoord"}}}))))
 
 (deftest recover-account
   (let [new-cofx (models/recover-account {:db {:accounts/recover
