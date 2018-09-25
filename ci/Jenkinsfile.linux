@@ -1,11 +1,11 @@
 pipeline {
-  agent { 
+  agent {
     /* privileged mode is necessary for fuse */
     docker {
       label 'linux-new'
       image 'statusteam/linux-desktop-ubuntu:16.04'
       args (
-        "--privileged "+ 
+        "--privileged "+
         "-v /dev/fuse:/dev/fuse "+
         "-v /var/tmp/lein:/var/tmp/lein:rw "+
         "-v /var/tmp/npm:/var/tmp/npm:rw "+
@@ -21,7 +21,7 @@ pipeline {
       artifactNumToKeepStr: '30',
     ))
   }
-  
+
   /**
    * WARNING: Jenkins ignores PATH changes in Docker
    * https://issues.jenkins-ci.org/browse/JENKINS-49076
@@ -33,7 +33,7 @@ pipeline {
     NPM_CONFIG_CACHE = '/var/tmp/npm'
     LEIN_HOME = '/var/tmp/lein'
   }
-  
+
   stages {
     stage('Prep') {
       steps {
@@ -44,6 +44,16 @@ pipeline {
           sh 'env'
           desktop.prepDeps()
         }
+      }
+    }
+    stage('Lint') {
+      steps {
+        script { cmn.runLint() }
+      }
+    }
+    stage('Tests') {
+      steps {
+        script { cmn.runTests() }
       }
     }
     stage('Build') {
