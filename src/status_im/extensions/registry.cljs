@@ -1,10 +1,9 @@
 (ns status-im.extensions.registry
-  (:require [pluto.reader :as reader]
+  (:require [clojure.string :as string]
+            [pluto.reader :as reader]
             [pluto.registry :as registry]
             [pluto.host :as host]
-            [pluto.storage :as storage]
-            [pluto.storage.gist :as gist]
-            [status-im.extensions.core :as extension]
+            [pluto.storages :as storages]
             [status-im.chat.commands.core :as commands]
             [status-im.chat.commands.impl.transactions :as transactions]
             [status-im.ui.components.react :as react]))
@@ -37,16 +36,13 @@
       extension-data)
     (catch :default e (println "EXC" e))))
 
-(def storages
-  {:gist (gist/GistStorage.)})
-
 (defn read-extension [o]
   (-> o :value first :content reader/read))
 
+(defn url->uri [s]
+  (when s
+    (string/replace s "https://get.status.im/extension/" "")))
+
 (defn load-from [url f]
-  (let [[type id] (extension/url->storage-details url)
-        storage   (get storages type)]
-    (when (and storage id)
-      (storage/fetch storage
-                     {:value id}
-                     #(f %)))))
+  (when-let [uri (url->uri url)]
+    (storages/fetch uri #(do (println "GOT" %) (f %)))))
