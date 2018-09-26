@@ -83,11 +83,6 @@
     "command-sending": "ارسال تراکنش",
     "completing-card-setup": "در حال تکمیل تنظیمات کارت",
     "confirm": "تایید",
-    "confirmation-code": [
-        "str",
-        "ممنون! ما یک پیامک حاوی کد تایید برای شما ارسال کردیم",
-        "لطفا کد مورد نظر را برای تایید شماره تلفن خود ارائه دهید"
-    ],
     "confirmations": "تاييديه",
     "confirmations-helper-text": "زمانی که یک تراکنش 12 تایید دریافت کند می توانید آنرا انجام شده در نظر بگیرید",
     "connect": "اتصال",
@@ -510,7 +505,6 @@
     "request-command-payment": "درخواست یک پرداخت",
     "request-feature": "درخواست یک ویژگی",
     "request-qr-legend": "برای دریافت دارایی، این کد را به اشتراک بگذارید",
-    "request-requesting-from": "از جانب",
     "request-transaction": "درخواست تراکنش",
     "required-field": "فیلد اجباری",
     "resend-message": "ارسال مجدد",
