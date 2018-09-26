@@ -9,7 +9,7 @@
 
    :toolbar-title    {:font-weight "700"}
    :toolbar-subtitle {:font-weight "normal"}
-   :roboto-mono      {:font-family "Menlo"}})
+   :monospace        {:font-family "Menlo"}})
 
 ;; iPhone X dimensions
 (def x-width 375)
