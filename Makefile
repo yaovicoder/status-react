@@ -87,6 +87,9 @@ release-ios: prod-build-ios ##@build build release for iOS release
 release-desktop: prod-build-desktop ##@build build release for desktop release
 	scripts/build-desktop.sh
 
+release-windows-desktop: prod-build-desktop ##@build build release for desktop release
+	PATH=${STATUS_REACT_HOME}/../status-conan/:${PATH} TARGET_SYSTEM_NAME=Windows scripts/build-desktop.sh # TODO Remove hardcoded path
+
 prod-build:
 	lein prod-build
 
