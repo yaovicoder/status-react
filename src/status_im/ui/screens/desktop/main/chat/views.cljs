@@ -168,8 +168,7 @@
           _ (when (or (not @chat-id*) (not= @chat-id* chat-id))
               (do
                 (reset! messages-to-load load-step)
-                (reset! chat-id* chat-id)
-                (log/debug "chat reseted, new count: 5" " messages count: " (count messages))))]
+                (reset! chat-id* chat-id)))]
       [react/view {:style styles/messages-view}
        [react/scroll-view {:scrollEventThrottle    16
                            :headerHeight styles/messages-list-vertical-padding
