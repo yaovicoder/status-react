@@ -52,15 +52,15 @@
 (when-not @listener-initialized
   (reset! listener-initialized true)
   (.addListener r/device-event-emitter "gethEvent"
-                #(re-frame/dispatch [:signal-event (.-jsonEvent %)])))
+                #(re-frame/dispatch [:signals/signal-received (.-jsonEvent %)])))
 
 (defn stop-node []
   (when status
     (call-module #(.stopNode status))))
 
-(defn start-node [config fleet]
+(defn start-node [config]
   (when status
-    (call-module #(.startNode status config fleet))))
+    (call-module #(.startNode status config))))
 
 (defonce account-creation? (atom false))
 

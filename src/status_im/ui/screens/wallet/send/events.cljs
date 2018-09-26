@@ -12,8 +12,8 @@
             [status-im.utils.ethereum.core :as ethereum]
             [status-im.utils.ethereum.erc20 :as erc20]
             [status-im.utils.ethereum.tokens :as tokens]
+            [status-im.utils.fx :as fx]
             [status-im.utils.handlers :as handlers]
-            [status-im.utils.handlers-macro :as handlers-macro]
             [status-im.utils.money :as money]
             [status-im.utils.security :as security]
             [status-im.utils.types :as types]
@@ -81,12 +81,12 @@
 ;; SEND TRANSACTION (SIGN MESSAGE) CALLBACK
 (handlers/register-handler-fx
  ::transaction-completed
- (fn [{:keys [db now]} [_ {:keys [result error]}]]
+ (fn [{:keys [db now] :as cofx} [_ {:keys [result error]}]]
    (let [{:keys [id method whisper-identity to symbol amount-text dapp-transaction]} (get-in db [:wallet :send-transaction])
          db' (assoc-in db [:wallet :send-transaction :in-progress?] false)]
      (if error
        ;; ERROR
-       (models.wallet/handle-transaction-error db' error)
+       (models.wallet/handle-transaction-error (assoc cofx :db db') error)
        ;; RESULT
        (merge
         {:db (cond-> (assoc-in db' [:wallet :send-transaction] {})
@@ -134,35 +134,36 @@
                            [:wallet/update-estimated-gas (first params)])
                          (when-not gas-price
                            [:wallet/update-gas-price])
-                         [:navigate-to-modal (if wallet-set-up-passed?
-                                               :wallet-send-transaction-modal
-                                               :wallet-onboarding-setup-modal)]]})
+                         [:navigate-to
+                          (if wallet-set-up-passed?
+                            :wallet-send-modal-stack
+                            :wallet-send-modal-stack-with-onboarding)]]})
 
          ;;SIGN MESSAGE
          (= method constants/web3-personal-sign)
          (let [[address data] (models.wallet/normalize-sign-message-params params)]
            (if (and address data)
-             {:db       (assoc-in db' [:wallet :send-transaction] {:id               (str (or id message-id))
-                                                                   :from             address
-                                                                   :data             data
-                                                                   :dapp-transaction queued-transaction
-                                                                   :method           method})
-              :dispatch [:navigate-to-modal :wallet-sign-message-modal]}
+             (let [db'' (assoc-in db' [:wallet :send-transaction]
+                                  {:id               (str (or id message-id))
+                                   :from             address
+                                   :data             data
+                                   :dapp-transaction queued-transaction
+                                   :method           method})]
+               (navigation/navigate-to-cofx {:db db''} :wallet-sign-message-modal nil))
              {:db db'})))))))
 
 (handlers/register-handler-fx
  :send-transaction-message
  (concat models.message/send-interceptors
          navigation/navigation-interceptors)
- (fn [{:keys [db] :as cofx} [chat-id params]]
+ (fn [{:keys [db] :as cofx} [_ chat-id params]]
    ;;NOTE(goranjovic): we want to send the payment message only when we have a whisper id
    ;; for the recipient, we always redirect to `:wallet-transaction-sent` even when we don't
-   (if-let [send-command (and chat-id (get-in db [:id->command ["send" #{:personal-chats}]]))]
-     (handlers-macro/merge-fx cofx
-                              (commands-sending/send chat-id send-command params)
-                              (navigation/replace-view :wallet-transaction-sent))
-     (handlers-macro/merge-fx cofx
-                              (navigation/replace-view :wallet-transaction-sent)))))
+   (let [send-command? (and chat-id (get-in db [:id->command ["send" #{:personal-chats}]]))]
+     (fx/merge cofx
+               #(when send-command?
+                  (commands-sending/send % chat-id send-command? params))
+               (navigation/navigate-to-clean :wallet-transaction-sent {})))))
 
 (defn set-and-validate-amount-db [db amount symbol decimals]
   (let [{:keys [value error]} (wallet.db/parse-amount amount decimals)]
@@ -261,9 +262,10 @@
 
 (handlers/register-handler-fx
  :close-transaction-sent-screen
- (fn [{:keys [db]} [_ chat-id]]
-   {:dispatch       [:navigate-back]
-    :dispatch-later [{:ms 400 :dispatch [:check-dapps-transactions-queue]}]}))
+ (fn [{:keys [db] :as cofx} [_ chat-id]]
+   (fx/merge cofx
+             {:dispatch-later [{:ms 400 :dispatch [:check-dapps-transactions-queue]}]}
+             (navigation/navigate-back))))
 
 (handlers/register-handler-fx
  :sync-wallet-transactions

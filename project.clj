@@ -12,7 +12,8 @@
                  [hickory "0.7.1"]
                  [com.cognitect/transit-cljs "0.8.248"]
                  [status-im/pluto "iteration-2-SNAPSHOT"]
-                 [mvxcvi/alphabase "1.0.0"]]
+                 [mvxcvi/alphabase "1.0.0"]
+                 [rasom/cljs-react-navigation "0.1.4"]]
   :plugins [[lein-cljsbuild "1.1.7"]
             [lein-re-frisk "0.5.8"]
             [lein-cljfmt "0.5.7"]
@@ -60,7 +61,7 @@
                                                         :main          "env.desktop.main"
                                                         :output-dir    "target/desktop"
                                                         :optimizations :none}}}}
-                        :repl-options {:nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]
+                        :repl-options {:nrepl-middleware [cider.piggieback/wrap-cljs-repl]
                                        :timeout          240000}}
              :figwheel [:dev
                         {:dependencies [[figwheel-sidecar "0.5.16-SNAPSHOT"]

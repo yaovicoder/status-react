@@ -7,7 +7,8 @@
             [status-im.utils.ethereum.core :as ethereum]
             [status-im.utils.ethereum.tokens :as tokens]
             [status-im.utils.hex :as utils.hex]
-            [status-im.utils.money :as money]))
+            [status-im.utils.money :as money]
+            [status-im.utils.fx :as fx]))
 
 (def min-gas-price-wei (money/bignumber 1))
 
@@ -16,7 +17,8 @@
 (defmethod invalid-send-parameter? :gas-price [_ value]
   (cond
     (not value) :invalid-number
-    (< (money/->wei :gwei value) min-gas-price-wei) :not-enough-wei))
+    (< (money/->wei :gwei value) min-gas-price-wei) :not-enough-wei
+    (-> (money/->wei :gwei value) .decimalPlaces pos?) :invalid-number))
 
 (defmethod invalid-send-parameter? :default [_ value]
   (when (or (not value)
@@ -109,22 +111,25 @@
         [second_param first_param]))))
 
 (defn web3-error-callback [fx {:keys [webview-bridge]} {:keys [message-id]} message]
-  (assoc fx :send-to-bridge-fx [{:type      constants/web3-send-async-callback
-                                 :messageId message-id
-                                 :error     message}
-                                webview-bridge]))
+  (assoc fx :browser/send-to-bridge {:message {:type      constants/web3-send-async-callback
+                                               :messageId message-id
+                                               :error     message}
+                                     :webview webview-bridge}))
 
 (defn dapp-complete-transaction [id result method message-id webview]
-  (cond-> {:send-to-bridge-fx [{:type      constants/web3-send-async-callback
-                                :messageId message-id
-                                :result    {:jsonrpc "2.0"
-                                            :id      (int id)
-                                            :result  result}}
-                               webview]
+  (cond-> {:browser/send-to-bridge {:message {:type      constants/web3-send-async-callback
+                                              :messageId message-id
+                                              :result    {:jsonrpc "2.0"
+                                                          :id      (int id)
+                                                          :result  result}}
+                                    :webview webview}
            :dispatch          [:navigate-back]}
 
+    (= method constants/web3-personal-sign)
+    (assoc :dispatch [:navigate-back])
+
     (= method constants/web3-send-transaction)
-    (assoc :dispatch-later [{:ms 400 :dispatch [:navigate-to-modal :wallet-transaction-sent-modal]}])))
+    (assoc :dispatch [:navigate-to-clean :wallet-transaction-sent])))
 
 (defn discard-transaction
   [{:keys [db]}]
@@ -151,7 +156,7 @@
           (update :gas-price str)
           (dissoc :message-id :id :gas)))))
 
-(defn handle-transaction-error [db {:keys [code message]}]
+(defn handle-transaction-error [{:keys [db]} {:keys [code message]}]
   (let [{:keys [dapp-transaction]} (get-in db [:wallet :send-transaction])]
     (case code
 
@@ -160,11 +165,13 @@
       {:db (-> db
                (assoc-in [:wallet :send-transaction :wrong-password?] true))}
 
-      (cond-> {:db (-> db
-                       navigation/navigate-back
-                       (assoc-in [:wallet :transactions-queue] nil)
-                       (assoc-in [:wallet :send-transaction] {}))
-               :wallet/show-transaction-error message}
+      (cond-> (let [cofx {:db
+                          (-> db
+                              (assoc-in [:wallet :transactions-queue] nil)
+                              (assoc-in [:wallet :send-transaction] {}))
+                          :wallet/show-transaction-error
+                          message}]
+                (navigation/navigate-back cofx))
 
         dapp-transaction
         (web3-error-callback db dapp-transaction message)))))
@@ -180,7 +187,7 @@
 (defn tokens-symbols [v chain]
   (set/difference (set v) (set (map :symbol (tokens/nfts-for chain)))))
 
-(defn update-wallet
+(fx/defn update-wallet
   [{{:keys [web3 network network-status] {:keys [address settings]} :account/account :as db} :db}]
   (let [network     (get-in db [:account/account :networks network])
         chain       (ethereum/network->chain-keyword network)
