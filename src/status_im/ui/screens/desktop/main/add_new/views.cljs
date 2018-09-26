@@ -13,6 +13,9 @@
             [status-im.ui.components.react :as react]
             [status-im.ui.components.colors :as colors]))
 
+(defn topic-input-placeholder []
+  [react/text {:style styles/topic-placeholder} "#"])
+
 (views/defview new-contact []
   (views/letsubs [new-contact-identity [:get :contacts/new-identity]
                   contacts             [:all-added-people-contacts]
@@ -68,20 +71,15 @@
       [react/text {:style styles/new-contact-subtitle} (i18n/label :public-group-topic)]
       [react/view {:style styles/new-contact-separator}]
       [react/view {:style styles/add-contact-edit-view}
-       [react/view {:style {:flex 1}}
-        [react/text-input {:flex             1
-                           :ref              #(when (and (nil? @topic-input-ref) %)
-                                                (.setNativeProps % (js-obj "text" "#"))
-                                                (reset! topic-input-ref %))
-                           :style            styles/add-contact-input
-                           :font             :default
-                           :selection-color  colors/hawkes-blue
-                           :on-change        (fn [e]
-                                               (let [native-event (.-nativeEvent e)
-                                                     text (.-text native-event)
-                                                     [_ before after] (first (re-seq #"(.*)\#(.*)" text))]
-                                                 (.setNativeProps @topic-input-ref (js-obj "text" (str "#" before after)))
-                                                 (re-frame/dispatch [:set :public-group-topic (subs text 1)])))}]]
+       [react/view {:flex  1
+                    :style styles/add-pub-chat-input}
+        [react/text-input {:flex            1
+                           :font            :default
+                           :selection-color colors/hawkes-blue
+                           :placeholder     ""
+                           :on-change       (fn [e]
+                                              (let [text (.. e -nativeEvent -text)]
+                                                (re-frame/dispatch [:set :public-group-topic text])))}]]
        [react/touchable-highlight {:disabled topic-error
                                    :on-press #(when-not topic-error
                                                 (do
@@ -90,6 +88,7 @@
         [react/view {:style (styles/add-contact-button topic-error)}
          [react/text {:style (styles/add-contact-button-text topic-error)}
           (i18n/label :new-public-group-chat)]]]]
+      [topic-input-placeholder]
       [react/text {:style styles/new-contact-subtitle} (i18n/label :selected-for-you)]
       [react/view {:style styles/suggested-contacts}
        (doall
