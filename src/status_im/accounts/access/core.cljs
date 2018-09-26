@@ -20,7 +20,7 @@
   (when (not (mnemonic/status-generated-phrase? recovery-phrase))
     :recovery-phrase-unknown-words))
 
-(fx/defn set-phrase [masked-recovery-phrase {:keys [db]}]
+(fx/defn set-phrase [{:keys [db]} masked-recovery-phrase]
   (let [recovery-phrase (security/unmask masked-recovery-phrase)]
     {:db (update db :accounts/access assoc :passphrase (string/lower-case recovery-phrase))}))
 
@@ -43,7 +43,7 @@
                     (types/clj->json))]
        (re-frame/dispatch [:accounts.access.callback/access-account-success data password])))))
 
-(fx/defn validate-access-result [{:keys [error pubkey address]} password {:keys [db] :as cofx}]
+(fx/defn validate-access-result [{:keys [db] :as cofx} {:keys [error pubkey address]} password]
   (if (empty? error)
     (let [account {:pubkey     pubkey
                    :address    address
@@ -57,12 +57,12 @@
     (fx/merge cofx
               (validate-access-result data password))))
 
-(fx/defn access-account [{:keys [db]}]
+(defn access-account [{:keys [db]}]
   (let [{:keys [password passphrase]} (:accounts/access db)]
     {:db (assoc-in db [:accounts/access :processing?] true)
      :accounts.access/access-account [(security/mask-data passphrase) password]}))
 
-(fx/defn access-account-with-checks [{:keys [db] :as cofx}]
+(defn access-account-with-checks [{:keys [db] :as cofx}]
   (let [{:keys [passphrase processing?]} (:accounts/access db)]
     (when-not processing?
       (if (mnemonic/status-generated-phrase? passphrase)
@@ -90,8 +90,7 @@
     :confirm-password {:db (update db :accounts/access merge {:step  :enter-password
                                                               :error nil})}))
 
-(fx/defn account-set-input-text
-  [{:keys [db]} input-key masked-text]
+(fx/defn account-set-input-text [{:keys [db]} input-key masked-text]
   (let [text (security/unmask masked-text)]
     {:db (update db :accounts/access merge {input-key text :error nil})}))
 

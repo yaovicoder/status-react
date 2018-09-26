@@ -135,7 +135,7 @@
                 :create-account                   create-account
                 :access-account                   access-account
                 :accounts                         accounts}
-               (= :intro view-id)
+         (= :intro view-id)
          (assoc :intro intro)
 
          config/hardwallet-enabled?

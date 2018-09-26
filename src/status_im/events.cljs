@@ -162,7 +162,7 @@
 (handlers/register-handler-fx
  :accounts.access.ui/step-back-pressed
  (fn [cofx [_ step]]
-   (accounts.access/step-back step cofx)))
+   (accounts.access/step-back cofx step)))
 
 (handlers/register-handler-fx
  :accounts.access.ui/input-text-changed
