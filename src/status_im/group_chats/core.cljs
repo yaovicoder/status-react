@@ -1,5 +1,6 @@
 (ns status-im.group-chats.core
   (:require
+   [clojure.string :as string]
    [status-im.utils.config :as config]
    [status-im.transport.utils :as transport.utils]
    [status-im.transport.db :as transport.db]
@@ -9,6 +10,22 @@
    [status-im.transport.message.v1.protocol :as transport.protocol]
    [status-im.utils.fx :as fx]
    [status-im.chat.models :as models.chat]))
+
+(defn signature-material [{:keys [admin signature participants]}]
+  [(apply str
+          (conj (sort participants)
+                admin))
+   signature
+   admin])
+
+(defn valid-chat-id?
+  ;; We need to make sure the chat-id ends with the admin pk.
+  ;; this is due to prevent an attack whereby a non-admin user would
+  ;; send out a message with identical chat-id and themselves as admin to other members,
+  ;; who would then have to trust the first of the two messages received, possibly
+  ;; resulting in a situation where some of the members in the chat trust a different admin.
+  [chat-id admin]
+  (string/ends-with? chat-id admin))
 
 (defn wrap-group-message [cofx chat-id message]
   (when-let [chat (get-in cofx [:db :chats chat-id])]
@@ -49,8 +66,19 @@
                             :payload       payload
                             :success-event [:group/unsubscribe-from-chat chat-id]}))
 
-(fx/defn handle-membership-update [cofx {:keys [chat-id chat-name participants leaves message signature version] :as membership-update} sender-signature]
-  (when config/group-chats-enabled?
+(fx/defn handle-membership-update-received [cofx membership-update]
+  {:group-chats/check-signature [(signature-material membership-update)]})
+
+(fx/defn handle-membership-update [cofx {:keys [chat-id
+                                                chat-name
+                                                participants
+                                                signature
+                                                leaves
+                                                message
+                                                admin
+                                                version] :as membership-update} sender-signature]
+  (when (and config/group-chats-enabled?
+             (valid-chat-id? chat-id admin))
     (let [chat-fx (if-let [previous-chat (get-in cofx [:db :chats chat-id])]
                     (update-membership cofx previous-chat membership-update)
                     (models.chat/upsert-chat
@@ -59,7 +87,8 @@
                       :name chat-name
                       :is-active true
                       :group-chat true
-                      :group-admin signature
+                      :signature   signature
+                      :group-admin admin
                       :contacts participants
                       :membership-version version}))]
       (if message
@@ -67,3 +96,25 @@
                   chat-fx
                   #(protocol.message/receive message chat-id sender-signature nil %))
         chat-fx))))
+
+(fx/defn send-group-update [cofx group-update chat-id]
+  (protocol.message/send group-update chat-id cofx))
+
+(fx/defn send-membership-update [group-update]
+  (fx/merge cofx
+            {:db (assoc db :group/selected-contacts #{})}
+            (models.chat/navigate-to-chat chat-id {})
+            (handle-membership-update group-update my-public-key)
+            (send-group-update group-update chat-id)))
+
+(fx/defn create [{:keys [db random-guid-generator] :as cofx} group-name]
+  (let [my-public-key             (:current-public-key db)
+        chat-id           (str (random-guid-generator) my-public-key)
+        selected-contacts (conj (:group/selected-contacts db)
+                                my-public-key)
+        group-update (transport/GroupMembershipUpdate. chat-id group-name my-public-key selected-contacts nil nil nil)]
+    (fx/merge cofx
+              {:db (assoc db :group/selected-contacts #{})}
+              (models.chat/navigate-to-chat chat-id {})
+              (handle-membership-update group-update my-public-key)
+              (send-group-update group-update chat-id))))
