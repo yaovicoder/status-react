@@ -136,6 +136,9 @@ CMakeCache.txt
 /desktop/run-app.sh
 /desktop/CMakeFiles/
 /desktop/reportApp/Makefile
-/desktop/reportApp/reportApp
-/desktop/reportApp/reportApp_autogen/
+*_autogen/
 /linuxdeployqt-*.AppImage
+CompleteBundleWin.cmake
+conan*.txt
+conanbuildinfo.cmake
+conan.cmake
