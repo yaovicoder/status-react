@@ -22,6 +22,7 @@
             status-im.ui.screens.wallet.collectibles.cryptostrikers.events
             status-im.ui.screens.wallet.collectibles.etheremon.events
             status-im.ui.screens.wallet.collectibles.superrare.events
+            status-im.ui.screens.network-settings.events
             status-im.utils.keychain.events
             [re-frame.core :as re-frame]
             [status-im.hardwallet.core :as hardwallet]
