@@ -1,6 +1,6 @@
 (ns status-im.test.models.network
   (:require [cljs.test :refer-macros [deftest is testing]]
-            [status-im.models.network :as model]))
+            [status-im.network.core :as model]))
 
 (deftest valid-rpc-url-test
   (testing "nil?"
@@ -31,7 +31,7 @@
     (is (model/valid-rpc-url? "https://valid.something.else:65323"))))
 
 (deftest new-network-test
-  (let [actual (model/new-network {:random-id "random-id"}
+  (let [actual (model/new-network "random-id"
                                   "network-name"
                                   "upstream-url"
                                   :mainnet
@@ -45,7 +45,7 @@
            actual))))
 
 (deftest new-network-id-test
-  (let [actual (model/new-network {:random-id "random-id"}
+  (let [actual (model/new-network "random-id"
                                   "network-name"
                                   "upstream-url"
                                   :mainnet
@@ -86,13 +86,13 @@
                                            :error true}
                                    :chain {:value "mainnet"
                                            :error false}}}}
-           (model/set-input :url "http://valid.com"
-                            {:db {:networks/manage {:url   {:value "something"
+           (model/set-input {:db {:networks/manage {:url   {:value "something"
                                                             :error true}
                                                     :name  {:value ""
                                                             :error false}
                                                     :chain {:value "mainnet"
-                                                            :error false}}}})))))
+                                                            :error false}}}}
+                            :url "http://valid.com")))))
 
 (deftest save
   (testing "it does not save a network with an invalid url"

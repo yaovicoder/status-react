@@ -11,12 +11,12 @@
             cljs.core.specs.alpha))
 
 (when js/goog.DEBUG
-  (object/set js/console "ignoredYellowBox" #js ["re-frame: overwriting"]))
+  (.ignoreWarnings (.-YellowBox js-dependencies/react-native) #js ["re-frame: overwriting"]))
 
 (defn init [app-root]
   (log/set-level! config/log-level)
   (error-handler/register-exception-handler!)
-  (re-frame/dispatch [:init/initialize-keychain])
+  (re-frame/dispatch [:init/app-started])
   (when config/testfairy-enabled?
     (.begin js-dependencies/testfairy config/testfairy-token))
   (.registerComponent react/app-registry "StatusIm" #(reagent/reactify-component app-root)))

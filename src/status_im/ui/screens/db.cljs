@@ -4,9 +4,10 @@
             [status-im.constants :as constants]
             [status-im.utils.platform :as platform]
             [status-im.utils.dimensions :as dimensions]
+            [status-im.fleet.core :as fleet]
             pluto.registry
             status-im.transport.db
-            status-im.ui.screens.accounts.db
+            status-im.accounts.db
             status-im.ui.screens.contacts.db
             status-im.ui.screens.qr-scanner.db
             status-im.ui.screens.group.db
@@ -14,7 +15,7 @@
             status-im.ui.screens.profile.db
             status-im.ui.screens.network-settings.db
             status-im.ui.screens.offline-messaging-settings.db
-            status-im.ui.screens.browser.db
+            status-im.browser.db
             status-im.ui.screens.add-new.db
             status-im.ui.screens.add-new.new-public-chat.db))
 
@@ -45,7 +46,7 @@
              :semaphores                         #{}
              :network                            constants/default-network
              :networks/networks                  constants/default-networks
-             :inbox/wnodes                       constants/default-wnodes
+             :inbox/wnodes                       fleet/default-wnodes
              :my-profile/editing?                false
              :transport/chats                    {}
              :transport/message-envelopes        {}
@@ -57,7 +58,12 @@
              :desktop/desktop                    {:tab-view-id :home}
              :dimensions/window                  (dimensions/window)
              :push-notifications/stored          {}
-             :registry                           {}})
+             :registry                           {}
+             :hardwallet                         {:nfc-supported? false
+                                                  :nfc-enabled?   false
+                                                  :pin            {:original     []
+                                                                   :confirmation []
+                                                                   :enter-step   :original}}})
 
 ;;;;GLOBAL
 
@@ -144,7 +150,7 @@
 (spec/def ::peers-count (spec/nilable integer?))
 (spec/def ::peers-summary (spec/nilable vector?))
 (spec/def :inbox/fetching? (spec/nilable boolean?))
-(spec/def :inbox/current-id (spec/nilable string?))
+(spec/def :inbox/current-id (spec/nilable keyword?))
 
 (spec/def ::collectible (spec/nilable map?))
 (spec/def ::collectibles (spec/nilable map?))
@@ -171,6 +177,8 @@
 (spec/def :push-notifications/stored (spec/nilable map?))
 
 (spec/def ::semaphores set?)
+
+(spec/def ::hardwallet map?)
 
 (spec/def ::db (allowed-keys
                 :opt
@@ -247,6 +255,7 @@
                  ::chain
                  ::app-state
                  ::semaphores
+                 ::hardwallet
                  :navigation/view-id
                  :navigation/navigation-stack
                  :navigation/prev-tab-view-id
@@ -266,7 +275,6 @@
                  :chat/message-data
                  :chat/message-status
                  :chat/selected-participants
-                 :chat/chat-loaded-callbacks
                  :chat/public-group-topic
                  :chat/public-group-topic-error
                  :chat/messages
