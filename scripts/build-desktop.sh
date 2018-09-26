@@ -10,6 +10,13 @@ YELLOW='\033[1;33m'
 NC='\033[0m'
 SCRIPTPATH="$( cd "$(dirname "$0")" ; pwd -P )"
 OS=$(uname -s)
+if [ -z $TARGET_SYSTEM_NAME ]; then
+  TARGET_SYSTEM_NAME=$OS
+fi
+if [ -z $STATUS_CONAN_HOME ]; then
+  export STATUS_CONAN_HOME=$STATUS_REACT_HOME/../status-conan
+fi
+WINDOWS_CROSSTOOLCHAIN_PKG_NAME='mxetoolchain-x86_64-w64-mingw32'
 
 external_modules_dir=( \
   'node_modules/react-native-i18n/desktop' \
@@ -39,6 +46,10 @@ function is_linux() {
   [[ "$OS" =~ Linux ]]
 }
 
+function is_windows_target() {
+  [[ "$TARGET_SYSTEM_NAME" =~ Windows ]]
+}
+
 function program_exists() {
   local program=$1
   command -v "$program" >/dev/null 2>&1
@@ -66,9 +77,11 @@ DEPLOYQT="$(joinPath . 'linuxdeployqt-continuous-x86_64.AppImage')"
 APPIMAGETOOL="$(joinPath . 'appimagetool-x86_64.AppImage')"
 
 function init() {
-  if [ -z $QT_PATH ]; then
-    echo "${RED}QT_PATH environment variable is not defined!${NC}"
-    exit 1
+  if ! is_windows_target; then
+    if [ -z $QT_PATH ]; then
+      echo "${RED}QT_PATH environment variable is not defined!${NC}"
+      exit 1
+    fi
   fi
 
   if is_macos; then
@@ -81,10 +94,19 @@ function init() {
       fi
       set -e
     fi
-  fi
 
-  if is_macos; then
     DEPLOYQT="$MACDEPLOYQT"
+  elif is_linux; then
+    rm -rf ./desktop/toolchain/
+    if is_windows_target; then
+      # TODO: Use Conan for Linux and MacOS builds too
+      export PATH=$STATUS_CONAN_HOME:$PATH
+      if ! program_exists 'conan'; then
+        echo "${RED}Conan package manager is not installed. Please install it from https://conan.io/${NC}"
+        exit 1
+      fi
+      conan install -if ./desktop/toolchain/ -g cmake -pr $STATUS_CONAN_HOME/profiles/status-mxe-mingw32-x86_64-gcc55-libstdcxx $WINDOWS_CROSSTOOLCHAIN_PKG_NAME/5.5.0-1@status-im/experimental
+    fi
   fi
 }
 
@@ -129,14 +151,67 @@ function buildClojureScript() {
 
 function compile() {
   pushd desktop
-    rm -rf CMakeFiles CMakeCache.txt cmake_install.cmake Makefile modules
-    cmake -Wno-dev \
-          -DCMAKE_BUILD_TYPE=Release \
-          -DEXTERNAL_MODULES_DIR="$(joinStrings ${external_modules_dir[@]})" \
-          -DDESKTOP_FONTS="$(joinStrings ${external_fonts[@]})" \
-          -DJS_BUNDLE_PATH="$WORKFOLDER/Status.jsbundle" \
-          -DCMAKE_CXX_FLAGS:='-DBUILD_FOR_BUNDLE=1 -std=c++11'
-    make -j5
+    rm -rf CMakeFiles CMakeCache.txt cmake_install.cmake Makefile modules reportApp/CMakeFiles desktop/node_modules/google-breakpad/CMakeFiles desktop/node_modules/react-native-keychain/desktop/qtkeychain-prefix/src/qtkeychain-build/CMakeFiles desktop/node_modules/react-native-keychain/desktop/qtkeychain
+    EXTERNAL_MODULES_DIR="$(joinStrings ${external_modules_dir[@]})"
+    DESKTOP_FONTS="$(joinStrings ${external_fonts[@]})"
+    JS_BUNDLE_PATH="$WORKFOLDER/Status.jsbundle"
+    if is_windows_target; then
+      # Get the toolchain bin folder from toolchain/conanbuildinfo.txt
+      bin=$(sed -nr "/^\[bindirs_$WINDOWS_CROSSTOOLCHAIN_PKG_NAME\]/ { :l /^\s*[^#].*/ p; n; /^\[/ q; b l; }" toolchain/conanbuildinfo.txt | sed -n 2p)
+      if [ ! -d $bin ]; then
+        echo -e "${RED}Could not find valid bindirs_$WINDOWS_CROSSTOOLCHAIN_PKG_NAME value in 'toolchain/conanbuildinfo.txt', aborting${NC}"
+        exit 1
+      fi
+      cmake -Wno-dev \
+            -DCMAKE_TOOLCHAIN_FILE='Toolchain-Ubuntu-mingw64.cmake' \
+            -DCMAKE_C_COMPILER="$bin/x86_64-w64-mingw32.shared-gcc" \
+            -DCMAKE_CXX_COMPILER="$bin/x86_64-w64-mingw32.shared-g++" \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DEXTERNAL_MODULES_DIR="$EXTERNAL_MODULES_DIR" \
+            -DDESKTOP_FONTS="$DESKTOP_FONTS" \
+            -DJS_BUNDLE_PATH="$JS_BUNDLE_PATH" \
+            -DCMAKE_CXX_FLAGS:='-DBUILD_FOR_BUNDLE=1' || exit 1
+    else
+      cmake -Wno-dev \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DEXTERNAL_MODULES_DIR="$EXTERNAL_MODULES_DIR" \
+            -DDESKTOP_FONTS="$DESKTOP_FONTS" \
+            -DJS_BUNDLE_PATH="$JS_BUNDLE_PATH" \
+            -DCMAKE_CXX_FLAGS:='-DBUILD_FOR_BUNDLE=1' || exit 1
+    fi
+    make -j5 || exit 1
+  popd
+}
+
+function bundleWindows() {
+  # TODO: Produce a setup program instead of a ZIP
+  pushd $WORKFOLDER
+    rm -rf Windows
+    mkdir Windows
+
+    if [ -z $STATUSIM_WINDOWS_BASEIMAGE_ZIP ]; then
+      STATUSIM_WINDOWS_BASEIMAGE_ZIP=./StatusIm-Windows-base-image.zip
+      [ -f $STATUSIM_WINDOWS_BASEIMAGE_ZIP ] || wget https://desktop-app-files.ams3.digitaloceanspaces.com/StatusIm-Windows-base-image.zip
+    fi
+    unzip "$STATUSIM_WINDOWS_BASEIMAGE_ZIP" -d Windows/
+
+    rm -f Status-Windows.zip
+    pushd Windows
+      cp $STATUS_REACT_HOME/.env .
+      mkdir -p assets/resources notifier
+      cp $STATUS_REACT_HOME/node_modules/node-notifier/vendor/snoreToast/SnoreToast.exe \
+         $STATUS_REACT_HOME/node_modules/node-notifier/vendor/notifu/*.exe \
+         notifier/
+      cp -r $STATUS_REACT_HOME/resources/fonts \
+            $STATUS_REACT_HOME/resources/icons \
+            $STATUS_REACT_HOME/resources/images \
+            assets/resources/
+      local _bin=$STATUS_REACT_HOME/desktop/bin
+      rm -rf $_bin/cmake_install.cmake $_bin/Makefile $_bin/CMakeFiles $_bin/Status_autogen && \
+      cp -r $_bin/* .
+      zip -mr9 ../Status-Windows.zip .
+    popd
+    rm -rf Windows
   popd
 }
 
@@ -154,8 +229,8 @@ function bundleLinux() {
     rm -rf StatusImAppImage
     # TODO this needs to be fixed: status-react/issues/5378
     if [ -z $STATUSIM_APPIMAGE ]; then
-      [ -f ./StatusImAppImage.zip ] || wget https://desktop-app-files.ams3.digitaloceanspaces.com/StatusImAppImage.zip
       STATUSIM_APPIMAGE=./StatusImAppImage.zip
+      [ -f $STATUSIM_APPIMAGE ] || wget https://desktop-app-files.ams3.digitaloceanspaces.com/StatusImAppImage.zip
     fi
     unzip "$STATUSIM_APPIMAGE" -d .
     rm -rf AppDir
@@ -167,7 +242,7 @@ function bundleLinux() {
   cp -r ./deployment/linux/usr $WORKFOLDER/AppDir
   cp ./.env $usrBinPath
   cp ./desktop/bin/Status $usrBinPath
-  cp ./desktop/reportApp/reportApp $usrBinPath
+  cp ./desktop/bin/reportApp $usrBinPath
   
   if [ ! -f $DEPLOYQT ]; then
     wget --output-document="$DEPLOYQT" --show-progress -q https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
@@ -239,7 +314,7 @@ function bundleMacOS() {
     ln -sf ../Resources/assets ../Resources/ubuntu-server ../Resources/node_modules Status.app/Contents/MacOS
     chmod +x Status.app/Contents/Resources/ubuntu-server
     cp ../desktop/bin/Status Status.app/Contents/MacOS/Status
-    cp ../desktop/reportApp/reportApp Status.app/Contents/MacOS
+    cp ../desktop/bin/reportApp Status.app/Contents/MacOS
     cp ../.env Status.app/Contents/Resources
     ln -sf ../Resources/.env Status.app/Contents/MacOS/.env
     cp -f ../deployment/macos/qt-reportApp.conf Status.app/Contents/Resources
@@ -264,8 +339,12 @@ function bundleMacOS() {
 function bundle() {
   if is_macos; then
     bundleMacOS
-  else
-    bundleLinux
+  elif is_linux; then
+    if is_windows_target; then
+      bundleWindows
+    else
+      bundleLinux
+    fi
   fi
 }
 
