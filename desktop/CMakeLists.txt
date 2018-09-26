@@ -8,9 +8,18 @@
 
 cmake_minimum_required(VERSION 2.8.11)
 
+#option(TARGET_SYSTEM_NAME "Target OS name when cross-compiling" ${CMAKE_SYSTEM_NAME})
+
 set(APP_NAME StatusIm)
 set(REACT_BUILD_STATIC_LIB ON)
 
+if("${CMAKE_SYSTEM_NAME}" MATCHES "Windows")
+  if("${CMAKE_HOST_SYSTEM_NAME}" MATCHES "Linux")
+    # include(./Toolchain-Ubuntu-mingw64.cmake)
+  else()
+  message(FATAL_ERROR "Can only cross-compile to Windows from Linux")
+  endif()
+endif()
 set(CMAKE_OSX_DEPLOYMENT_TARGET "10.9")
 
 message(STATUS "EXTERNAL_MODULES_DIR: ${EXTERNAL_MODULES_DIR}")
@@ -43,4 +52,3 @@ configure_file(
   ${CMAKE_CURRENT_BINARY_DIR}/${RUN_SCRIPT_FILE_NAME}
   @ONLY
 )
-

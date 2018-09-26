@@ -10,6 +10,9 @@ YELLOW='\033[1;33m'
 NC='\033[0m'
 SCRIPTPATH="$( cd "$(dirname "$0")" ; pwd -P )"
 OS=$(uname -s)
+if [ -z $TARGET_SYSTEM_NAME ]; then
+  TARGET_SYSTEM_NAME=$OS
+fi
 
 external_modules_dir=( \
   'node_modules/react-native-i18n/desktop' \
@@ -83,6 +86,10 @@ function init() {
   if is_macos; then
     DEPLOYQT="$MACDEPLOYQT"
   fi
+
+  if "$TARGET_SYSTEM_NAME" = "Windows" -a ! program_exists 'x86_64-w64-mingw32-g++'; then
+    sudo apt-get install g++-mingw-w64 mingw-w64-{tools,x86-64-dev}
+  fi
 }
 
 function joinStrings() {
@@ -126,8 +133,9 @@ function buildClojureScript() {
 
 function compile() {
   pushd desktop
-    rm -rf CMakeFiles CMakeCache.txt cmake_install.cmake Makefile
+    rm -rf CMakeFiles CMakeCache.txt cmake_install.cmake Makefile desktop/node_modules/google-breakpad/CMakeFiles desktop/node_modules/react-native-keychain/desktop/qtkeychain-prefix/src/qtkeychain-build/CMakeFiles
     cmake -Wno-dev \
+          -DCMAKE_TOOLCHAIN_FILE=Toolchain-Ubuntu-mingw64.cmake \
           -DCMAKE_BUILD_TYPE=Release \
           -DEXTERNAL_MODULES_DIR="$(joinStrings ${external_modules_dir[@]})" \
           -DDESKTOP_FONTS="$(joinStrings ${external_fonts[@]})" \
