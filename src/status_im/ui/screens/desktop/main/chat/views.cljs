@@ -148,15 +148,28 @@
            [react/view {:style (message.style/delivery-status outgoing)}
             [message/message-delivery-status message]]])}))))
 
+(def load-step 5)
+
+(defn load-more [messages messages-to-load]
+  (let [all-messages-count (count messages)
+        next-count (min all-messages-count (+ @messages-to-load load-step))]
+    (reset! messages-to-load next-count)))
+
 (views/defview messages-view [{:keys [chat-id group-chat]}]
   (views/letsubs [messages [:get-current-chat-messages-stream]
-                  current-public-key [:get-current-public-key]]
-    (let [chat-id* (atom nil)
-          scroll-ref (atom nil)
+                  current-public-key [:get-current-public-key]
+                  messages-to-load (reagent/atom 5)
+                  chat-id* (reagent/atom nil)]
+    {:component-did-update #(load-more messages messages-to-load)
+     :component-did-mount  #(load-more messages messages-to-load)}
+    (let [scroll-ref (atom nil)
           scroll-timer (atom nil)
           scroll-height (atom nil)
           _ (when (or (not @chat-id*) (not= @chat-id* chat-id))
-              (reset! chat-id* chat-id))]
+              (do
+                (reset! messages-to-load load-step)
+                (reset! chat-id* chat-id)
+                (log/debug "chat reseted, new count: 5" " messages count: " (count messages))))]
       [react/view {:style styles/messages-view}
        [react/scroll-view {:scrollEventThrottle    16
                            :headerHeight styles/messages-list-vertical-padding
@@ -173,7 +186,7 @@
                            :ref                    #(reset! scroll-ref %)}
         [react/view
          (doall
-          (for [[index {:keys [from content message-id type value] :as message-obj}] (map-indexed vector messages)]
+          (for [[index {:keys [from content message-id type value] :as message-obj}] (map-indexed vector (take @messages-to-load messages))]
             ^{:key message-obj}
             [message content (= from current-public-key)
              (assoc message-obj :group-chat group-chat
