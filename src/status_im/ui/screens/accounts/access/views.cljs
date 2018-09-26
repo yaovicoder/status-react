@@ -12,7 +12,6 @@
             [status-im.react-native.js-dependencies :as js-dependencies]
             [status-im.i18n :as i18n]
             [status-im.utils.config :as config]
-            [status-im.utils.core :as utils.core]
             [status-im.utils.security :as security]
             [status-im.ui.components.toolbar.actions :as actions]))
 
