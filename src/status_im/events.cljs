@@ -160,7 +160,7 @@
 
 (handlers/register-handler-fx
  :accounts.access.ui/step-back-pressed
- (fn [cofx [_ step passphrase password password-confirm]]
+ (fn [cofx [_ step]]
    (accounts.access/step-back step cofx)))
 
 (handlers/register-handler-fx

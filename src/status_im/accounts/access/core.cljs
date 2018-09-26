@@ -12,10 +12,6 @@
             [status-im.utils.security :as security]
             [status-im.utils.types :as types]))
 
-(defn check-password-errors [password]
-  (cond (string/blank? password) :required-field
-        (not (db/valid-length? password)) :recover-password-too-short))
-
 (defn check-phrase-errors [recovery-phrase]
   (cond (string/blank? recovery-phrase) :required-field
         (not (mnemonic/valid-phrase? recovery-phrase)) :recovery-phrase-invalid))
@@ -23,6 +19,16 @@
 (defn check-phrase-warnings [recovery-phrase]
   (when (not (mnemonic/status-generated-phrase? recovery-phrase))
     :recovery-phrase-unknown-words))
+
+(defn set-phrase [masked-recovery-phrase {:keys [db]}]
+  (let [recovery-phrase (security/unmask masked-recovery-phrase)]
+    {:db (update db :accounts/access assoc :passphrase (string/lower-case recovery-phrase))}))
+
+(defn validate-phrase [{:keys [db]}]
+  (let [recovery-phrase (get-in db [:accounts/access :passphrase])]
+    {:db (update db :accounts/access assoc
+                 :passphrase-error (check-phrase-errors recovery-phrase)
+                 :passphrase-warning (check-phrase-warnings recovery-phrase))}))
 
 (defn access-account! [masked-passphrase password]
   (status/access-account
@@ -37,28 +43,6 @@
                     (types/clj->json))]
        (re-frame/dispatch [:accounts.access.callback/access-account-success data password])))))
 
-(defn set-phrase [masked-recovery-phrase {:keys [db]}]
-  (let [recovery-phrase (security/unmask masked-recovery-phrase)]
-    {:db (update db :accounts/access assoc
-                 :passphrase (string/lower-case recovery-phrase)
-                 :passphrase-valid? (not (check-phrase-errors recovery-phrase)))}))
-
-(defn validate-phrase [{:keys [db]}]
-  (let [recovery-phrase (get-in db [:accounts/access :passphrase])]
-    {:db (update db :accounts/access assoc
-                 :passphrase-error (check-phrase-errors recovery-phrase)
-                 :passphrase-warning (check-phrase-warnings recovery-phrase))}))
-
-(defn set-password [masked-password {:keys [db]}]
-  (let [password (security/unmask masked-password)]
-    {:db (update db :accounts/access assoc
-                 :password password
-                 :password-valid? (not (check-password-errors password)))}))
-
-(defn validate-password [{:keys [db]}]
-  (let [password (get-in db [:accounts/access :password])]
-    {:db (assoc-in db [:accounts/access :password-error] (check-password-errors password))}))
-
 (defn validate-access-result [{:keys [error pubkey address]} password {:keys [db] :as cofx}]
   (if (empty? error)
     (let [account {:pubkey     pubkey
@@ -66,12 +50,11 @@
                    :photo-path (identicon/identicon pubkey)
                    :mnemonic   ""}]
       (accounts.create/on-account-created account password true cofx))
-    {:db (assoc-in db [:accounts/access :password-error] :recover-password-invalid)}))
+    {:db (assoc-in db [:accounts/access :error] (i18n/label :t/recover-password-invalid))}))
 
 (defn on-account-accessed [result password {:keys [db] :as cofx}]
   (let [data (types/json->clj result)]
     (handlers-macro/merge-fx cofx
-                             {:db (dissoc db :accounts/access)}
                              (validate-access-result data password))))
 
 (defn access-account [{:keys [db]}]
@@ -94,16 +77,22 @@
   (case step
     :passphrase {:db (assoc-in db [:accounts/access :step] :enter-password)}
     :enter-password {:db (assoc-in db [:accounts/access :step] :confirm-password)}
-    :confirm-password (access-account-with-checks cofx)))
+    :confirm-password (let [{:keys [password password-confirm]} (:accounts/access db)]
+                        (if (= password password-confirm)
+                          (access-account-with-checks cofx)
+                          {:db (assoc-in db [:accounts/access :error] (i18n/label :t/password_error1))}))))
 
 (defn step-back [step {:keys [db] :as cofx}]
   (case step
     :passphrase (navigation/navigate-back cofx)
-    :enter-password {:db (assoc-in db [:accounts/access :step] :passphrase)}
-    :confirm-password {:db (assoc-in db [:accounts/access :step] :enter-password)}))
+    :enter-password {:db (update db :accounts/access merge {:step  :passphrase
+                                                            :error nil})}
+    :confirm-password {:db (update db :accounts/access merge {:step  :enter-password
+                                                              :error nil})}))
 
-(defn account-set-input-text [input-key text {db :db}]
-  {:db (update db :accounts/access merge {input-key text :error nil})})
+(defn account-set-input-text [input-key masked-text {db :db}]
+  (let [text (security/unmask masked-text)]
+    {:db (update db :accounts/access merge {input-key text :error nil})}))
 
 (defn navigate-to-access-account-screen [{:keys [db] :as cofx}]
   (handlers-macro/merge-fx cofx

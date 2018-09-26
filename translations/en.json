@@ -239,6 +239,7 @@
     "edit": "Edit",
     "wallet-address-from-clipboard": "Use Address From Clipboard",
     "currency-display-name-cad": "Canada Dollar",
+    "access": "Access",
     "account-generation-message": "Gimmie a sec, I gotta do some crazy math to generate your account!",
     "remove-network": "Remove network",
     "recovery-typo-dialog-description": "If you enter the wrong words, you will create a new account instead of recovering an old one.",
