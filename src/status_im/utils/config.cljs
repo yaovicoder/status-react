@@ -23,16 +23,21 @@
 (def rpc-networks-only? (enabled? (get-config :RPC_NETWORKS_ONLY "1")))
 (def group-chats-enabled? (enabled? (get-config :GROUP_CHATS_ENABLED)))
 (def mainnet-warning-enabled? (enabled? (get-config :MAINNET_WARNING_ENABLED 0)))
+(def pfs-encryption-enabled? (enabled? (get-config :PFS_ENCRYPTION_ENABLED "0")))
 (def in-app-notifications-enabled? (enabled? (get-config :IN_APP_NOTIFICATIONS_ENABLED 0)))
 (def cached-webviews-enabled? (enabled? (get-config :CACHED_WEBVIEWS_ENABLED 0)))
 (def rn-bridge-threshold-warnings-enabled? (enabled? (get-config :RN_BRIDGE_THRESHOLD_WARNINGS 0)))
 (def extensions-enabled? (enabled? (get-config :EXTENSIONS 0)))
+(def hardwallet-enabled? (enabled? (get-config :HARDWALLET_ENABLED 0)))
 
 ;; CONFIG VALUES
 (def log-level
   (-> (get-config :LOG_LEVEL "error")
       string/lower-case
       keyword))
+(def log-level-status-go
+  (-> (get-config :LOG_LEVEL_STATUS_GO "")
+      string/upper-case))
 (def fleet (get-config :FLEET "eth.beta"))
 (def default-network (get-config :DEFAULT_NETWORK))
 ;; the default value should be a string for `enabled?` to work correctly.

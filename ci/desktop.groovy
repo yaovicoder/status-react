@@ -86,8 +86,6 @@ def prepDeps() {
 }
 
 def compileLinux() {
-  /* add path for QT installation binaries */
-  env.PATH = "${qtBin}:${env.PATH}"
   dir('desktop') {
     sh 'rm -rf CMakeFiles CMakeCache.txt cmake_install.cmake Makefile'
     sh """
@@ -114,7 +112,7 @@ def bundleLinux(type = 'nightly') {
     sh 'mkdir AppDir'
   }
   sh "cp -r ./deployment/linux/usr  ${packageFolder}/AppDir"
-  sh "cp ./deployment/linux/.env  ${packageFolder}/AppDir"
+  sh "cp ./deployment/env  ${packageFolder}/AppDir/usr/bin"
   sh "cp ./desktop/bin/StatusIm ${packageFolder}/AppDir/usr/bin"
   sh "cp ./desktop/reportApp/reportApp ${packageFolder}/AppDir/usr/bin"
   sh 'wget https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage'
@@ -187,6 +185,8 @@ def bundleMacOS(type = 'nightly') {
     sh 'chmod +x Status.app/Contents/Resources/ubuntu-server'
     sh 'cp ../desktop/bin/StatusIm Status.app/Contents/MacOS/Status'
     sh 'cp ../desktop/reportApp/reportApp Status.app/Contents/MacOS'
+    sh "cp ../deployment/env  Status.app/Contents/Resources"
+    sh 'ln -sf ../Resources/env Status.app/Contents/MacOS/env'
     sh 'cp -f ../deployment/macos/qt-reportApp.conf Status.app/Contents/Resources'
     sh 'ln -sf ../Resources/qt-reportApp.conf Status.app/Contents/MacOS/qt.conf'
     sh 'install_name_tool -add_rpath "@executable_path/../Frameworks" ' +
@@ -199,7 +199,16 @@ def bundleMacOS(type = 'nightly') {
         -qmldir='${workspace}/node_modules/react-native/ReactQt/runtime/src/qml/'
     """
     sh 'rm -f Status.app.zip'
-    sh "../node_modules/appdmg/bin/appdmg.js ../deployment/macos/status-dmg.json ${pkg}"
+
+    withCredentials([
+      string(credentialsId: 'desktop-gpg-outer-pass', variable: 'GPG_PASS_OUTER'),
+      string(credentialsId: 'desktop-gpg-inner-pass', variable: 'GPG_PASS_INNER'),
+      string(credentialsId: 'desktop-keychain-pass', variable: 'KEYCHAIN_PASS')
+    ]) {
+      sh '../scripts/sign-macos-pkg.sh Status.app ../deployment/macos/macos-developer-id.keychain-db.gpg'
+      sh "../node_modules/appdmg/bin/appdmg.js ../deployment/macos/status-dmg.json ${pkg}"
+      sh "../scripts/sign-macos-pkg.sh ${pkg} ../deployment/macos/macos-developer-id.keychain-db.gpg"
+    }
   }
   return "${packageFolder}/${pkg}".drop(2)
 }

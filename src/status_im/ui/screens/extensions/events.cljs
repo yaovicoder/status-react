@@ -4,9 +4,7 @@
             [status-im.utils.handlers :as handlers]
             status-im.ui.screens.extensions.add.events))
 
-(handlers/register-handler-db
+(handlers/register-handler-fx
  :extensions/toggle-activation
- [re-frame/trim-v]
- (fn [db [id m]]
+ (fn [{:keys [db]} [_ id m]]
    nil))
-
