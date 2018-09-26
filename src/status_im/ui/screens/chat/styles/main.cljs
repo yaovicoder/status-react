@@ -55,8 +55,10 @@
 
 (def chat-name-text
   {:color       component.styles/color-black
-   :line-height 18
-   :font-size   15})
+   :android {:font-size 15
+             :line-height 20}
+   :ios     {:font-size 16
+             :line-height 22}})
 
 (def group-icon
   {:margin-top    4
