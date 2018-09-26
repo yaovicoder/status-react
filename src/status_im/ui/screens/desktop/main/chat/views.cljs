@@ -96,7 +96,7 @@
     [react/text {:style           (styles/message-text message)
                  :selectable      true
                  :selection-color (if outgoing colors/white colors/hawkes-blue)}
-     text]
+     (clojure.string/escape text {\< "&lt;", \> "&gt;", \& "&amp;"})]
     [react/text {:style (styles/message-timestamp-placeholder)}
      (time/timestamp->time timestamp)]
     [react/text {:style (styles/message-timestamp)}
