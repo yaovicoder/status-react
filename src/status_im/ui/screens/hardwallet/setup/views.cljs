@@ -1,6 +1,8 @@
 (ns status-im.ui.screens.hardwallet.setup.views
   (:require-macros [status-im.utils.views :refer [defview letsubs]])
   (:require [re-frame.core :as re-frame]
+            [reagent.core :as reagent]
+            [goog.object :as gobject]
             [status-im.ui.components.common.common :as components.common]
             [status-im.react-native.resources :as resources]
             [status-im.ui.screens.hardwallet.setup.styles :as styles]
@@ -9,15 +11,44 @@
             [status-im.ui.components.styles :as components.styles]
             [status-im.ui.components.text-input.view :as text-input]
             [status-im.i18n :as i18n]
+            [status-im.utils.utils :as utils]
             [status-im.ui.components.colors :as colors]))
 
-(defn- maintain-card []
-  [react/view styles/maintain-card-container
-   [vector-icons/icon :icons/hardwallet {:color           colors/blue
-                                         :container-style styles/hardwallet-icon-container}]
-   [react/text {:style           styles/maintain-card-text
-                :number-of-lines 2}
-    (i18n/label :t/maintain-card-to-phone-contact)]])
+(defn maintain-card []
+  (let [interval-ids (reagent/atom [])
+        speed 250
+        opacity-obj #js {:small  1
+                         :middle 0.5
+                         :big    0.2}
+        update-fn (fn [opacity type ref]
+                    (swap! interval-ids conj (utils/set-interval (fn []
+                                                                   (when ref
+                                                                     (let [new-opacity (case (gobject/get opacity type)
+                                                                                         1 0.2
+                                                                                         0.5 1
+                                                                                         0.2 0.5)]
+                                                                       (.setNativeProps ref #js {:opacity new-opacity})
+                                                                       (gobject/set opacity type new-opacity))))
+                                                                 speed)))]
+    (reagent/create-class
+     {:component-will-unmount #(doseq [i @interval-ids]
+                                 (utils/clear-interval i))
+      :display-name           "maintain-card"
+      :reagent-render         (fn [] [react/view styles/maintain-card-container
+                                      [react/view styles/hardwallet-icon-container
+                                       [vector-icons/icon :icons/hardwallet {:color colors/blue}]
+                                       [vector-icons/icon :icons/indicator-small {:color           colors/blue
+                                                                                  :ref             (partial update-fn opacity-obj "small")
+                                                                                  :container-style styles/hardwallet-icon-indicator-small-container}]
+                                       [vector-icons/icon :icons/indicator-middle {:color           colors/blue
+                                                                                   :ref             (partial update-fn opacity-obj "middle")
+                                                                                   :container-style styles/hardwallet-icon-indicator-middle-container}]
+                                       [vector-icons/icon :icons/indicator-big {:color           colors/blue
+                                                                                :ref             (partial update-fn opacity-obj "big")
+                                                                                :container-style styles/hardwallet-icon-indicator-big-container}]]
+                                      [react/text {:style           styles/maintain-card-text
+                                                   :number-of-lines 2}
+                                       (i18n/label :t/maintain-card-to-phone-contact)]])})))
 
 (defview secret-keys []
   (letsubs [width [:dimensions/window-width]]

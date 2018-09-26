@@ -32,7 +32,20 @@
    :color              colors/blue})
 
 (def hardwallet-icon-container
-  {:margin-left 20})
+  {:margin-left    20
+   :flex-direction :row
+   :align-items    :center})
+
+(def hardwallet-icon-indicator-small-container
+  {:margin-left 4
+   :opacity     1})
+
+(def hardwallet-icon-indicator-middle-container
+  {:margin-left 1
+   :opacity     0.5})
+
+(def hardwallet-icon-indicator-big-container
+  {:opacity 0.2})
 
 (def hardwallet-card-image-container
   {:margin-top  81
