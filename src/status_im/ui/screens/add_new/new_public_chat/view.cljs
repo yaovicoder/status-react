@@ -9,7 +9,7 @@
             [status-im.ui.components.text-input.view :as text-input.view]
             [status-im.ui.components.toolbar.view :as toolbar]
             [status-im.ui.components.tooltip.views :as tooltip]
-            [status-im.ui.screens.add-new.new-public-chat.db :as v]
+            [status-im.ui.screens.add-new.new-public-chat.db :as db]
             [status-im.ui.screens.add-new.new-public-chat.styles :as styles]
             [status-im.ui.screens.add-new.styles :as add-new.styles]
             status-im.utils.db
@@ -26,10 +26,10 @@
      [text-input.view/text-input-with-label
       {:container           styles/input-container
        :on-change-text      #(do
-                               (re-frame/dispatch [:set :public-group-topic-error (when-not (spec/valid? ::v/topic %)
+                               (re-frame/dispatch [:set :public-group-topic-error (when-not (db/valid-topic? %)
                                                                                     (i18n/label :t/topic-name-error))])
                                (re-frame/dispatch [:set :public-group-topic %]))
-       :on-submit-editing   #(when (and topic (spec/valid? ::v/topic topic))
+       :on-submit-editing   #(when (db/valid-topic? topic)
                                (re-frame/dispatch [:chat.ui/start-public-chat topic]))
        :auto-capitalize     :none
        :auto-focus          false
