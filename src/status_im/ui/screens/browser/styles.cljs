@@ -1,6 +1,6 @@
 (ns status-im.ui.screens.browser.styles
-  (:require-macros [status-im.utils.styles :refer [defstyle defnstyle]])
-  (:require [status-im.ui.components.colors :as colors]))
+  (:require [status-im.ui.components.colors :as colors])
+  (:require-macros [status-im.utils.styles :refer [defnstyle defstyle]]))
 
 (def browser {:flex 1})
 
@@ -19,11 +19,12 @@
    :ios     {:margin-top 4}
    :android {:font-size 13}})
 
-(def toolbar
+(def navbar
   {:background-color   :white
    :height             48
    :flex-direction     :row
    :align-items        :center
+   :justify-content    :space-between
    :padding-horizontal 32})
 
 (def disabled-button

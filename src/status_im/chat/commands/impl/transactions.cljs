@@ -5,7 +5,7 @@
             [re-frame.core :as re-frame]
             [status-im.chat.commands.protocol :as protocol]
             [status-im.chat.commands.impl.transactions.styles :as transactions-styles]
-            [status-im.data-store.requests :as requests-store]
+            [status-im.data-store.messages :as messages-store]
             [status-im.ui.components.react :as react]
             [status-im.ui.components.icons.vector-icons :as vector-icons]
             [status-im.ui.components.colors :as colors]
@@ -18,6 +18,7 @@
             [status-im.utils.ethereum.core :as ethereum]
             [status-im.utils.ethereum.tokens :as tokens]
             [status-im.utils.datetime :as datetime]
+            [status-im.utils.fx :as fx]
             [status-im.utils.money :as money]
             [status-im.ui.screens.wallet.db :as wallet.db]
             [status-im.ui.screens.wallet.choose-recipient.events :as choose-recipient.events]
@@ -85,22 +86,20 @@
   [label-key {:keys [content]}]
   (let [{:keys [amount asset]} (:params content)]
     [chat-preview/text {}
-     (str (i18n/label label-key)
-          (i18n/label-number amount)
-          " "
-          asset)]))
+     (i18n/label label-key {:amount (i18n/label-number amount)
+                            :asset  asset})]))
 
 (def personal-send-request-params
   [{:id          :asset
     :type        :text
-    :placeholder "Currency"
+    :placeholder (i18n/label :t/send-request-currency)
     ;; Suggestion components should be structured in such way that they will just take
     ;; one argument, event-creator fn used to construct event to fire whenever something
-    ;; is selected. 
+    ;; is selected.
     :suggestions choose-asset-suggestion}
    {:id          :amount
     :type        :number
-    :placeholder "Amount"}])
+    :placeholder (i18n/label :t/send-request-amount)}])
 
 (defview choose-nft-token [selected-event-creator]
   (letsubs [{:keys [input-params]} [:selected-chat-command]
@@ -156,28 +155,31 @@
     (cond
 
       (not asset-decimals)
-      {:title       "Invalid Asset"
-       :description (str "Unknown token - " asset)}
+      {:title       (i18n/label :t/send-request-invalid-asset)
+       :description (i18n/label :t/send-request-unknown-token {:asset asset})}
 
       (not amount)
-      {:title       "Amount"
-       :description "Amount must be specified"}
+      {:title       (i18n/label :t/send-request-amount)
+       :description (i18n/label :t/send-request-amount-must-be-specified)}
 
       :else
       (let [sanitised-str (string/replace amount #"," ".")
             portions      (string/split sanitised-str ".")
             decimals      (count (get portions 1))
-            amount        (js/parseFloat sanitised-str)]
+            amount-string (str amount)
+            amount        (js/Number sanitised-str)]
         (cond
 
           (or (js/isNaN amount)
-              (> (count portions) 2))
-          {:title       "Amount"
-           :description "Amount is not valid number"}
+              (> (count portions) 2)
+              (re-matches #".+(\.|,)$" amount-string))
+          {:title       (i18n/label :t/send-request-amount)
+           :description (i18n/label :t/send-request-amount-invalid-number)}
 
           (and decimals (> decimals asset-decimals))
-          {:title       "Amount"
-           :description (str "Max number of decimals is " asset-decimals)})))))
+          {:title       (i18n/label :t/send-request-amount)
+           :description (i18n/label :t/send-request-amount-max-decimals
+                                    {:asset-decimals asset-decimals})})))))
 
 ;; `/send` command
 
@@ -222,10 +224,7 @@
         (when (and group-chat
                    recipient-name)
           [react/text {:style transactions-styles/command-send-recipient-text}
-           (str
-            (i18n/label :send-sending-to)
-            " "
-            recipient-name)])
+           (i18n/label :send-sending-to {:recipient-name recipient-name})])
         [react/view
          [react/text {:style (transactions-styles/command-send-timestamp outgoing)}
           (str (i18n/label :sent-at) " " timestamp-str)]]
@@ -241,35 +240,44 @@
              :gas (ethereum/estimate-gas symbol)
              :from-chat? true)))
 
-(defn- inject-network-price-info [{:keys [amount asset] :as parameters} {:keys [db]}]
-  (let [{:keys [chain prices]} db
-        currency               (-> db
-                                   currency-settings.subs/get-currency
-                                   name
-                                   string/upper-case)]
+(defn- inject-network-info [parameters {:keys [db]}]
+  (assoc parameters :network (:chain db)))
+
+(defn- inject-price-info [{:keys [amount asset] :as parameters} {:keys [db]}]
+  (let [currency (-> db
+                     currency-settings.subs/get-currency
+                     name
+                     string/upper-case)]
     (assoc parameters
-           :network     chain
-           ;; TODO(janherich) - shouldn't this be rather computed on the receiver side ?
-           :fiat-amount (money/fiat-amount-value amount
+           :fiat-amount (money/fiat-amount-value (string/replace amount #"," ".")
                                                  (keyword asset)
                                                  (keyword currency)
-                                                 prices)
+                                                 (:prices db))
            :currency    currency)))
+
+(defn- params-unchanged? [send-message request-message]
+  (and (= (get-in send-message [:content :params :asset])
+          (get-in request-message [:content :params :asset]))
+       (= (get-in send-message [:content :params :amount])
+          (get-in request-message [:content :params :amount]))))
 
 (deftype PersonalSendCommand []
   protocol/Command
   (id [_] "send")
   (scope [_] #{:personal-chats})
-  (description [_] "Send a payment")
+  (description [_] (i18n/label :t/send-command-payment))
   (parameters [_] personal-send-request-params)
   (validate [_ parameters cofx]
     ;; Only superficial/formatting validation, "real validation" will be performed
     ;; by the wallet, where we yield control in the next step
     (personal-send-request-validation parameters cofx))
-  (on-send [_ {:keys [chat-id]} {:keys [db]}]
+  (on-send [_ {:keys [chat-id] :as send-message} {:keys [db]}]
     (when-let [{:keys [responding-to]} (get-in db [:chats chat-id :input-metadata])]
-      {:db            (update-in db [:chats chat-id :requests] dissoc responding-to)
-       :data-store/tx [(requests-store/mark-request-as-answered-tx chat-id responding-to)]}))
+      (when-let [request-message (get-in db [:chats chat-id :messages responding-to])]
+        (when (params-unchanged? send-message request-message)
+          (let [updated-request-message (assoc-in request-message [:content :params :answered?] true)]
+            {:db            (assoc-in db [:chats chat-id :messages responding-to] updated-request-message)
+             :data-store/tx [(messages-store/save-message-tx updated-request-message)]})))))
   (on-receive [_ command-message cofx]
     (when-let [tx-hash (get-in command-message [:content :params :tx-hash])]
       (wallet.transactions/store-chat-transaction-hash tx-hash cofx)))
@@ -278,34 +286,41 @@
   (preview [_ command-message]
     (send-preview command-message))
   protocol/Yielding
-  (yield-control [_ {:keys [amount asset]} {:keys [db]}]
+  (yield-control [_ {:keys [amount asset]} {:keys [db] :as cofx}]
     ;; Prefill wallet and navigate there
     (let [recipient-contact     (get-in db [:contacts/contacts (:current-chat-id db)])
           sender-account        (:account/account db)
           chain                 (keyword (:chain db))
           symbol                (keyword asset)
           {:keys [decimals]}    (tokens/asset-for chain symbol)
-          {:keys [value error]} (wallet.db/parse-amount amount decimals)]
-      {:db (-> db
-               (assoc-in [:wallet :send-transaction :amount] (money/formatted->internal value symbol decimals))
-               (assoc-in [:wallet :send-transaction :amount-text] amount)
-               (assoc-in [:wallet :send-transaction :amount-error] error)
-               (choose-recipient.events/fill-request-details
-                (transaction-details recipient-contact symbol))
-               (update-in [:wallet :send-transaction] dissoc :id :password :wrong-password?)
-               (navigation/navigate-to
-                (if (:wallet-set-up-passed? sender-account)
-                  :wallet-send-transaction-chat
-                  :wallet-onboarding-setup)))
-       ;; TODO(janherich) - refactor wallet send events, updating gas price
-       ;; is generic thing which shouldn't be defined in wallet.send, then
-       ;; we can include the utility helper without running into circ-dep problem
-       :update-gas-price {:web3          (:web3 db)
-                          :success-event :wallet/update-gas-price-success
-                          :edit?         false}}))
+          {:keys [value error]} (wallet.db/parse-amount amount decimals)
+          next-view-id          (if (:wallet-set-up-passed? sender-account)
+                                  :wallet-send-transaction-modal
+                                  :wallet-onboarding-setup)]
+      (fx/merge cofx
+                {:db (-> db
+                         (update-in [:wallet :send-transaction]
+                                    assoc
+                                    :amount (money/formatted->internal value symbol decimals)
+                                    :amount-text amount
+                                    :amount-error error)
+                         (choose-recipient.events/fill-request-details
+                          (transaction-details recipient-contact symbol))
+                         (update-in [:wallet :send-transaction]
+                                    dissoc :id :password :wrong-password?))
+                 ;; TODO(janherich) - refactor wallet send events, updating gas price
+                 ;; is generic thing which shouldn't be defined in wallet.send, then
+                 ;; we can include the utility helper without running into circ-dep problem
+                 :update-gas-price {:web3          (:web3 db)
+                                    :success-event :wallet/update-gas-price-success
+                                    :edit?         false}}
+                (navigation/navigate-to-cofx next-view-id {}))))
   protocol/EnhancedParameters
-  (enhance-parameters [_ parameters cofx]
-    (inject-network-price-info parameters cofx)))
+  (enhance-send-parameters [_ parameters cofx]
+    (-> (inject-network-info parameters cofx)
+        (inject-price-info cofx)))
+  (enhance-receive-parameters [_ parameters cofx]
+    (inject-price-info parameters cofx)))
 
 ;; `/request` command
 
@@ -367,88 +382,73 @@
 (defview request-preview
   [{:keys [message-id content outgoing timestamp timestamp-str group-chat]}]
   (letsubs [id->command         [:get-id->command]
-            answered?           [:is-request-answered? message-id]
             status-initialized? [:get :status-module-initialized?]
             network             [:network-name]
             prices              [:prices]]
-    (let [{:keys [amount asset fiat-amount currency] request-network :network} (:params content)
-          recipient-name    (get-in content [:params :bot-db :public :recipient])
+    (let [{:keys [amount asset fiat-amount currency answered?] request-network :network} (:params content)
           network-mismatch? (and request-network (not= request-network network))
           command           (get id->command ["send" #{:personal-chats}])
-          on-press-handler  (cond
-                              network-mismatch?
-                              nil
-                              (and (not answered?)
-                                   status-initialized?)
-                              #(re-frame/dispatch [:select-chat-input-command
-                                                   command
-                                                   [(or asset "ETH") amount]
-                                                   {:responding-to message-id}]))]
-      [react/view
-       [react/touchable-highlight
-        {:on-press on-press-handler}
-        [react/view (transactions-styles/command-request-message-view outgoing)
-         [react/view
-          [react/view
-           [react/text {:style (transactions-styles/command-request-header-text outgoing)}
-            (i18n/label :transaction-request)]]
-          [react/view transactions-styles/command-request-row
-           [react/text {:style transactions-styles/command-request-amount-text
-                        :font  :medium}
-            amount
-            [react/text {:style (transactions-styles/command-amount-currency-separator outgoing)}
-             "."]
-            [react/text {:style (transactions-styles/command-request-currency-text outgoing)
-                         :font  :default}
-             asset]]]
-          [react/view transactions-styles/command-request-fiat-amount-row
-           [react/text {:style transactions-styles/command-request-fiat-amount-text}
-            (str "~ " fiat-amount " " (or currency (i18n/label :usd-currency)))]]
-          (when (and group-chat recipient-name)
-            [react/text {:style transactions-styles/command-request-recipient-text}
-             (str
-              (i18n/label :request-requesting-from)
-              " "
-              recipient-name)])
-          (when network-mismatch?
-            [react/text {:style transactions-styles/command-request-network-text}
-             (str (i18n/label :on) " " request-network)])
-          [react/view transactions-styles/command-request-timestamp-row
-           [react/text {:style (transactions-styles/command-request-timestamp-text outgoing)}
-            (str
-             (datetime/timestamp->mini-date timestamp)
-             " "
-             (i18n/label :at)
-             " "
-             timestamp-str)]]
-          (when-not outgoing
-            [react/view
-             [react/view transactions-styles/command-request-separator-line]
-             [react/view transactions-styles/command-request-button
-              [react/text {:style    (transactions-styles/command-request-button-text answered?)
-                           :on-press on-press-handler}
-               (i18n/label (if answered? :command-button-sent :command-button-send))]]])]]]])))
+          markup            [react/view (transactions-styles/command-request-message-view outgoing)
+                             [react/view
+                              [react/text {:style (transactions-styles/command-request-header-text outgoing)}
+                               (i18n/label :transaction-request)]]
+                             [react/view transactions-styles/command-request-row
+                              [react/text {:style transactions-styles/command-request-amount-text
+                                           :font  :medium}
+                               amount
+                               [react/text {:style (transactions-styles/command-amount-currency-separator outgoing)}
+                                "."]
+                               [react/text {:style (transactions-styles/command-request-currency-text outgoing)
+                                            :font  :default}
+                                asset]]]
+                             [react/view transactions-styles/command-request-fiat-amount-row
+                              [react/text {:style transactions-styles/command-request-fiat-amount-text}
+                               (str "~ " fiat-amount " " (or currency (i18n/label :usd-currency)))]]
+                             (when network-mismatch?
+                               [react/text {:style transactions-styles/command-request-network-text}
+                                (str (i18n/label :on) " " request-network)])
+                             [react/view transactions-styles/command-request-timestamp-row
+                              [react/text {:style (transactions-styles/command-request-timestamp-text outgoing)}
+                               (str
+                                (datetime/timestamp->mini-date timestamp)
+                                " "
+                                (i18n/label :at)
+                                " "
+                                timestamp-str)]]
+                             (when-not outgoing
+                               [react/view
+                                [react/view transactions-styles/command-request-separator-line]
+                                [react/view transactions-styles/command-request-button
+                                 [react/text {:style (transactions-styles/command-request-button-text answered?)}
+                                  (i18n/label (if answered? :command-button-sent :command-button-send))]]])]]
+      (if (and (not network-mismatch?)
+               status-initialized?
+               (not outgoing)
+               (not answered?))
+        [react/touchable-highlight {:on-press #(re-frame/dispatch [:select-chat-input-command
+                                                                   command
+                                                                   [(or asset "ETH") amount]
+                                                                   {:responding-to message-id}])}
+         markup]
+        markup))))
 
 (deftype PersonalRequestCommand []
   protocol/Command
   (id [_] "request")
   (scope [_] #{:personal-chats})
-  (description [_] "Send a payment")
+  (description [_] (i18n/label :t/request-command-payment))
   (parameters [_] personal-send-request-params)
   (validate [_ parameters cofx]
     (personal-send-request-validation parameters cofx))
   (on-send [_ _ _])
-  (on-receive [_ {:keys [message-id chat-id]} {:keys [db]}]
-    (let [request {:chat-id    chat-id
-                   :message-id message-id
-                   :response   "send"
-                   :status     "open"}]
-      {:db            (assoc-in db [:chats chat-id :requests message-id] request)
-       :data-store/tx [(requests-store/save-request-tx request)]}))
+  (on-receive [_ _ _])
   (short-preview [_ command-message]
     (personal-send-request-short-preview :command-requesting command-message))
   (preview [_ command-message]
     (request-preview command-message))
   protocol/EnhancedParameters
-  (enhance-parameters [_ parameters cofx]
-    (inject-network-price-info parameters cofx)))
+  (enhance-send-parameters [_ parameters cofx]
+    (-> (inject-network-info parameters cofx)
+        (inject-price-info cofx)))
+  (enhance-receive-parameters [_ parameters cofx]
+    (inject-price-info parameters cofx)))
