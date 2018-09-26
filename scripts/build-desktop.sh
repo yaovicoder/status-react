@@ -10,6 +10,9 @@ YELLOW='\033[1;33m'
 NC='\033[0m'
 SCRIPTPATH="$( cd "$(dirname "$0")" ; pwd -P )"
 OS=$(uname -s)
+if [ -z $TARGET_SYSTEM_NAME ]; then
+  TARGET_SYSTEM_NAME=$OS
+fi
 
 external_modules_dir=( \
   'node_modules/react-native-i18n/desktop' \
@@ -35,6 +38,10 @@ function is_macos() {
 
 function is_linux() {
   [[ "$OS" =~ Linux ]]
+}
+
+function is_windows_target() {
+  [[ "$TARGET_SYSTEM_NAME" =~ Windows ]]
 }
 
 function program_exists() {
@@ -78,10 +85,15 @@ function init() {
       fi
       set -e
     fi
-  fi
 
-  if is_macos; then
     DEPLOYQT="$MACDEPLOYQT"
+  elif is_windows_target; then
+    if ! program_exists 'conan'; then
+      echo "${RED}Conan package manager is not installed. Please install it from https://conan.io/${NC}"
+      exit 1
+    fi
+    rm -rf ./desktop/toolchain/
+    conan install -if ./desktop/toolchain/ -g cmake -pr $STATUS_REACT_HOME/../status-conan/profiles/status-mxe-mingw32-x86_64-gcc55-libstdcxx mxetoolchain-x86_64-w64-mingw32/5.5.0-1@status-im/experimental
   fi
 }
 
@@ -126,13 +138,22 @@ function buildClojureScript() {
 
 function compile() {
   pushd desktop
-    rm -rf CMakeFiles CMakeCache.txt cmake_install.cmake Makefile
+    rm -rf CMakeFiles CMakeCache.txt cmake_install.cmake Makefile reportApp/CMakeFiles desktop/node_modules/google-breakpad/CMakeFiles desktop/node_modules/react-native-keychain/desktop/qtkeychain-prefix/src/qtkeychain-build/CMakeFiles desktop/node_modules/react-native-keychain/desktop/qtkeychain
+    if is_windows_target; then
+      CMAKE_TOOLCHAIN_FILE='Toolchain-Ubuntu-mingw64.cmake'
+      bin="/home/$USER/.conan/data/mxetoolchain-x86_64-w64-mingw32/5.5.0-1/status-im/experimental/package/83cc637195d5a175a26b7569e92520a2deae1e2d/bin"
+      CMAKE_C_COMPILER="$bin/x86_64-w64-mingw32.shared-gcc"
+      CMAKE_CXX_COMPILER="$bin/x86_64-w64-mingw32.shared-g++"
+    fi
     cmake -Wno-dev \
+          -DCMAKE_TOOLCHAIN_FILE="$CMAKE_TOOLCHAIN_FILE" \
+          -DCMAKE_C_COMPILER="$CMAKE_C_COMPILER" \
+          -DCMAKE_CXX_COMPILER="$CMAKE_CXX_COMPILER" \
           -DCMAKE_BUILD_TYPE=Release \
           -DEXTERNAL_MODULES_DIR="$(joinStrings ${external_modules_dir[@]})" \
           -DDESKTOP_FONTS="$(joinStrings ${external_fonts[@]})" \
           -DJS_BUNDLE_PATH="$WORKFOLDER/StatusIm.jsbundle" \
-          -DCMAKE_CXX_FLAGS:='-DBUILD_FOR_BUNDLE=1 -std=c++11'
+          -DCMAKE_CXX_FLAGS:='-DBUILD_FOR_BUNDLE=1'
     make
   popd
 }
@@ -256,7 +277,7 @@ function bundleMacOS() {
 function bundle() {
   if is_macos; then
     bundleMacOS
-  else
+  elif is_macos and -not is_windows_target; then
     bundleLinux
   fi
 }

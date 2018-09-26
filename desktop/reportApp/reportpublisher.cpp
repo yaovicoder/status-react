@@ -45,7 +45,7 @@ void ReportPublisher::restartAndQuit() {
                             bundleExtension.size());
   }
   QString cmd = QString("open %1").arg(appPath);
-#elif defined(Q_OS_LINUX)
+#else
   QString cmd = appPath;
 #endif
 
