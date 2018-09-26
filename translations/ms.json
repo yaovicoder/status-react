@@ -83,11 +83,6 @@
     "command-sending": "Hantar transaksi ",
     "completing-card-setup": "Menyelesaikan penyediaan kad",
     "confirm": "Sahkan",
-    "confirmation-code": [
-        "str",
-        "Terima kasih! Kami telah menghantar kepada anda satu mesej mengandungi kod",
-        "pengesahan. Sila berikan kod tersebut untuk mengesahkan nombor telefon anda"
-    ],
     "confirmations": "Pengesahan",
     "confirmations-helper-text": "Apabila transaksi mempunyai 12 pengesahan, anda boleh menganggap ia telah diselesaikan.",
     "connect": "Sambung",
@@ -511,7 +506,6 @@
     "request-command-payment": "Minta bayaran",
     "request-feature": "Mohon ciri",
     "request-qr-legend": "Kongsi kod ini untuk menerima aset",
-    "request-requesting-from": "dari",
     "request-transaction": "Minta transaksi",
     "required-field": "Butiran diperlukan",
     "resend-message": "Hantar semula",
