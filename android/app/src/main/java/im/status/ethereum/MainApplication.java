@@ -4,6 +4,7 @@ import android.support.multidex.MultiDexApplication;
 import com.aakashns.reactnativedialogs.ReactNativeDialogsPackage;
 import org.devio.rn.splashscreen.SplashScreenReactPackage;
 import com.facebook.react.ReactApplication;
+import community.revteltech.nfc.NfcManagerPackage;
 import io.invertase.firebase.RNFirebasePackage;
 import io.invertase.firebase.messaging.RNFirebaseMessagingPackage;
 import io.invertase.firebase.notifications.RNFirebaseNotificationsPackage;
@@ -18,7 +19,7 @@ import com.facebook.react.shell.MainReactPackage;
 import com.facebook.soloader.SoLoader;
 import com.github.alinz.reactnativewebviewbridge.WebViewBridgePackage;
 import com.AlexanderZaytsev.RNI18n.RNI18nPackage;
-import com.lwansbrough.RCTCamera.RCTCameraPackage;
+import org.reactnative.camera.RNCameraPackage;
 import com.reactnative.ivpusic.imagepicker.PickerPackage;
 import com.rnfs.RNFSPackage;
 import fr.bamlab.rnimageresizer.ImageResizerPackage;
@@ -53,10 +54,11 @@ public class MainApplication extends MultiDexApplication implements ReactApplica
                 webViewDebugEnabled = true;
             }
 
-            StatusPackage statusPackage = new StatusPackage(BuildConfig.DEBUG, devCluster, BuildConfig.LOG_LEVEL_STATUS_GO);
+            StatusPackage statusPackage = new StatusPackage(BuildConfig.DEBUG, devCluster);
             Function<String, String> callRPC = statusPackage.getCallRPC();
             List<ReactPackage> packages = new ArrayList<ReactPackage>(Arrays.asList(
                     new MainReactPackage(),
+                    new NfcManagerPackage(),
                     new RNFirebasePackage(),
                     new RNFirebaseMessagingPackage(),
                     new RNFirebaseNotificationsPackage(),
@@ -68,7 +70,7 @@ public class MainApplication extends MultiDexApplication implements ReactApplica
                     statusPackage,
                     new RealmReactPackage(),
                     new RNI18nPackage(),
-                    new RCTCameraPackage(),
+                    new RNCameraPackage(),
                     new RNFSPackage(),
                     new ReactNativeDialogsPackage(),
                     new ImageResizerPackage(),

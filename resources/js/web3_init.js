@@ -6,24 +6,25 @@ function bridgeSend(data){
     WebViewBridge.send(JSON.stringify(data));
 }
 
+window.addEventListener('message', function (event) {
+    if (!event.data || !event.data.type) { return; }
+    if (event.data.type === 'STATUS_API_REQUEST') {
+        bridgeSend({
+            type: 'status-api-request',
+            permissions: event.data.permissions,
+            host: window.location.hostname
+        });
+    }
+});
+
 WebViewBridge.onMessage = function (message) {
     data = JSON.parse(message);
 
-    if (data.type === "navigate-to-blank")
-        window.location.href = "about:blank";
-
-    else if (data.type === "status-api-success")
+    if (data.type === "status-api-success")
     {
-        if (data.keys == 'WEB3')
-        {
-            window.dispatchEvent(new CustomEvent('ethereumprovider', { detail: { ethereum: new StatusHttpProvider("")} }));
-        }
-        else
-        {
-            window.dispatchEvent(new CustomEvent('statusapi', { detail: { permissions: data.keys,
-                                                                          data:        data.data
-                                                                        } }));
-        }
+        window.dispatchEvent(new CustomEvent('statusapi', { detail: { permissions: data.keys,
+                                                                      data:        data.data
+                                                                    } }));
     }
 
     else if (data.type === "web3-send-async-callback")
@@ -40,6 +41,25 @@ WebViewBridge.onMessage = function (message) {
             else
             {
                 callback.callback(data.error, data.result);
+            }
+        }
+    }
+
+    else if (data.type === "scan-qr-code-callback")
+    {
+        var id = data.data.messageId;
+        var callback = callbacks[id];
+        if (callback) {
+            var result = data.result;
+            var regex = new RegExp(callback.regex);
+            if (regex.test(result)) {
+                if (callback.resolve) {
+                    callback.resolve(result);
+                }
+            } else {
+                if (callback.reject) {
+                    callback.reject(result);
+                }
             }
         }
     }
@@ -110,8 +130,21 @@ StatusHttpProvider.prototype.sendAsync = function (payload, callback) {
                         messageId: messageId,
                         payload:   payload});
         }
-
     }
+};
+
+StatusHttpProvider.prototype.scanQRCode = function (regex) {
+    return new Promise(function (resolve, reject) {
+        var messageId = callbackId++;
+        callbacks[messageId] = {resolve: resolve, reject: reject, regex: regex};
+        bridgeSend({type:  'scan-qr-code',
+                    messageId: messageId});
+    });
+};
+
+
+StatusHttpProvider.prototype.enable = function () {
+    return new Promise(function (resolve, reject) { setTimeout(resolve, 1000);});
 };
 }
 
@@ -120,7 +153,8 @@ if (typeof web3 === "undefined") {
     //why do we need this condition?
     if (protocol == "https:" || protocol == "http:") {
         console.log("StatusHttpProvider");
-        web3 = new Web3(new StatusHttpProvider());
-        web3.eth.defaultAccount = currentAccountAddress; // currentAccountAddress - injected from status-react
+        ethereum = new StatusHttpProvider();
+        web3 = new Web3(ethereum);
+        web3.eth.defaultAccount = currentAccountAddress;
     }
 }

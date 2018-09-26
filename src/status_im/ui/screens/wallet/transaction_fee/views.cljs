@@ -19,7 +19,8 @@
 (defn return-to-transaction [modal?]
   (if modal?
     ;;TODO(andrey) artificial navigation stack for modals (should be reworked)
-    (re-frame/dispatch [:navigate-to-modal :wallet-send-transaction-modal])
+    ;; ^ probably will be fixed with react-navigation
+    (re-frame/dispatch [:navigate-to-clean :wallet-send-transaction-modal])
     (act/default-handler)))
 
 (defn- toolbar [modal? title]
@@ -52,7 +53,7 @@
                                       :default-value       gas
                                       :accessibility-label :gas-limit-input})]]]
           (when (:invalid? gas-edit)
-            [tooltip/tooltip (i18n/label :t/invalid-number)])]
+            [tooltip/tooltip (i18n/label :t/invalid-number) styles/gas-input-error-tooltip])]
 
          [react/view styles/gas-container-wrapper
           [components/cartouche {}
@@ -65,9 +66,11 @@
             [components/cartouche-secondary-text
              (i18n/label :t/gwei)]]]
           (when (:invalid? gas-price-edit)
-            [tooltip/tooltip (i18n/label (if (= :invalid-number (:invalid? gas-price-edit))
-                                           :t/invalid-number
-                                           :t/wallet-send-min-wei))])]]
+            [tooltip/tooltip
+             (i18n/label (if (= :invalid-number (:invalid? gas-price-edit))
+                           :t/invalid-number
+                           :t/wallet-send-min-wei))
+             styles/gas-input-error-tooltip])]]
 
         [react/view styles/transaction-fee-info
          [react/view styles/transaction-fee-info-icon

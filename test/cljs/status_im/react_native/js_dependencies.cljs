@@ -2,7 +2,7 @@
 
 (def action-button          #js {:default #js {:Item #js {}}})
 (def config                 #js {:default #js {}})
-(def camera                 #js {:constants #js {}})
+(def camera                 #js {:default #js {:constants #js {}}})
 (def dialogs                #js {})
 (def dismiss-keyboard       #js {})
 (def emoji-picker           #js {:default #js {}})
@@ -17,6 +17,7 @@
 (def orientation            #js {})
 (def popup-menu             #js {})
 (def qr-code                #js {})
+(def nfc-manager            #js {:default #js {}})
 (def react-native
   #js {:NativeModules      #js {}
        :Animated           #js {:View #js {}
@@ -48,3 +49,4 @@
 
 (def keychain #js {:setGenericPassword (constantly (.resolve js/Promise true))})
 (def secure-random #(.resolve js/Promise (clj->js (range 0 %))))
+(def react-navigation #js {:NavigationActions #js {}})
