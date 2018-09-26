@@ -103,7 +103,7 @@
 
 (defn command-complete-fx
   "command is complete, proceed with command processing"
-  [input-text command {:keys [db now random-id] :as cofx}]
+  [input-text command {:keys [db now] :as cofx}]
   (fx/merge cofx
             (commands.sending/validate-and-send input-text command)
             (set-chat-input-text nil)

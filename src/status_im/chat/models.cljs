@@ -225,8 +225,9 @@
 
 (fx/defn start-group-chat
   "Starts a new group chat"
-  [{:keys [db random-id] :as cofx} group-name]
+  [{:keys [db random-id-generator] :as cofx} group-name]
   (let [selected-contacts (:group/selected-contacts db)
+        chat-id           (random-id-generator)
         chat-name         (if-not (string/blank? group-name)
                             group-name
                             (group-name-from-contacts selected-contacts
@@ -234,10 +235,10 @@
                                                       (:username db)))]
     (fx/merge cofx
               {:db (assoc db :group/selected-contacts #{})}
-              (add-group-chat random-id chat-name (:current-public-key db) selected-contacts)
-              (navigate-to-chat random-id {})
+              (add-group-chat chat-id chat-name (:current-public-key db) selected-contacts)
+              (navigate-to-chat chat-id {})
               #(transport.message/send
-                (group-chat/GroupAdminUpdate. chat-name selected-contacts) random-id %))))
+                (group-chat/GroupAdminUpdate. chat-name selected-contacts) chat-id %))))
 
 (fx/defn disable-chat-cooldown
   "Turns off chat cooldown (protection against message spamming)"
