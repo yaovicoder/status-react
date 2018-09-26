@@ -1,7 +1,9 @@
 (ns status-im.group-chats.core
   (:require
    [clojure.string :as string]
+   [re-frame.core :as re-frame]
    [status-im.utils.config :as config]
+   [status-im.native-module.core :as native-module]
    [status-im.transport.utils :as transport.utils]
    [status-im.transport.db :as transport.db]
    [status-im.transport.utils :as transport.utils]
@@ -11,12 +13,15 @@
    [status-im.utils.fx :as fx]
    [status-im.chat.models :as models.chat]))
 
-(defn signature-material [{:keys [admin signature participants]}]
-  [(apply str
-          (conj (sort participants)
-                admin))
-   signature
-   admin])
+(defn signature-material [{:keys [admin participants]}]
+  (apply str
+         (conj (sort participants)
+               admin)))
+
+(defn signature-pairs [{:keys [admin signature] :as payload}]
+  (js/JSON.stringify (clj->js [[(signature-material payload)
+                                signature
+                                (subs admin 2)]])))
 
 (defn valid-chat-id?
   ;; We need to make sure the chat-id ends with the admin pk.
@@ -66,8 +71,8 @@
                             :payload       payload
                             :success-event [:group/unsubscribe-from-chat chat-id]}))
 
-(fx/defn handle-membership-update-received [cofx membership-update]
-  {:group-chats/check-signature [(signature-material membership-update)]})
+(fx/defn handle-membership-update-received [cofx membership-update signature]
+  {:group-chats/verify-membership-signature membership-update})
 
 (fx/defn handle-membership-update [cofx {:keys [chat-id
                                                 chat-name
@@ -87,9 +92,9 @@
                       :name chat-name
                       :is-active true
                       :group-chat true
-                      :signature   signature
                       :group-admin admin
                       :contacts participants
+                      :membership-signature signature
                       :membership-version version}))]
       (if message
         (fx/merge cofx
@@ -100,12 +105,41 @@
 (fx/defn send-group-update [cofx group-update chat-id]
   (protocol.message/send group-update chat-id cofx))
 
-(fx/defn send-membership-update [group-update]
-  (fx/merge cofx
-            {:db (assoc db :group/selected-contacts #{})}
-            (models.chat/navigate-to-chat chat-id {})
-            (handle-membership-update group-update my-public-key)
-            (send-group-update group-update chat-id)))
+(defn handle-sign-success [{:keys [db] :as cofx} {:keys [chat-id] :as group-update}]
+  (let [my-public-key (:current-public-key db)]
+    (fx/merge cofx
+              (models.chat/navigate-to-chat chat-id {})
+              (handle-membership-update group-update my-public-key)
+              (send-group-update group-update chat-id))))
+
+(defn handle-sign-response [payload response-js]
+  (let [response (-> response-js
+                     js/JSON.parse
+                     (js->clj :keywordize-keys true))
+        signature (:signature response)]
+    (if signature
+      (re-frame/dispatch [:group-chats.callback/sign-success (assoc payload :signature signature)])
+      (re-frame/dispatch [:group-chats.callback/sign-failed  response]))))
+
+(defn handle-verify-signature-response [payload response-js]
+  (println "RESPONSE" response-js)
+  (let [response (-> response-js
+                     js/JSON.parse
+                     (js->clj :keywordize-keys true))
+        error (:error response)]
+    (if error
+      (re-frame/dispatch [:group-chats.callback/verify-signature-failed  error])
+      (re-frame/dispatch [:group-chats.callback/verify-signature-success payload]))))
+
+(defn sign-membership [payload]
+  (println "SIGNING" (signature-material payload))
+  (native-module/sign (signature-material payload)
+                      (partial handle-sign-response payload)))
+
+(defn verify-membership-signature [payload]
+  (println "VERIFY" (signature-pairs payload))
+  (native-module/verify-signatures (signature-pairs payload)
+                                     (partial handle-verify-signature-response payload)))
 
 (fx/defn create [{:keys [db random-guid-generator] :as cofx} group-name]
   (let [my-public-key             (:current-public-key db)
@@ -113,8 +147,13 @@
         selected-contacts (conj (:group/selected-contacts db)
                                 my-public-key)
         group-update (transport/GroupMembershipUpdate. chat-id group-name my-public-key selected-contacts nil nil nil)]
-    (fx/merge cofx
-              {:db (assoc db :group/selected-contacts #{})}
-              (models.chat/navigate-to-chat chat-id {})
-              (handle-membership-update group-update my-public-key)
-              (send-group-update group-update chat-id))))
+    {:group-chats/sign-membership group-update
+     :db (assoc db :group/selected-contacts #{})}))
+
+(re-frame/reg-fx
+ :group-chats/sign-membership
+ sign-membership)
+
+(re-frame/reg-fx
+ :group-chats/verify-membership-signature
+ verify-membership-signature)
