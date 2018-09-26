@@ -134,6 +134,14 @@
      (fn [UUID]
        (callback (string/upper-case UUID))))))
 
+(defn verify-signatures [signature-pairs callback]
+  (when status
+    (call-module #(.verifySignatures status signature-pairs callback))))
+
+(defn sign [content callback]
+  (when status
+    (call-module #(.sign status content callback))))
+
 (defn is24Hour []
   (when status
     (.-is24Hour status)))

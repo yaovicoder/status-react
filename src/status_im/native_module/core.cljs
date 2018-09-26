@@ -59,3 +59,7 @@
 
 (defn is24Hour []
   (native-module/is24Hour))
+
+(def verify-signatures native-module/verify-signatures)
+
+(def sign native-module/sign)
