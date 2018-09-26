@@ -13,7 +13,8 @@
 (def fetch                  (.-default (js/require "react-native-fetch-polyfill")))
 (def i18n                   (js/require "react-native-i18n"))
 (def react-native-firebase  #js {})
-(def camera                 #js {:constants {:Aspect "Portrait"}})
+(def nfc-manager            #js {})
+(def camera                 #js {:default #js {:constants {:Aspect "Portrait"}}})
 (def dialogs                #js {})
 (def dismiss-keyboard       #js {})
 (def image-crop-picker      #js {})
@@ -27,4 +28,5 @@
 (def snoopy-buffer          #js {})
 (def background-timer       #js {:setTimeout (fn [])})
 (def testfairy              #js {})
+(def react-navigation       #js {:NavigationActions #js {}})
 

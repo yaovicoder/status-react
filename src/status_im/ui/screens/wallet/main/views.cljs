@@ -31,7 +31,7 @@
       :icon-opts {:color               :white
                   :accessibility-label :options-menu-button}
       :options   [{:label  (i18n/label :t/wallet-manage-assets)
-                   :action #(re-frame/dispatch [:navigate-to-modal :wallet-settings-assets])}]}]]])
+                   :action #(re-frame/dispatch [:navigate-to :wallet-settings-assets])}]}]]])
 
 (defn toolbar-modal [modal-history?]
   [react/view
@@ -51,6 +51,11 @@
     [react/view {:style styles/total-balance}
      [react/text {:style               styles/total-balance-value
                   :accessibility-label :total-amount-value-text}
+      (when (and
+             (not= "0" value)
+             (not= "..." value))
+        [react/text {:style styles/total-balance-tilde}
+         "~"])
       value]
      [react/text {:style               styles/total-balance-currency
                   :accessibility-label :total-amount-currency-text}
@@ -171,7 +176,7 @@
         [transactions.views/history-list true]]
        [react/scroll-view {:refresh-control
                            (reagent/as-element
-                            [react/refresh-control {:on-refresh #(re-frame/dispatch [:update-wallet])
+                            [react/refresh-control {:on-refresh #(re-frame/dispatch [:wallet.ui/pull-to-refresh])
                                                     :tint-color :white
                                                     :refreshing false}])}
         (if error-message
