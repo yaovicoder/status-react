@@ -75,9 +75,16 @@
                                             :URL     "https://rinkeby.infura.io/z6GCTmjdP3FETEJmMBI4"}}}})
 
 (defn network-enabled? [network]
-  (if config/rpc-networks-only?
-    (get-in (val network) [:config :UpstreamConfig :Enabled])
-    true))
+  (let [rpc-network? (get-in (val network) [:config :UpstreamConfig :Enabled])
+        les-allowed? (not config/rpc-networks-only?)
+        ropsten?     (= (ethereum/chain-keyword->chain-id :testnet)
+                        (get-in (val network) [:config :NetworkId]))]
+    (or
+      ;; we always allow RPC (Infura) networks
+     rpc-network?
+      ;; if LES is allowed,
+      ;; we show an option to connect on Ropsten
+     (and les-allowed? ropsten?))))
 
 (def default-networks
   (into {} (filter network-enabled?
