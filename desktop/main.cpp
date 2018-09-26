@@ -201,7 +201,7 @@ int main(int argc, char **argv) {
   loadFontsFromResources();
 
 #ifdef BUILD_FOR_BUNDLE
-  qInstallMessageHandler(saveMessage);
+  //qInstallMessageHandler(saveMessage);
   runUbuntuServer();
 #endif
 
