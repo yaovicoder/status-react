@@ -7,7 +7,7 @@ from views.sign_in_view import SignInView
 @pytest.mark.all
 class TestDApps(SingleDeviceTestCase):
 
-    @marks.testrail_id(3782)
+    @marks.testrail_id(5353)
     @marks.smoke_1
     def test_filters_from_daap(self):
         sign_in_view = SignInView(self.driver)
@@ -20,7 +20,7 @@ class TestDApps(SingleDeviceTestCase):
             if element.is_element_displayed(10):
                 pytest.fail("'Test filters' button produced an error")
 
-    @marks.testrail_id(3789)
+    @marks.testrail_id(5397)
     def test_request_public_key_status_test_daap(self):
         user = basic_user
         sign_in_view = SignInView(self.driver)

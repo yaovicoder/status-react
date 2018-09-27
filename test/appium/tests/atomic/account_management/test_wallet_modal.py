@@ -8,7 +8,7 @@ from views.sign_in_view import SignInView
 @marks.wallet_modal
 class TestWalletModal(SingleDeviceTestCase):
 
-    @marks.testrail_id(3794)
+    @marks.testrail_id(5398)
     def test_wallet_modal_public_chat(self):
         user = transaction_users['A_USER']
         sign_in = SignInView(self.driver)
@@ -34,7 +34,7 @@ class TestWalletModal(SingleDeviceTestCase):
             self.errors.append('Transaction history button is not visible in wallet modal')
         self.verify_no_errors()
 
-    @marks.testrail_id(3795)
+    @marks.testrail_id(5399)
     def test_wallet_modal_dapp(self):
         user = transaction_users['B_USER']
         sign_in = SignInView(self.driver)
@@ -63,7 +63,7 @@ class TestWalletModal(SingleDeviceTestCase):
             self.errors.append('Transaction history button is not visible in wallet modal')
         self.verify_no_errors()
 
-    @marks.testrail_id(3797)
+    @marks.testrail_id(5400)
     def test_wallet_modal_transaction_history(self):
         user = transaction_users['B_USER']
         sign_in = SignInView(self.driver)
@@ -78,7 +78,7 @@ class TestWalletModal(SingleDeviceTestCase):
         if transaction_history.transactions_table.get_transactions_number() < 1:
             pytest.fail('Transactions history is not shown')
 
-    @marks.testrail_id(3800)
+    @marks.testrail_id(5480)
     def test_close_and_open_wallet_modal(self):
         user = transaction_users['B_USER']
         sign_in = SignInView(self.driver)
