@@ -33,7 +33,7 @@
 
 ;; CONFIG VALUES
 (def log-level
-  (-> (get-config :LOG_LEVEL "error")
+  (-> (get-config :LOG_LEVEL "debug")
       string/lower-case
       keyword))
 (def log-level-status-go
