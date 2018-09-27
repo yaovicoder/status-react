@@ -2,14 +2,13 @@
   (:require [status-im.react-native.js-dependencies :as rn-dependencies]))
 
 (def fonts
-  {:light            {:font-weight "100"}
-   :default          {:font-weight "normal"}
+  {:default          {:font-weight "normal"}
    :medium           {:font-weight "normal"}
    :bold             {:font-weight "bold"}
 
-   :toolbar-title    {:font-weight "700"}
+   :toolbar-title    {:font-weight "bold"}
    :toolbar-subtitle {:font-weight "normal"}
-   :monospace        {:font-family "Menlo"}})
+   :monospace        {:font-weight "bold" :font-family "Menlo"}})
 
 ;; iPhone X dimensions
 (def x-width 375)
