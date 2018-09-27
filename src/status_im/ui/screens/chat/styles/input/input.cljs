@@ -17,7 +17,6 @@
 
 (def reply-message
   {:flex-direction :row
-   :z-index        1
    :align-items    :center
    :border-width   1
    :border-radius  10
@@ -44,10 +43,10 @@
   {:flex-direction :column})
 
 (def cancel-reply-highlight
-  {:z-index 2})
+  {:z-index 1000})
 
 (def cancel-reply-container
-  {:z-index         2
+  {:z-index         1000
    :flex-direction  :row
    :justify-content :flex-end
    :margin-right     12
