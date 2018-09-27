@@ -7,7 +7,7 @@ from views.sign_in_view import SignInView
 
 class TestTransactionDApp(SingleDeviceTestCase):
 
-    @marks.testrail_id(769)
+    @marks.testrail_id(5309)
     @marks.smoke_1
     def test_send_transaction_from_daap(self):
         sender = transaction_users['B_USER']
@@ -25,7 +25,7 @@ class TestTransactionDApp(SingleDeviceTestCase):
         send_transaction_view.sign_transaction(sender['password'])
         self.network_api.verify_balance_is_updated(initial_balance, address)
 
-    @marks.testrail_id(3716)
+    @marks.testrail_id(5342)
     @marks.smoke_1
     def test_sign_message_from_daap(self):
         password = 'password_for_daap'
@@ -41,7 +41,7 @@ class TestTransactionDApp(SingleDeviceTestCase):
         send_transaction_view.enter_password_input.send_keys(password)
         send_transaction_view.sign_transaction_button.click()
 
-    @marks.testrail_id(3696)
+    @marks.testrail_id(5333)
     @marks.smoke_1
     def test_deploy_contract_from_daap(self):
         sender = transaction_users['E_USER']
@@ -60,7 +60,7 @@ class TestTransactionDApp(SingleDeviceTestCase):
                 pytest.fail('Contract was not created')
 
     @marks.logcat
-    @marks.testrail_id(3772)
+    @marks.testrail_id(5418)
     def test_logcat_send_transaction_from_daap(self):
         sender = transaction_users['B_USER']
         sign_in_view = SignInView(self.driver)
@@ -75,7 +75,7 @@ class TestTransactionDApp(SingleDeviceTestCase):
         send_transaction_view.check_no_values_in_logcat(password=unique_password)
 
     @marks.logcat
-    @marks.testrail_id(3775)
+    @marks.testrail_id(5420)
     def test_logcat_sign_message_from_daap(self):
         sign_in_view = SignInView(self.driver)
         sign_in_view.create_user(password=unique_password)
@@ -89,7 +89,7 @@ class TestTransactionDApp(SingleDeviceTestCase):
         send_transaction_view.sign_transaction_button.click()
         send_transaction_view.check_no_values_in_logcat(password=unique_password)
 
-    @marks.testrail_id(1380)
+    @marks.testrail_id(5372)
     @marks.smoke_1
     def test_request_eth_in_status_test_dapp(self):
         sign_in_view = SignInView(self.driver)

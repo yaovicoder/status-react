@@ -8,7 +8,7 @@ from views.sign_in_view import SignInView
 @marks.account
 class TestCreateAccount(SingleDeviceTestCase):
 
-    @marks.testrail_id(758)
+    @marks.testrail_id(5300)
     @marks.smoke_1
     def test_create_account(self):
         sign_in = SignInView(self.driver, skip_popups=False)
@@ -29,7 +29,7 @@ class TestCreateAccount(SingleDeviceTestCase):
         sign_in.next_button.click()
         self.verify_no_errors()
 
-    @marks.testrail_id(1433)
+    @marks.testrail_id(5356)
     def test_switch_users_and_add_new_account(self):
         sign_in = SignInView(self.driver)
         sign_in.create_user()
@@ -43,7 +43,7 @@ class TestCreateAccount(SingleDeviceTestCase):
         if sign_in.get_public_key() == public_key:
             pytest.fail('New account was not created')
 
-    @marks.testrail_id(3787)
+    @marks.testrail_id(5379)
     @marks.smoke_1
     def test_home_view(self):
         sign_in = SignInView(self.driver)
@@ -61,7 +61,7 @@ class TestCreateAccount(SingleDeviceTestCase):
             self.errors.append("'%s' text is not shown" % text)
         self.verify_no_errors()
 
-    @marks.testrail_id(844)
+    @marks.testrail_id(5460)
     def test_create_account_short_and_mismatch_password(self):
         sign_in = SignInView(self.driver)
         sign_in.create_account_button.click()
@@ -82,7 +82,7 @@ class TestCreateAccount(SingleDeviceTestCase):
             self.errors.append("'%s' is not shown")
         self.verify_no_errors()
 
-    @marks.testrail_id(3767)
+    @marks.testrail_id(5414)
     @marks.logcat
     def test_password_in_logcat_creating_account(self):
         sign_in = SignInView(self.driver)

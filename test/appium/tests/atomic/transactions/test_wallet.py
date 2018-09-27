@@ -10,7 +10,7 @@ from views.sign_in_view import SignInView
 @marks.transaction
 class TestTransactionWalletSingleDevice(SingleDeviceTestCase):
 
-    @marks.testrail_id(766)
+    @marks.testrail_id(5307)
     @marks.smoke_1
     def test_send_eth_from_wallet_to_contact(self):
         recipient = transaction_users['F_USER']
@@ -35,7 +35,7 @@ class TestTransactionWalletSingleDevice(SingleDeviceTestCase):
         send_transaction.sign_transaction(sender['password'])
         self.network_api.find_transaction_by_unique_amount(sender['address'], transaction_amount)
 
-    @marks.testrail_id(767)
+    @marks.testrail_id(5308)
     @marks.smoke_1
     def test_send_eth_from_wallet_to_address(self):
         recipient = transaction_users['E_USER']
@@ -56,7 +56,7 @@ class TestTransactionWalletSingleDevice(SingleDeviceTestCase):
         send_transaction.sign_transaction(sender['password'])
         self.network_api.find_transaction_by_unique_amount(sender['address'], transaction_amount)
 
-    @marks.testrail_id(1430)
+    @marks.testrail_id(5325)
     @marks.smoke_1
     def test_send_stt_from_wallet(self):
         sender = transaction_users_wallet['A_USER']
@@ -83,7 +83,7 @@ class TestTransactionWalletSingleDevice(SingleDeviceTestCase):
         send_transaction.sign_transaction(sender['password'])
         self.network_api.find_transaction_by_unique_amount(recipient['address'], amount, token=True)
 
-    @marks.testrail_id(2164)
+    @marks.testrail_id(5408)
     def test_transaction_wrong_password_wallet(self):
         recipient = transaction_users['E_USER']
         sender = transaction_users['F_USER']
@@ -134,7 +134,7 @@ class TestTransactionWalletSingleDevice(SingleDeviceTestCase):
         transactions_view = wallet_view.transaction_history_button.click()
         transactions_view.transactions_table.find_transaction(amount=transaction_amount)
 
-    @marks.testrail_id(2163)
+    @marks.testrail_id(5461)
     def test_send_eth_from_wallet_incorrect_address(self):
         recipient = transaction_users['E_USER']
         sender = transaction_users['F_USER']
@@ -155,7 +155,7 @@ class TestTransactionWalletSingleDevice(SingleDeviceTestCase):
         send_transaction.find_text_part('Invalid address:', 20)
 
     @marks.logcat
-    @marks.testrail_id(3770)
+    @marks.testrail_id(5416)
     def test_logcat_send_transaction_from_wallet(self):
         sender = transaction_users['E_USER']
         recipient = transaction_users['F_USER']
@@ -176,7 +176,7 @@ class TestTransactionWalletSingleDevice(SingleDeviceTestCase):
         send_transaction.sign_transaction(unique_password)
         send_transaction.check_no_values_in_logcat(password=unique_password)
 
-    @marks.testrail_id(3746)
+    @marks.testrail_id(5350)
     @marks.smoke_1
     def test_send_token_with_7_decimals(self):
         sender = transaction_users_wallet['A_USER']
@@ -203,7 +203,7 @@ class TestTransactionWalletSingleDevice(SingleDeviceTestCase):
         send_transaction.sign_transaction(sender['password'])
         self.network_api.find_transaction_by_unique_amount(recipient['address'], amount, token=True, decimals=7)
 
-    @marks.testrail_id(3747)
+    @marks.testrail_id(5351)
     @marks.smoke_1
     def test_token_with_more_than_allowed_decimals(self):
         sender = transaction_users_wallet['A_USER']
@@ -232,7 +232,7 @@ class TestTransactionWalletSingleDevice(SingleDeviceTestCase):
             self.errors.append('Warning about too precise amount is not shown when requesting a transaction')
         self.verify_no_errors()
 
-    @marks.testrail_id(1405)
+    @marks.testrail_id(5423)
     def test_send_valid_amount_after_insufficient_funds_error(self):
         sender = transaction_users['G_USER']
         sign_in_view = SignInView(self.driver)
@@ -257,7 +257,7 @@ class TestTransactionWalletSingleDevice(SingleDeviceTestCase):
         send_transaction.sign_transaction(sender['password'])
         self.network_api.find_transaction_by_unique_amount(sender['address'], valid_amount)
 
-    @marks.testrail_id(3764)
+    @marks.testrail_id(5471)
     def test_insufficient_funds_wallet_0_balance(self):
         sign_in_view = SignInView(self.driver)
         sign_in_view.create_user()
@@ -275,7 +275,7 @@ class TestTransactionWalletSingleDevice(SingleDeviceTestCase):
             self.errors.append("'Insufficient funds' error is now shown when sending 1 STT from wallet with balance 0")
         self.verify_no_errors()
 
-    @marks.testrail_id(3792)
+    @marks.testrail_id(5412)
     def test_insufficient_funds_wallet_positive_balance(self):
         sender = transaction_users_wallet['A_USER']
         sign_in_view = SignInView(self.driver)
@@ -303,7 +303,7 @@ class TestTransactionWalletSingleDevice(SingleDeviceTestCase):
                     round(stt_value + 1), stt_value))
         self.verify_no_errors()
 
-    @marks.testrail_id(3728)
+    @marks.testrail_id(5359)
     def test_modify_transaction_fee_values(self):
         sender = transaction_users['H_USER']
         sign_in_view = SignInView(self.driver)
@@ -359,7 +359,7 @@ class TestTransactionWalletSingleDevice(SingleDeviceTestCase):
 @marks.transaction
 class TestTransactionWalletMultipleDevice(MultipleDeviceTestCase):
 
-    @marks.testrail_id(3761)
+    @marks.testrail_id(5378)
     @marks.smoke_1
     def test_transaction_message_sending_from_wallet(self):
         recipient = transaction_users['D_USER']
