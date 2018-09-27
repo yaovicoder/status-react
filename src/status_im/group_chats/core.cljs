@@ -34,14 +34,14 @@
 
 (defn wrap-group-message [cofx chat-id message]
   (when-let [chat (get-in cofx [:db :chats chat-id])]
-    (transport/GroupMembershipUpdate.
-     chat-id
-     (:name chat)
-     (:group-admin chat)
-     (:contacts chat)
-     nil
-     nil
-     message)))
+    (transport/map->GroupMembershipUpdate.
+     {:chat-id chat-id
+      :chat-name (:name chat)
+      :admin (:group-admin chat)
+      :participants (:contacts chat)
+      :signature (:membership-signature chat)
+      :version (:membership-version chat)
+      :message message})))
 
 (defn update-membership [cofx previous-chat {:keys [chat-id chat-name participants leaves signature version]}]
   (when (< (:membership-version previous-chat)
@@ -72,7 +72,7 @@
                             :success-event [:group/unsubscribe-from-chat chat-id]}))
 
 (fx/defn handle-membership-update-received [cofx membership-update signature]
-  {:group-chats/verify-membership-signature membership-update})
+  {:group-chats/verify-membership-signature [membership-update signature]})
 
 (fx/defn handle-membership-update [cofx {:keys [chat-id
                                                 chat-name
@@ -121,32 +121,34 @@
       (re-frame/dispatch [:group-chats.callback/sign-success (assoc payload :signature signature)])
       (re-frame/dispatch [:group-chats.callback/sign-failed  response]))))
 
-(defn handle-verify-signature-response [payload response-js]
-  (println "RESPONSE" response-js)
+(defn handle-verify-signature-response [payload sender-signature response-js]
   (let [response (-> response-js
                      js/JSON.parse
                      (js->clj :keywordize-keys true))
         error (:error response)]
     (if error
       (re-frame/dispatch [:group-chats.callback/verify-signature-failed  error])
-      (re-frame/dispatch [:group-chats.callback/verify-signature-success payload]))))
+      (re-frame/dispatch [:group-chats.callback/verify-signature-success payload sender-signature]))))
 
 (defn sign-membership [payload]
-  (println "SIGNING" (signature-material payload))
   (native-module/sign (signature-material payload)
                       (partial handle-sign-response payload)))
 
-(defn verify-membership-signature [payload]
-  (println "VERIFY" (signature-pairs payload))
+(defn verify-membership-signature [payload sender-signature]
   (native-module/verify-signatures (signature-pairs payload)
-                                     (partial handle-verify-signature-response payload)))
+                                     (partial handle-verify-signature-response payload sender-signature)))
 
 (fx/defn create [{:keys [db random-guid-generator] :as cofx} group-name]
   (let [my-public-key             (:current-public-key db)
         chat-id           (str (random-guid-generator) my-public-key)
         selected-contacts (conj (:group/selected-contacts db)
                                 my-public-key)
-        group-update (transport/GroupMembershipUpdate. chat-id group-name my-public-key selected-contacts nil nil nil)]
+        group-update (transport/map->GroupMembershipUpdate
+                      {:chat-id chat-id
+                       :chat-name    group-name
+                       :admin   my-public-key
+                       :participants selected-contacts
+                       :version 1})]
     {:group-chats/sign-membership group-update
      :db (assoc db :group/selected-contacts #{})}))
 
@@ -156,4 +158,5 @@
 
 (re-frame/reg-fx
  :group-chats/verify-membership-signature
- verify-membership-signature)
+ (fn [[payload sender-signature]]
+   (verify-membership-signature payload sender-signature)))

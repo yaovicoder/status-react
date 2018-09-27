@@ -729,3 +729,8 @@
  [(re-frame/inject-cofx :random-guid-generator)]
  (fn [cofx [_ group-update]]
    (group-chats/handle-sign-success cofx group-update)))
+
+(handlers/register-handler-fx
+ :group-chats.callback/verify-signature-success
+ (fn [cofx [_ group-update sender-signature]]
+   (group-chats/handle-membership-update cofx group-update sender-signature)))
