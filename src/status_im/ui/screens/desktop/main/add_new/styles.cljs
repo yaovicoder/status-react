@@ -31,14 +31,16 @@
    :flex-direction   :row
    :margin-top       16})
 
-(def add-contact-input
-  {:font-size        14
-   :background-color colors/gray-lighter
-   :margin-right     12
-   :border-radius    8})
+(defn add-contact-input [error?]
+  (cond-> {:font-size        14
+           :background-color colors/gray-lighter
+           :margin-right     12
+           :border-radius    8}
+    error?
+    (assoc :border-color colors/red)))
 
-(def add-pub-chat-input
-  (assoc add-contact-input :padding-left 10))
+(defn add-pub-chat-input [error?]
+  (assoc (add-contact-input error?) :padding-left 10))
 
 (defn add-contact-button [error?]
   {:width            140

@@ -56,15 +56,17 @@
         (i18n/label :new-chat)]]
       [react/text {:style styles/new-contact-subtitle} (i18n/label :contact-code)]
       [react/view {:style styles/new-contact-separator}]
-      (let [disable? (or (not (string/blank? chat-error))
-                         (string/blank? new-contact-identity))]
+      (let [disable?            (or (not (string/blank? chat-error))
+                                    (string/blank? new-contact-identity))
+            show-error-tooltip? (and chat-error
+                                     (not (string/blank? new-contact-identity)))]
         [react/view {:style styles/add-contact-edit-view}
-         [react/view {:flex 1}
-          (when (and chat-error (not (string/blank? new-contact-identity)))
+         [react/view {:flex 1
+                      :style (styles/add-contact-input show-error-tooltip?)}
+          (when show-error-tooltip?
             [error-tooltip chat-error])
           [react/text-input {:placeholder      "0x..."
                              :flex             1
-                             :style            styles/add-contact-input
                              :selection-color  colors/hawkes-blue
                              :font             :default
                              :on-change        (fn [e]
@@ -99,12 +101,13 @@
         (i18n/label :new-public-group-chat)]]
       [react/text {:style styles/new-contact-subtitle} (i18n/label :public-group-topic)]
       [react/view {:style styles/new-contact-separator}]
-      (let [disable? (or (not (string/blank? topic-error))
-                         (string/blank? topic))]
+      (let [disable?            (or (not (string/blank? topic-error))
+                                    (string/blank? topic))
+            show-error-tooltip? (and topic-error (not (string/blank? topic)))]
         [react/view {:style styles/add-contact-edit-view}
          [react/view {:flex  1
-                      :style styles/add-pub-chat-input}
-          (when (and topic-error (not (string/blank? topic)))
+                      :style (styles/add-pub-chat-input show-error-tooltip?)}
+          (when show-error-tooltip?
             [error-tooltip topic-error])
 
           [react/text-input {:flex            1
