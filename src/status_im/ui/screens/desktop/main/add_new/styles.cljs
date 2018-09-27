@@ -37,7 +37,8 @@
            :margin-right     12
            :border-radius    8}
     error?
-    (assoc :border-color colors/red)))
+    (assoc :border-color colors/red
+           :border-width 1)))
 
 (defn add-pub-chat-input [error?]
   (assoc (add-contact-input error?) :padding-left 10))
