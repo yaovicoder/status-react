@@ -9,8 +9,8 @@ from views.sign_in_view import SignInView
 @marks.account
 class TestRecoverAccountSingleDevice(SingleDeviceTestCase):
 
-    @marks.testrail_id(759)
-    @marks.smoke_1
+    @marks.testrail_id(5301)
+    @marks.critical
     def test_recover_account(self):
         sign_in = SignInView(self.driver)
         home = sign_in.create_user()
@@ -55,7 +55,7 @@ class TestRecoverAccountSingleDevice(SingleDeviceTestCase):
             pytest.fail('The same account is recovered with reversed passphrase')
 
     @marks.logcat
-    @marks.testrail_id(3769)
+    @marks.testrail_id(5366)
     def test_logcat_recovering_account(self):
         sign_in = SignInView(self.driver)
         sign_in.recover_access(basic_user['passphrase'], basic_user['password'])

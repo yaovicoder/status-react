@@ -9,7 +9,7 @@ from views.sign_in_view import SignInView
 
 class TestDeepLinks(SingleDeviceTestCase):
 
-    @marks.testrail_id(3781)
+    @marks.testrail_id(5396)
     def test_open_public_chat_using_deep_link(self):
         sign_in_view = SignInView(self.driver)
         sign_in_view.create_user()
