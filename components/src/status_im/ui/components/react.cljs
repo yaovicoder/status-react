@@ -93,8 +93,8 @@
     ts))
 
 (defn escape-html [text]
-  (if (string? text)
-   (clojure.string/escape text {\< "&lt;", \> "&gt;", \& "&amp;"})
+  (if (and platform/desktop? (string? text))
+    (clojure.string/escape text {\< "&lt;", \> "&gt;", \& "&amp;"})
    text))
 
 (defn text
