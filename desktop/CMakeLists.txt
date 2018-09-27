@@ -16,6 +16,12 @@ set(CMAKE_OSX_DEPLOYMENT_TARGET "10.9")
 message(STATUS "EXTERNAL_MODULES_DIR: ${EXTERNAL_MODULES_DIR}")
 
 string(REGEX MATCH "BUILD_FOR_BUNDLE" BUILD_FOR_BUNDLE "${CMAKE_CXX_FLAGS}")
+
+# It is important to distinguish directory hierarchies
+# in release and dev builds. Release contains .env
+# in the root dir of the build, while dev build's current dir
+# is status-react/node_modules/react-native, hence the need
+# to jump two levels up
 if(${BUILD_FOR_BUNDLE} MATCHES "BUILD_FOR_BUNDLE")
   set(ENVFILE "/.env")
 else()
