@@ -20,11 +20,10 @@ string(REGEX MATCH "BUILD_FOR_BUNDLE" BUILD_FOR_BUNDLE "${CMAKE_CXX_FLAGS}")
 # It is important to distinguish between directory hierarchies
 # in release and dev builds. Release contains .env
 # in the root dir of the build, while dev build's current dir
-# is status-react/node_modules/react-native, hence the need
+# is status-react/desktop/bin, hence the need
 # to jump two levels up.
-# Also, react-native-config library references ENVFILE as well
-# from its own CMakeLists.txt file, so it will read the value
-# set here
+# This is required by react-native-config library which references ENVFILE
+# from its own CMakeLists.txt file, so it will read the value set here
 if(${BUILD_FOR_BUNDLE} MATCHES "BUILD_FOR_BUNDLE")
   set(ENVFILE "/.env")
 else()
