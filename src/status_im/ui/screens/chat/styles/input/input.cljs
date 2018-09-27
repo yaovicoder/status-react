@@ -40,7 +40,7 @@
    :padding-bottom 6})
 
 (def reply-message-container
-  {:flex-direction :column})
+  {:flex-direction :column-reverse})
 
 (def cancel-reply-highlight
   {:z-index 1000})

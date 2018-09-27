@@ -118,16 +118,16 @@
   (letsubs [{:keys [content from] :as message} [:get-reply-message]]
     (when message
       [react/view {:style style/reply-message-container}
+       [react/view {:style style/reply-message}
+        [photos/member-photo from]
+        [reply-message from (:text content)]]
        [react/touchable-highlight
         {:style               style/cancel-reply-highlight
          :on-press            #(re-frame/dispatch [:chat.ui/cancel-message-reply])
          :accessibility-label :cancel-message-reply}
         [react/view {:style style/cancel-reply-container}
          [vector-icons/icon :icons/close {:container-style style/cancel-reply-icon
-                                          :color           colors/white}]]]
-       [react/view {:style style/reply-message}
-        [photos/member-photo from]
-        [reply-message from (:text content)]]])))
+                                          :color           colors/white}]]]])))
 
 (defview input-container []
   (letsubs [margin               [:chat-input-margin]
