@@ -19,7 +19,8 @@
             [status-im.utils.utils :as utils]
             [status-im.ui.screens.profile.seed.styles :as styles]
             [status-im.i18n :as i18n]
-            [status-im.ui.components.styles :as common.styles]))
+            [status-im.ui.components.styles :as common.styles]
+            [status-im.utils.platform :as platform]))
 
 (def steps-numbers
   {:intro       1
@@ -36,8 +37,9 @@
 
 (defn intro []
   [react/view {:style styles/intro-container}
-   [components.common/image-contain {:container-style styles/intro-image}
-    (:lock resources/ui)]
+   (when-not platform/desktop?
+     [components.common/image-contain {:container-style styles/intro-image}
+      (:lock resources/ui)])
    [react/i18n-text {:style styles/intro-text
                      :key   :your-data-belongs-to-you}]
    [react/i18n-text {:style styles/intro-description
@@ -136,12 +138,12 @@
 
 (defview backup-seed []
   (letsubs [current-account [:get-current-account]
-            {:keys [step first-word second-word error word]} [:get :my-profile/seed]]
+            {:keys [step first-word second-word error word]} [:my-profile/recovery]]
     [react/keyboard-avoiding-view {:style styles/backup-seed-container}
      [status-bar/status-bar]
      [toolbar/toolbar
       nil
-      (when-not (#{:finish} step)
+      (when-not (= :finish step)
         (toolbar/nav-button (actions/back #(step-back step))))
       [react/view
        [react/text {:style styles/backup-seed}
