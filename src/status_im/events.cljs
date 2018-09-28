@@ -52,7 +52,7 @@
 (handlers/register-handler-fx
  :init/app-started
  (fn [cofx _]
-   (init/initialize-keychain cofx)))
+   (init/start-app cofx)))
 
 (handlers/register-handler-fx
  :init.callback/get-encryption-key-success
