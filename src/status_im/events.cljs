@@ -52,7 +52,7 @@
 (handlers/register-handler-fx
  :init/app-started
  (fn [cofx _]
-   (init/initialize-keychain cofx)))
+   (init/start-app cofx)))
 
 (handlers/register-handler-fx
  :init.callback/get-encryption-key-success
@@ -617,8 +617,8 @@
 
 (handlers/register-handler-fx
  :notifications.callback/notification-stored
- (fn [cofx _]
-   (accounts.login/user-login cofx)))
+ (fn [cofx [_ address photo-path name]]
+   (accounts.login/open-login cofx address photo-path name)))
 
 (handlers/register-handler-fx
  :notifications.callback/get-fcm-token-success
