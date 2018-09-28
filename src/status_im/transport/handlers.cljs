@@ -25,7 +25,8 @@
   (let [{:keys [payload sig timestamp ttl]} (js->clj js-message :keywordize-keys true)
         status-message (-> payload
                            transport.utils/to-utf8
-                           transit/deserialize)]
+                           transit/deserialize
+                           message/validate)]
     (when (and sig status-message)
       (try
         (fx/merge (assoc cofx :js-obj js-message)
