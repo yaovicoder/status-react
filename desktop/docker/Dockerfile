@@ -1,22 +1,24 @@
 FROM ubuntu:16.04 AS qt_build
 
+ARG QT_VERSION
+
 RUN apt-get update && apt-get -y install \
       git libx11-xcb1 libxss1 libasound2 libfontconfig1 libdbus-1-3 && \
     apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-ADD qt-opensource-linux-x64-5.9.1.run /tmp/
+ADD qt-opensource-linux-x64-${QT_VERSION}.run /tmp/
 RUN git clone --depth=1 https://github.com/benlau/qtci.git /tmp/qtci && \
-    /tmp/qtci/bin/extract-qt-installer /tmp/qt-opensource-linux-x64-5.9.1.run /opt/qt && \
+    /tmp/qtci/bin/extract-qt-installer /tmp/qt-opensource-linux-x64-${QT_VERSION}.run /opt/qt && \
     cd /opt/qt && \
-    rm -fr Examples Docs Tools 5.9.1/android_armv7 \
+    rm -fr Examples Docs Tools ${QT_VERSION}/android_armv7 \
       MaintenanceTool.dat MaintenanceTool MaintenanceTool.ini
 
 FROM ubuntu:16.04
 
 COPY --from=qt_build /opt/qt /opt/qt
-RUN ln -s /opt/qt/5.9.1/gcc_64/mkspecs /usr/local/mkspecs && \
-    ln -s /opt/qt/5.9.1/gcc_64/plugins /usr/local/plugins && \
-    ln -s /opt/qt/5.9.1/gcc_64 /opt/qt59
+RUN ln -s /opt/qt/${QT_VERSION}/gcc_64/mkspecs /usr/local/mkspecs && \
+    ln -s /opt/qt/${QT_VERSION}/gcc_64/plugins /usr/local/plugins && \
+    ln -s /opt/qt/${QT_VERSION}/gcc_64 /opt/qt
 
 ENV LANG en_US.UTF-8 \
     LC_ALL en_US.UTF-8 \
@@ -26,7 +28,7 @@ ENV LANG en_US.UTF-8 \
 
 # We have to do this because Jenkins doens't let us
 # https://issues.jenkins-ci.org/browse/JENKINS-49076
-ENV PATH /opt/qt59/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+ENV PATH /opt/qt/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
 RUN apt-get update && apt-get -y --no-install-recommends install curl software-properties-common && \
     curl -sL https://deb.nodesource.com/setup_8.x | bash - && \
