@@ -3,6 +3,7 @@
             [re-frame.core :as re-frame]
             [status-im.react-native.js-dependencies :as rn]
             [taoensso.timbre :as log]
+            [status-im.accounts.login.core :as accounts.login]
             [status-im.chat.models :as chat-model]
             [status-im.utils.platform :as platform]
             [status-im.utils.fx :as fx]))
@@ -73,15 +74,6 @@
           (then #(log/debug "Notification channel created:" channel-id)
                 #(log/error "Notification channel creation error:" channel-id %)))))
 
-  (fx/defn store-event [{:keys [db] :as cofx} {:keys [from to]}]
-    (let [{:keys [address photo-path name]} (->> (get-in cofx [:db :accounts/accounts])
-                                                 vals
-                                                 (filter #(= (:public-key %) to))
-                                                 first)]
-      (when address
-        {:db       (assoc-in db [:push-notifications/stored to] from)
-         :dispatch [:notifications.callback/notification-stored address photo-path name]})))
-
   (fx/defn handle-push-notification
     [{:keys [db] :as cofx} {:keys [from to] :as event}]
     (let [current-public-key (get-in cofx [:db :current-public-key])]
@@ -92,7 +84,7 @@
           (fx/merge cofx
                     {:db (update db :push-notifications/stored dissoc to)}
                     (chat-model/navigate-to-chat from nil)))
-        (store-event cofx event))))
+        {:db (assoc-in db [:push-notifications/stored to] from)})))
 
   (defn parse-notification-payload [s]
     (try
