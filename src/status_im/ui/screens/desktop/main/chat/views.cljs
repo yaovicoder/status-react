@@ -156,12 +156,11 @@
 
 (views/defview messages-view [{:keys [chat-id group-chat]}]
   (views/letsubs [messages [:get-current-chat-messages-stream]
-                  all-messages-count (count (deref messages))
                   current-public-key [:get-current-public-key]
                   messages-to-load (reagent/atom load-step)
                   chat-id* (reagent/atom nil)]
-    {:component-did-update #(load-more all-messages-count messages-to-load)
-     :component-did-mount  #(load-more all-messages-count messages-to-load)}
+    {:component-did-update #(load-more (count messages) messages-to-load)
+     :component-did-mount  #(load-more (count messages) messages-to-load)}
     (let [scroll-ref (atom nil)
           scroll-timer (atom nil)
           scroll-height (atom nil)
