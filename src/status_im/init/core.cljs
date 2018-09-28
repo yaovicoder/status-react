@@ -60,10 +60,23 @@
   [cofx]
   {:keychain/get-encryption-key [:init.callback/get-encryption-key-success]})
 
+(fx/defn start-app [cofx]
+  (fx/merge cofx
+            {:init/get-device-UUID                           nil
+             :ui/listen-to-window-dimensions-change          nil
+             :init/testfairy-alert                           nil
+             :notifications/handle-initial-push-notification nil
+             :network/listen-to-network-status               nil
+             :network/listen-to-connection-status            nil
+             :hardwallet/check-nfc-support                   nil
+             :hardwallet/check-nfc-enabled                   nil}
+            (initialize-keychain)))
+
 (fx/defn initialize-app-db
   "Initialize db to initial state"
   [{{:keys [status-module-initialized? status-node-started? view-id
-            network-status network peers-count peers-summary device-UUID]
+            network-status network peers-count peers-summary device-UUID
+            hardwallet]
      :or   {network (get app-db :network)}} :db}]
   {:db (assoc app-db
               :contacts/contacts {}
@@ -74,20 +87,13 @@
               :status-node-started? status-node-started?
               :network network
               :device-UUID device-UUID
-              :view-id view-id)})
+              :view-id view-id
+              :hardwallet (select-keys hardwallet [:nfc-enabled? :nfc-supported?]))})
 
 (fx/defn initialize-app
   [cofx encryption-key]
   (fx/merge cofx
-            {:init/get-device-UUID                           nil
-             :init/init-store                                encryption-key
-             :ui/listen-to-window-dimensions-change          nil
-             :init/testfairy-alert                           nil
-             :notifications/handle-initial-push-notification nil
-             :network/listen-to-network-status               nil
-             :network/listen-to-connection-status            nil
-             :hardwallet/check-nfc-support                   nil
-             :hardwallet/check-nfc-enabled                   nil}
+            {:init/init-store encryption-key}
             (initialize-app-db)
             (node/start nil)))
 
