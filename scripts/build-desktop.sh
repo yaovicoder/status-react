@@ -21,6 +21,7 @@ external_modules_dir=( \
   'node_modules/react-native-securerandom/desktop' \
   'modules/react-native-status/desktop' \
   'node_modules/google-breakpad' \
+  'modules/react-native-desktop-notification/desktop' \
 )
 
 external_fonts=( \
@@ -61,6 +62,7 @@ function joinExistingPath() {
 STATUSREACTPATH="$(joinExistingPath "$SCRIPTPATH" '..')"
 WORKFOLDER="$(joinExistingPath "$STATUSREACTPATH" 'StatusImPackage')"
 DEPLOYQT="$(joinPath . 'linuxdeployqt-continuous-x86_64.AppImage')"
+APPIMAGETOOL="$(joinPath . 'appimagetool-continuous-x86_64.AppImage')"
 
 function init() {
   if [ -z $QT_PATH ]; then
@@ -133,7 +135,7 @@ function compile() {
           -DDESKTOP_FONTS="$(joinStrings ${external_fonts[@]})" \
           -DJS_BUNDLE_PATH="$WORKFOLDER/StatusIm.jsbundle" \
           -DCMAKE_CXX_FLAGS:='-DBUILD_FOR_BUNDLE=1 -std=c++11'
-    make
+    make -j5
   popd
 }
 
@@ -162,12 +164,17 @@ function bundleLinux() {
   qmakePath="$(joinExistingPath "${QTBIN}" 'qmake')"
   usrBinPath=$(joinPath "$WORKFOLDER" "AppDir/usr/bin")
   cp -r ./deployment/linux/usr $WORKFOLDER/AppDir
+  cp -rf ./desktop/modules/react-native-desktop-notification/desktop/SnoreNotify_ep-prefix/src/SnoreNotify_ep/lib/x86_64-linux-gnu/plugins $WORKFOLDER/AppDir/usr/lib
   cp ./.env $usrBinPath
   cp ./desktop/bin/StatusIm $usrBinPath
   cp ./desktop/reportApp/reportApp $usrBinPath
+  
   if [ ! -f $DEPLOYQT ]; then
     wget --output-document="$DEPLOYQT" --show-progress -q https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
     chmod a+x $DEPLOYQT
+
+    wget --output-document="$APPIMAGETOOL" --show-progress -q https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
+    chmod a+x $APPIMAGETOOL
   fi
 
   rm -f Application-x86_64.AppImage
@@ -204,9 +211,8 @@ function bundleLinux() {
     cp -rf StatusImAppImage/* AppDir/usr/bin
     rm -f AppDir/usr/bin/StatusIm.AppImage
   popd
-  $DEPLOYQT \
-    "$desktopFilePath" \
-    -verbose=$VERBOSE_LEVEL -appimage -qmake="$qmakePath"
+  $APPIMAGETOOL \
+    "$desktopFilePath"
   pushd $WORKFOLDER
     [ $VERBOSE_LEVEL -ge 1 ] && ldd AppDir/usr/bin/StatusIm
     rm -rf StatusIm.AppImage
@@ -241,6 +247,10 @@ function bundleMacOS() {
                       'Status.app/Contents/MacOS/reportApp'
     cp -f ../deployment/macos/Info.plist Status.app/Contents
     cp -f ../deployment/macos/status-icon.icns Status.app/Contents/Resources
+    cp -rf ../desktop/modules/react-native-desktop-notification/desktop/SnoreNotify_ep-prefix/src/SnoreNotify_ep/lib StatusIm.app/Contents
+    install_name_tool -change \
+                  ${STATUSREACTPATH}/desktop/modules/react-native-desktop-notification/desktop/SnoreNotify_ep-prefix/src/SnoreNotify_ep/lib/libsnore-qt5.0.7.dylib @rpath/libsnore-qt5.0.7.dylib \
+                  ${WORKFOLDER}/StatusIm.app/Contents/lib/plugins/libsnore-qt5/libsnore_backend_osxnotificationcenter.so
     $DEPLOYQT Status.app -verbose=$VERBOSE_LEVEL \
       -qmldir="$STATUSREACTPATH/node_modules/react-native/ReactQt/runtime/src/qml/"
     rm -f Status.app.zip
