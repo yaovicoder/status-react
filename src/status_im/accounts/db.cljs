@@ -38,6 +38,7 @@
 (spec/def :account/signing-phrase :global/not-empty-string)
 (spec/def :account/mnemonic (spec/nilable string?))
 (spec/def :account/sharing-usage-data? (spec/nilable boolean?))
+(spec/def :account/desktop-notifications? (spec/nilable boolean?))
 (spec/def :account/dev-mode? (spec/nilable boolean?))
 (spec/def :account/seed-backed-up? (spec/nilable boolean?))
 (spec/def :account/installation-id :global/not-empty-string)
