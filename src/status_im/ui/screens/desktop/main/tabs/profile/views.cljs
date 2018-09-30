@@ -96,7 +96,7 @@
   (views/letsubs [current-view-id [:get :view-id]
                   editing?        [:get :my-profile/editing?]] ;; TODO janherich: refactor my-profile, unnecessary complicated structure in db (could be just `:staged-name`/`:editing?` fields in account map) and horrible way to access it woth `:get`/`:set` subs/events
     (let [adv-settings-open? (= current-view-id :advanced-settings)
-          notifications? [:get user/desktop-notifications?]]
+          notifications? (get-in user [:desktop-notifications?])]
       [react/view
        [react/view {:style styles/profile-edit}
         [react/touchable-highlight {:on-press #(re-frame/dispatch (if editing?
@@ -107,11 +107,11 @@
        [react/view styles/profile-view
         [profile-badge user editing?]
         [share-contact-code]
-        [react/view {:style styles/logout-row}
-         [react/text {:style (styles/logout-row-text colors/black)} (i18n/label :notifications)]
+        [react/view {:style (styles/profile-row false)}
+         [react/text {:style (styles/profile-row-text colors/black)} (i18n/label :notifications)]
          [react/switch {:on-tint-color   colors/blue
-                        :value           notifications?}]]
-                        ;:on-value-change #(re-frame/dispatch [:enable-notifications (not :my-profile/desktop-notifications?)])}]]
+                        :value           notifications?
+                        :on-value-change #(re-frame/dispatch [:accounts.ui/enable-notifications (not notifications?)])}]]
         [react/touchable-highlight {:style  (styles/profile-row adv-settings-open?)
                                     :on-press #(re-frame/dispatch [:navigate-to (if adv-settings-open? :home :advanced-settings)])}
          [react/view {:style styles/adv-settings}
