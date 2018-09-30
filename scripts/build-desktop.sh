@@ -62,7 +62,7 @@ function joinExistingPath() {
 STATUSREACTPATH="$(joinExistingPath "$SCRIPTPATH" '..')"
 WORKFOLDER="$(joinExistingPath "$STATUSREACTPATH" 'StatusImPackage')"
 DEPLOYQT="$(joinPath . 'linuxdeployqt-continuous-x86_64.AppImage')"
-APPIMAGETOOL="$(joinPath . 'appimagetool-continuous-x86_64.AppImage')"
+APPIMAGETOOL="$(joinPath . 'appimagetool-x86_64.AppImage')"
 
 function init() {
   if [ -z $QT_PATH ]; then
