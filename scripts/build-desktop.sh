@@ -164,7 +164,6 @@ function bundleLinux() {
   qmakePath="$(joinExistingPath "${QTBIN}" 'qmake')"
   usrBinPath=$(joinPath "$WORKFOLDER" "AppDir/usr/bin")
   cp -r ./deployment/linux/usr $WORKFOLDER/AppDir
-  cp -rf ./desktop/modules/react-native-desktop-notification/desktop/SnoreNotify_ep-prefix/src/SnoreNotify_ep/lib/x86_64-linux-gnu/plugins $WORKFOLDER/AppDir/usr/lib
   cp ./.env $usrBinPath
   cp ./desktop/bin/StatusIm $usrBinPath
   cp ./desktop/reportApp/reportApp $usrBinPath
@@ -210,6 +209,7 @@ function bundleLinux() {
     cp -r assets/share/assets AppDir/usr/bin
     cp -rf StatusImAppImage/* AppDir/usr/bin
     rm -f AppDir/usr/bin/StatusIm.AppImage
+    cp -rf ../desktop/modules/react-native-desktop-notification/desktop/SnoreNotify_ep-prefix/src/SnoreNotify_ep/lib/x86_64-linux-gnu/plugins AppDir/usr/lib
   popd
   $APPIMAGETOOL \
     "$desktopFilePath"
