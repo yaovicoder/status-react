@@ -42,7 +42,7 @@
        :in-progress (in-progress-text state)
        :synced      (i18n/label :t/sync-synced))]))
 
-(defn- group-last-activity [{:keys [contacts sync-state public?]}]
+(defn- group-last-activity [{:keys [members sync-state public?]}]
   (if (or (= sync-state :in-progress)
           (= sync-state :synced))
     [last-activity {:sync-state sync-state}]
@@ -56,13 +56,13 @@
                     :font  :toolbar-subtitle}
         (if public?
           (i18n/label :t/public-group-status)
-          (let [cnt (count contacts)]
+          (let [cnt (count members)]
             (if (zero? cnt)
               (i18n/label :members-active-none)
               (i18n/label-pluralize cnt :t/members-active))))]])))
 
 (defview toolbar-content-view []
-  (letsubs [{:keys [group-chat color online contacts
+  (letsubs [{:keys [group-chat color online members
                     public? chat-id] :as chat}    [:get-current-chat]
             chat-name                             [:get-current-chat-name]
             show-actions?                         [:get-current-chat-ui-prop :show-actions?]
@@ -80,7 +80,7 @@
                      :accessibility-label :chat-name-text}
          chat-name]
         (if group-chat
-          [group-last-activity {:contacts   contacts
+          [group-last-activity {:members    members
                                 :public?    public?
                                 :sync-state sync-state}]
           (when has-subtitle?
