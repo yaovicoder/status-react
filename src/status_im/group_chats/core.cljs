@@ -1,7 +1,9 @@
 (ns status-im.group-chats.core
-  (:require [clojure.string :as string]
+  (:require  [clojure.set :as clojure.set]
+            [clojure.string :as string]
             [re-frame.core :as re-frame]
             [status-im.utils.config :as config]
+            [status-im.utils.clocks :as utils.clocks]
             [status-im.native-module.core :as native-module]
             [status-im.transport.utils :as transport.utils]
             [status-im.transport.db :as transport.db]
@@ -12,16 +14,20 @@
             [status-im.utils.fx :as fx]
             [status-im.chat.models :as models.chat]))
 
+(defn- event->vector
+  "Trasnform an event in an a vector with keys in alphabetical order"
+  [event]
+  (mapv #(% event) (keys event)))
+
 (defn- parse-response [response-js]
   (-> response-js
       js/JSON.parse
       (js->clj :keywordize-keys true)))
 
-(defn signature-material [{:keys [chat-id admin participants]}]
-  (apply str
-         (concat (sort participants)
-                 admin
-                 chat-id)))
+(defn signature-material [{:keys [chat-id events]}]
+  (js/JSON.stringify
+   (conj chat-id
+         (mapv event->vector events))))
 
 (defn signature-pairs [{:keys [admin signature] :as payload}]
   (js/JSON.stringify (clj->js [[(signature-material payload)
@@ -161,21 +167,95 @@
     (native-module/verify-group-membership-signatures (signature-pairs payload)
                                                       (partial handle-verify-signature-response payload sender-signature))))
 
+(defn- member-added-event [from events member]
+  (conj
+   events
+   {:type "member-added"
+    :clock-value (utils.clocks/send (-> events peek :clock-value))
+    :member member
+    :from from}))
+
 (fx/defn create
   "Format group update message and sign membership"
   [{:keys [db random-guid-generator] :as cofx} group-name]
   (let [my-public-key     (:current-public-key db)
         chat-id           (str (random-guid-generator) my-public-key)
-        selected-contacts (conj (:group/selected-contacts db)
-                                my-public-key)
-        group-update      (transport/map->GroupMembershipUpdate
-                           {:chat-id      chat-id
-                            :chat-name    group-name
-                            :admin        my-public-key
-                            :participants selected-contacts
-                            :version      1})]
-    {:group-chats/sign-membership group-update
+        selected-contacts (:group/selected-contacts db)
+        create-event      {:type        "chat-created"
+                           :from        my-public-key
+                           :chat-name   group-name
+                           :clock-value (utils.clocks/send 0)}
+        events            (reduce (partial member-added-event my-public-key)
+                                  [create-event]
+                                  selected-contacts)]
+
+    {:group-chats/sign-membership {:chat-id chat-id
+                                   :events events}
      :db (assoc db :group/selected-contacts #{})}))
+
+
+(defn valid-event?
+  "Check if event can be applied to current group"
+  [{:keys [admins members]} {:keys [chat-id from member] :as new-event}]
+  (case (:type new-event)
+    "chat-created"   (and (valid-chat-id?
+                          chat-id
+                          from)
+                         (empty? admins)
+                         (empty? members))
+    "member-added"    (admins from)
+    "admin-added"     (and (admins from)
+                         (members member))
+    "member-removed" (or
+                     ;; An admin removing a member
+                     (and (admins from)
+                          (not (admins member)))
+                     ;; Members can remove themselves
+                     (and (not (admins member))
+                          (members member)
+                          (= from member)))
+    "admin-removed" (and (admins from)
+                        (= from member)
+                        (not= #{from} admins))
+    false))
+
+(defn process-event
+  "Add/remove an event to a group"
+  [group {:keys [type member chat-id from] :as event}]
+  (if (valid-event? group event)
+    (case type
+      "chat-created"   {:chat-id    chat-id
+                       :created-by from
+                       :admins     #{from}
+                       :members    #{from}}
+      "member-added"    (update group :members conj member)
+      "admin-added"     (update group :admins conj member)
+      "member-removed" (update group :members disj member)
+      "admin-removed"  (update group :admins disj member))
+    group))
+
+(defn build-group
+  "Given a list of already authenticated events build a group with contats/admin"
+  [events]
+  (->> events
+       (sort-by :clock-value)
+       (reduce
+        process-event
+        {:admins #{}
+         :members #{}})))
+
+(defn membership-changes
+  "Output a list of changes so that system messages can be derived"
+  [old-group new-group]
+  (let [admin-removed  (clojure.set/difference (:admins old-group) (:admins new-group))
+        admin-added   (clojure.set/difference (:admins new-group) (:admins old-group))
+        member-removed (clojure.set/difference (:members old-group) (:members new-group))
+        member-added   (clojure.set/difference (:members new-group) (:members old-group))]
+    (concat
+     (map #(hash-map :type "admin-removed" :member %) admin-removed)
+     (map #(hash-map :type "member-removed" :member %) member-removed)
+     (map #(hash-map :type "member-added" :member %)  member-added)
+     (map #(hash-map :type "admin-added" :member %) admin-added))))
 
 (re-frame/reg-fx
  :group-chats/sign-membership
