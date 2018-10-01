@@ -2,16 +2,39 @@
   (:require [goog.object :as object]
             [cljs.core.async :as async]
             [re-frame.core :as re-frame]
+            [status-im.utils.random :as utils.random]
             [status-im.data-store.realm.core :as core]))
 
+(defn marshal-membership-updates [updates]
+  (mapcat (fn [{:keys [signature events from]}]
+            (map #(assoc %
+                         :id (utils.random/guid)
+                         :signature signature
+                         :from from) events)) updates))
+
+(defn unmarshal-membership-updates [chat-id updates]
+  (->> updates
+       vals
+       (group-by :signature)
+       (map (fn [[signature events]]
+              {:events (map #(dissoc % :signature :from :id) events)
+               :from  (-> events first :from)
+               :signature signature
+               :chat-id chat-id}))))
+
+(defn- get-last-clock-value [chat-id]
+  (-> (core/get-by-field @core/account-realm
+                         :message :chat-id chat-id)
+      (core/sorted :clock-value :desc)
+      (core/single-clj :message)
+      :clock-value))
+
 (defn- normalize-chat [{:keys [chat-id] :as chat}]
-  (let [last-clock-value (-> (core/get-by-field @core/account-realm
-                                                :message :chat-id chat-id)
-                             (core/sorted :clock-value :desc)
-                             (core/single-clj :message)
-                             :clock-value)]
+  (let [last-clock-value (get-last-clock-value chat-id)]
     (-> chat
+        (update :admins   #(into #{} %))
         (update :contacts #(into #{} %))
+        (update :membership-updates  (partial unmarshal-membership-updates chat-id))
         (assoc :last-clock-value (or last-clock-value 0)))))
 
 (re-frame/reg-cofx
@@ -27,7 +50,11 @@
   "Returns tx function for saving chat"
   [{:keys [chat-id] :as chat}]
   (fn [realm]
-    (core/create realm :chat chat true)))
+    (core/create
+     realm
+     :chat
+     (update chat :membership-updates marshal-membership-updates)
+     true)))
 
 ;; Only used in debug mode
 (defn delete-chat-tx
