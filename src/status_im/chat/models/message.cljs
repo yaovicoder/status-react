@@ -179,7 +179,7 @@
 (defn valid-chat-id? [cofx {:keys [chat-id from message-type]}]
   "Validate chat-id and message-type"
   (case message-type
-    :group-user-message (get-in cofx [:db :chats chat-id :contacts from])
+    :group-user-message (get-in cofx [:db :chats chat-id :members from])
     :public-group-user-message (get-in cofx [:db :chats chat-id :public?])
     :user-message (or (= (get-in cofx [:db :current-public-key]) from)
                       (= chat-id from))
