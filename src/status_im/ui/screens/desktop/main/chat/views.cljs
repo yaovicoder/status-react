@@ -189,7 +189,7 @@
                     :current-public-key current-public-key)]))]]
        [connectivity/error-view]])))
 
-(views/defview send-button []
+(views/defview send-button [inp-ref]
   (views/letsubs [{:keys [input-text]} [:get-current-chat]]
     (let [empty? (= "" input-text)]
       [react/touchable-highlight {:style    styles/send-button
@@ -232,7 +232,7 @@
                                                     (let [native-event (.-nativeEvent e)
                                                           text         (.-text native-event)]
                                                       (re-frame/dispatch [:chat.ui/set-chat-input-text text])))}]
-       [send-button]])))
+       [send-button inp-ref]])))
 
 (views/defview chat-view []
   (views/letsubs [{:keys [input-text chat-id] :as current-chat} [:get-current-chat]]
