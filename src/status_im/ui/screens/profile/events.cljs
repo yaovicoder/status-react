@@ -1,9 +1,10 @@
 (ns status-im.ui.screens.profile.events
   (:require [re-frame.core :as re-frame]
+            [status-im.browser.core :as browser]
+            [status-im.ui.screens.profile.models :as profile.models]
             [status-im.ui.screens.profile.navigation]
             [status-im.utils.handlers :as handlers]
-            [status-im.utils.identicon :as identicon]
-            [status-im.ui.screens.profile.models :as profile.models]))
+            [status-im.utils.identicon :as identicon]))
 
 (re-frame/reg-fx
  :open-image-picker
@@ -87,3 +88,8 @@
  :show-tooltip
  (fn [_ [_ tooltip-id]]
    {:show-tooltip tooltip-id}))
+
+(handlers/register-handler-fx
+ :profile/open-ens-names-in-browser
+ (fn [cofx]
+   (browser/open-url cofx "statusnames.eth")))
