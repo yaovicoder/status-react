@@ -61,8 +61,9 @@
      [status-bar]
      [toggle-list-toolbar {:count   selected-contacts-count
                            :handler #(do
-                                       (re-frame/dispatch [:add-new-group-chat-participants])
+                                       (re-frame/dispatch [:group-chats.ui/add-members-pressed])
                                        (re-frame/dispatch [:navigate-back]))
                            :label   (i18n/label :t/add)}
       name]
-     [toggle-list contacts group-toggle-participant]]))
+     (when (seq contacts)
+       [toggle-list contacts group-toggle-participant])]))
