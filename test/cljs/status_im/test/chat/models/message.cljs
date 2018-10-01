@@ -71,7 +71,7 @@
           (is (= :sent status)))))))
 
 (deftest receive-group-chats
-  (let [cofx                 {:db {:chats {"chat-id" {:contacts #{"present"}}}
+  (let [cofx                 {:db {:chats {"chat-id" {:members #{"present"}}}
                                    :account/account {:public-key "a"}
                                    :current-chat-id "chat-id"
                                    :view-id :chat}}
