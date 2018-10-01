@@ -212,7 +212,7 @@ function bundleLinux() {
     cp -rf ../desktop/modules/react-native-desktop-notification/desktop/SnoreNotify_ep-prefix/src/SnoreNotify_ep/lib/x86_64-linux-gnu/plugins AppDir/usr/lib
   popd
   $APPIMAGETOOL \
-    "$desktopFilePath"
+    "$WORKFOLDER/AppDir"
   pushd $WORKFOLDER
     [ $VERBOSE_LEVEL -ge 1 ] && ldd AppDir/usr/bin/StatusIm
     rm -rf StatusIm.AppImage
