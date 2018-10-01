@@ -13,14 +13,19 @@ cmake_minimum_required(VERSION 2.8.11)
 set(APP_NAME StatusIm)
 set(REACT_BUILD_STATIC_LIB ON)
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUNICODE -std=c++11")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DUNICODE -std=c11")
+
 if("${CMAKE_SYSTEM_NAME}" MATCHES "Windows")
   if("${CMAKE_HOST_SYSTEM_NAME}" MATCHES "Linux")
-    # include(./Toolchain-Ubuntu-mingw64.cmake)
+    include(./Toolchain-Ubuntu-mingw64.cmake)
   else()
   message(FATAL_ERROR "Can only cross-compile to Windows from Linux")
   endif()
 endif()
 set(CMAKE_OSX_DEPLOYMENT_TARGET "10.9")
+
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/CMakeModules/")
 
 message(STATUS "EXTERNAL_MODULES_DIR: ${EXTERNAL_MODULES_DIR}")
 
@@ -41,9 +46,14 @@ add_subdirectory(reportApp)
 # APPLICATION_MAIN_CPP_PATH contains absolute path to generated template copy of main.cpp for application executable
 get_filename_component(APPLICATION_MAIN_CPP_PATH main.cpp ABSOLUTE)
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../node_modules/react-native/React/Layout)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../node_modules/react-native/ReactQt/runtime/src ${CMAKE_CURRENT_BINARY_DIR}/lib)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../node_modules/react-native/ReactQt/application/src ${CMAKE_CURRENT_BINARY_DIR}/bin)
+set(REACTQT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../node_modules/react-native/React)
+include_directories(${REACTQT_DIR}/Layout)
+add_subdirectory(${REACTQT_DIR}Qt/runtime/src ${CMAKE_CURRENT_BINARY_DIR}/lib)
+add_subdirectory(${REACTQT_DIR}Qt/application/src ${CMAKE_CURRENT_BINARY_DIR}/bin)
+
+if (Qt5_POSITION_INDEPENDENT_CODE)
+  SET(CMAKE_POSITION_INDEPENDENT_CODE ON)
+endif(Qt5_POSITION_INDEPENDENT_CODE)
 
 if (WIN32)
   set(RUN_SCRIPT_FILE_NAME "run-app.bat")

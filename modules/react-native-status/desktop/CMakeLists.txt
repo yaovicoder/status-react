@@ -52,7 +52,7 @@ if (APPLE)
                          "-framework IOKit"
                          "-framework Security" pthread)
 elseif (WIN32)
-  set(STATUSGO_DEPS_LIBS -lWinMM -lWS2_32 -lsetupapi)
+  set(STATUSGO_DEPS_LIBS -lwinmm -lws2_32 -lsetupapi)
 else()
   set(STATUSGO_DEPS_LIBS pthread)
 endif()
