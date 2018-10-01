@@ -53,9 +53,12 @@
   (get-in db [:accounts/accounts address :network]))
 
 (defn- get-base-node-config [config]
-  (assoc config
+  (cond-> (assoc config
+                 :Name "StatusIM")
          :BackupDisabledDataDir (utils.platform/no-backup-directory)
-         :Name "StatusIM"))
+    config/dev-build?
+    (assoc :ListenAddr ":30304"
+           :DataDir (str (:DataDir config) "_dev"))))
 
 (defn- pick-nodes
   "Picks `limit` different nodes randomly from the list of nodes
