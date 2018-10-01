@@ -839,3 +839,8 @@
  :browser.ui/open-modal-chat-button-pressed
  (fn [cofx [_ host]]
    (browser/open-chat-from-browser cofx host)))
+
+(handlers/register-handler-fx
+ :profile.ui/ens-names-button-pressed
+ (fn [cofx]
+   (browser/open-url cofx "statusnames.eth")))
