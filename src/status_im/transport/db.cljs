@@ -46,6 +46,10 @@
 (spec/def :group-chat/participants (spec/coll-of :global/public-key :kind set?))
 (spec/def :group-chat/signature string?)
 
+;; TODO: Spec out properly
+(spec/def :group-chat/event (spec/map-of keyword? any?))
+(spec/def :group-chat/events (spec/coll-of :group-chat/event))
+
 (spec/def :message.content/text (spec/and string? (complement s/blank?)))
 (spec/def :message.content/response-to string?)
 (spec/def :message.content/command-path (spec/tuple string? (spec/coll-of (spec/or :scope keyword? :chat-id string?) :kind set? :min-count 1)))
@@ -73,7 +77,7 @@
 
 (spec/def :message/message-seen (spec/keys :req-un [:message/ids]))
 
-(spec/def :message/group-membership-update (spec/keys :req-un [:chat/chat-id :chat/name :group-chat/admin :group-chat/participants :group-chat/signature :message/message]))
+(spec/def :message/group-membership-update (spec/map-of keyword any?))
 
 (spec/def :message/message-common (spec/keys :req-un [::content-type ::message-type ::clock-value ::timestamp]))
 (spec/def :message.text/content (spec/keys :req-un [:message.content/text]
