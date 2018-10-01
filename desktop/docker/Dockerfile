@@ -6,19 +6,25 @@ RUN apt-get update && apt-get -y install \
       git libx11-xcb1 libxss1 libasound2 libfontconfig1 libdbus-1-3 && \
     apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
+# This variable defines which parts of QT will be extracted from the .run file.
+# You can list available packages in a Qt .run file by using:
+#   extract-qt-installer --list-packages qt-installer.run
+ENV QT_CI_PACKAGES qt.qt5.5112.gcc_64,qt.qt5.5112.qtwebengine.gcc_64
+
+# We run this as part of a separate container to reduce number of stages
 ADD qt-opensource-linux-x64-${QT_VERSION}.run /tmp/
 RUN git clone --depth=1 https://github.com/benlau/qtci.git /tmp/qtci && \
-    /tmp/qtci/bin/extract-qt-installer /tmp/qt-opensource-linux-x64-${QT_VERSION}.run /opt/qt && \
-    cd /opt/qt && \
-    rm -fr Examples Docs Tools ${QT_VERSION}/android_armv7 \
-      MaintenanceTool.dat MaintenanceTool MaintenanceTool.ini
+    /tmp/qtci/bin/extract-qt-installer \
+        /tmp/qt-opensource-linux-x64-${QT_VERSION}.run /opt/qt-all && \
+    cd /opt/qt-all && rm -fr Examples Docs Tools MaintenanceTool.dat MaintenanceTool MaintenanceTool.ini
 
 FROM ubuntu:16.04
 
-COPY --from=qt_build /opt/qt /opt/qt
-RUN ln -s /opt/qt/${QT_VERSION}/gcc_64/mkspecs /usr/local/mkspecs && \
-    ln -s /opt/qt/${QT_VERSION}/gcc_64/plugins /usr/local/plugins && \
-    ln -s /opt/qt/${QT_VERSION}/gcc_64 /opt/qt
+ARG QT_VERSION
+
+COPY --from=qt_build /opt/qt-all/${QT_VERSION}/gcc_64 /opt/qt
+RUN ln -s /opt/qt/mkspecs /usr/local/mkspecs && \
+    ln -s /opt/qt/plugins /usr/local/plugins
 
 ENV LANG en_US.UTF-8 \
     LC_ALL en_US.UTF-8 \
@@ -26,7 +32,7 @@ ENV LANG en_US.UTF-8 \
     LEIN_HOME /var/tmp/lein \
     NPM_CONFIG_CACHE /var/tmp/npm
 
-# We have to do this because Jenkins doens't let us
+# We have to do this because Jenkins doesn't let us
 # https://issues.jenkins-ci.org/browse/JENKINS-49076
 ENV PATH /opt/qt/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
