@@ -189,6 +189,17 @@
                     :current-public-key current-public-key)]))]]
        [connectivity/error-view]])))
 
+(views/defview send-button []
+  (views/letsubs [{:keys [input-text]} [:get-current-chat]]
+    (let [empty? (= "" input-text)]
+      [react/touchable-highlight {:style    styles/send-button
+                                  :on-press (fn []
+                                              (.clear @inp-ref)
+                                              (.focus @inp-ref)
+                                              (re-frame/dispatch [:chat.ui/send-current-message]))}
+       [react/view {:style (styles/send-icon empty?)}
+        [icons/icon :icons/arrow-left {:style (styles/send-icon-arrow empty?)}]]])))
+
 (views/defview chat-text-input [chat-id input-text]
   (views/letsubs [inp-ref (atom nil)]
     {:should-component-update
@@ -220,15 +231,8 @@
                           :on-change              (fn [e]
                                                     (let [native-event (.-nativeEvent e)
                                                           text         (.-text native-event)]
-                                                      (reagent/set-state component {:empty? (= "" text)})
                                                       (re-frame/dispatch [:chat.ui/set-chat-input-text text])))}]
-       [react/touchable-highlight {:style    styles/send-button
-                                   :on-press (fn []
-                                               (.clear @inp-ref)
-                                               (.focus @inp-ref)
-                                               (re-frame/dispatch [:chat.ui/send-current-message]))}
-        [react/view {:style (styles/send-icon empty?)}
-         [icons/icon :icons/arrow-left {:style (styles/send-icon-arrow empty?)}]]]])))
+       [send-button]])))
 
 (views/defview chat-view []
   (views/letsubs [{:keys [input-text chat-id] :as current-chat} [:get-current-chat]]
