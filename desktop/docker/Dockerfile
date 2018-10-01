@@ -16,7 +16,9 @@ ADD qt-opensource-linux-x64-${QT_VERSION}.run /tmp/
 RUN git clone --depth=1 https://github.com/benlau/qtci.git /tmp/qtci && \
     /tmp/qtci/bin/extract-qt-installer \
         /tmp/qt-opensource-linux-x64-${QT_VERSION}.run /opt/qt-all && \
-    cd /opt/qt-all && rm -fr Examples Docs Tools MaintenanceTool.dat MaintenanceTool MaintenanceTool.ini
+    cd /opt/qt-all && \
+    rm -fr Examples Docs Tools MaintenanceTool.dat MaintenanceTool MaintenanceTool.ini && \
+    find /opt/qt-all/${QT_VERSION}/gcc_64/bin -type f -not -name 'qmake' -delete
 
 FROM ubuntu:16.04
 
