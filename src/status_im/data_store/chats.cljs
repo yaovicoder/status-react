@@ -4,6 +4,12 @@
             [re-frame.core :as re-frame]
             [status-im.data-store.realm.core :as core]))
 
+(defn marshal-membership-updates [updates]
+  (map (comp js/JSON.stringify clj->js) updates))
+
+(defn unmarshal-membership-updates [updates]
+  (map #(js->clj (js/JSON.parse %) :keywordize-keys true) updates))
+
 (defn- normalize-chat [{:keys [chat-id] :as chat}]
   (let [last-clock-value (-> (core/get-by-field @core/account-realm
                                                 :message :chat-id chat-id)
@@ -11,7 +17,9 @@
                              (core/single-clj :message)
                              :clock-value)]
     (-> chat
-        (update :contacts #(into #{} %))
+        (update :admins  #(into #{} %))
+        (update :members #(into #{} %))
+        (update :membership-updates  unmarshal-membership-updates)
         (assoc :last-clock-value (or last-clock-value 0)))))
 
 (re-frame/reg-cofx
@@ -27,7 +35,11 @@
   "Returns tx function for saving chat"
   [{:keys [chat-id] :as chat}]
   (fn [realm]
-    (core/create realm :chat chat true)))
+    (core/create
+     realm
+     :chat
+     (update chat :membership-updates marshal-membership-updates)
+     true)))
 
 ;; Only used in debug mode
 (defn delete-chat-tx
