@@ -11,71 +11,63 @@
             [status-im.ui.screens.browser.styles :as styles])
   (:require-macros [status-im.utils.views :as views]))
 
-(views/defview permissions-panel [{:keys [dapp? dapp]} {:keys [requested-permission dapp-name]}]
+(views/defview permissions-panel [{:keys [dapp? dapp]} {:keys [requested-permission dapp-name] :as show-permission}]
   (views/letsubs [bottom-anim-value (anim/create-value -354)
                   alpha-value       (anim/create-value 0)
-                  hide-panel        (fn []
-                                      (js/setTimeout #(re-frame/dispatch
-                                                       [:browser.permissions.ui/permission-animation-finished
-                                                        dapp-name])
-                                                     600)
-                                      (anim/start
-                                       (anim/parallel
-                                        [(anim/spring bottom-anim-value {:toValue -354})
-                                         (anim/timing alpha-value {:toValue  0
-                                                                   :duration 500})])))]
-    {:component-did-mount #(anim/start
-                            (anim/parallel
-                             [(anim/spring bottom-anim-value {:toValue -20})
-                              (anim/timing alpha-value {:toValue  0.6
-                                                        :duration 500})]))}
-    (let [_ (when-not requested-permission (js/setTimeout hide-panel 10))
-          {:keys [title description icon]} (get browser.permissions/supported-permissions requested-permission)]
-      [react/view styles/permissions-panel-container
-       [react/animated-view {:style (styles/permissions-panel-background alpha-value)}]
-       [react/animated-view {:style (styles/permissions-panel bottom-anim-value)}
-        [react/view styles/permissions-panel-icons-container
-         (if dapp?
-           [chat-icon.screen/dapp-icon-permission dapp 48]
-           [react/view styles/permissions-panel-dapp-icon-container
-            [react/text {:style styles/permissions-panel-d-label} "Ð"]])
-         [react/view {:margin-left 3 :margin-right 3}
-          [react/view styles/dot]]
-         [react/view {:margin-right 3}
-          [react/view styles/dot]]
-         [react/view styles/permissions-panel-ok-icon-container
-          [icons/icon :icons/ok styles/permissions-panel-ok-ico]]
-         [react/view {:margin-left 3 :margin-right 3}
-          [react/view styles/dot]]
-         [react/view {:margin-right 3}
-          [react/view styles/dot]]
-         [react/view styles/permissions-panel-wallet-icon-container
-          (when icon
-            [icons/icon icon {:color :white}])]]
-        [react/text {:style styles/permissions-panel-title-label}
-         (str "\"" dapp-name "\" " title)]
-        [react/text {:style styles/permissions-panel-description-label}
-         description]
-        [react/view {:flex-direction :row :margin-top 14}
-         [components.common/button
-          {:on-press #(re-frame/dispatch [:browser.permissions.ui/dapp-permission-denied])
-           :label    (i18n/label :t/deny)}]
-         [react/view {:width 16}]
-         [components.common/button
-          {:on-press #(re-frame/dispatch [:browser.permissions.ui/dapp-permission-allowed])
-           :label    (i18n/label :t/allow)}]]]])))
-
-;; NOTE (andrey) we need this complex function, to show animation before component will be unmounted
-(defn permissions-anim-panel [browser show-permission]
-  (let [timeout (atom nil)
-        render? (reagent/atom false)]
-    (fn [browser show-permission]
-      (if show-permission
-        (do
-          (when @timeout
-            (js/clearTimeout @timeout)
-            (reset! timeout nil))
-          (when-not @render? (reset! render? true)))
-        (reset! timeout (js/setTimeout #(reset! render? false) 600)))
-      (when @render?
-        [permissions-panel browser show-permission]))))
+                  render?           (reagent/atom false)]
+    {:component-will-update #(anim/start
+                              (anim/parallel
+                               [(anim/spring bottom-anim-value {:toValue -354})
+                                (anim/timing alpha-value {:toValue  0
+                                                          :duration 500})]))
+     :component-did-update #(do
+                              (js/setTimeout (fn [] (reset! render? show-permission)) 1300)
+                              (anim/start
+                               (anim/anim-sequence
+                                [(anim/anim-delay 800)
+                                 (anim/parallel
+                                  [(anim/spring bottom-anim-value {:toValue -20})
+                                   (anim/timing alpha-value {:toValue  0.6
+                                                             :duration 500})])])))
+     :component-did-mount #(do
+                             (reset! render? show-permission)
+                             (anim/start
+                              (anim/parallel
+                               [(anim/spring bottom-anim-value {:toValue -20})
+                                (anim/timing alpha-value {:toValue  0.6
+                                                          :duration 500})])))}
+    (when (and show-permission render?)
+      (let [{:keys [title description icon]} (get browser.permissions/supported-permissions requested-permission)]
+        [react/view styles/permissions-panel-container
+         [react/animated-view {:style (styles/permissions-panel-background alpha-value)}]
+         [react/animated-view {:style (styles/permissions-panel bottom-anim-value)}
+          [react/view styles/permissions-panel-icons-container
+           (if dapp?
+             [chat-icon.screen/dapp-icon-permission dapp 48]
+             [react/view styles/permissions-panel-dapp-icon-container
+              [react/text {:style styles/permissions-panel-d-label} "Ð"]])
+           [react/view {:margin-left 3 :margin-right 3}
+            [react/view styles/dot]]
+           [react/view {:margin-right 3}
+            [react/view styles/dot]]
+           [react/view styles/permissions-panel-ok-icon-container
+            [icons/icon :icons/ok styles/permissions-panel-ok-ico]]
+           [react/view {:margin-left 3 :margin-right 3}
+            [react/view styles/dot]]
+           [react/view {:margin-right 3}
+            [react/view styles/dot]]
+           [react/view styles/permissions-panel-wallet-icon-container
+            (when icon
+              [icons/icon icon {:color :white}])]]
+          [react/text {:style styles/permissions-panel-title-label}
+           (str "\"" dapp-name "\" " title)]
+          [react/text {:style styles/permissions-panel-description-label}
+           description]
+          [react/view {:flex-direction :row :margin-top 14}
+           [components.common/button
+            {:on-press #(re-frame/dispatch [:browser.permissions.ui/dapp-permission-denied])
+             :label    (i18n/label :t/deny)}]
+           [react/view {:width 16}]
+           [components.common/button
+            {:on-press #(re-frame/dispatch [:browser.permissions.ui/dapp-permission-allowed])
+             :label    (i18n/label :t/allow)}]]]]))))
