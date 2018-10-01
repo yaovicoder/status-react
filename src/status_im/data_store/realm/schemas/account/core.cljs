@@ -9,6 +9,7 @@
             [status-im.data-store.realm.schemas.account.browser :as browser]
             [status-im.data-store.realm.schemas.account.dapp-permissions :as dapp-permissions]
             [status-im.data-store.realm.schemas.account.request :as request]
+            [status-im.data-store.realm.schemas.account.membership-update :as membership-update]
             [status-im.data-store.realm.schemas.account.migrations :as migrations]
             [taoensso.timbre :as log]))
 
@@ -142,6 +143,17 @@
           browser/v8
           dapp-permissions/v9])
 
+(def v14 [chat/v7
+          transport/v6
+          contact/v1
+          message/v7
+          mailserver/v11
+          user-status/v1
+          membership-update/v1
+          local-storage/v1
+          browser/v8
+          dapp-permissions/v9])
+
 ;; put schemas ordered by version
 (def schemas [{:schema        v1
                :schemaVersion 1
@@ -181,4 +193,7 @@
                :migration     migrations/v12}
               {:schema        v13
                :schemaVersion 13
-               :migration     migrations/v13}])
+               :migration     migrations/v13}
+              {:schema        v14
+               :schemaVersion 14
+               :migration     migrations/v14}])
