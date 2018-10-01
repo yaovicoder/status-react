@@ -94,7 +94,7 @@
     (testing "it sets the name"
       (is (= topic (:name chat))))
     (testing "it sets the participants"
-      (is (= [] (:contacts chat))))
+      (is (= #{} (:contacts chat))))
     (testing "it sets the chat-id"
       (is (= topic (:chat-id chat))))
     (testing "it sets the group-chat flag"
