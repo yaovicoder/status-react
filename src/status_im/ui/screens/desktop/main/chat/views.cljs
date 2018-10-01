@@ -208,7 +208,7 @@
        (not= old-chat-id new-chat-id))}
     (let [component               (reagent/current-component)
           set-container-height-fn #(reagent/set-state component {:container-height %})
-          {:keys [container-height empty?] :or {empty? true}} (reagent/state component)]
+          {:keys [container-height]} (reagent/state component)]
       [react/view {:style (styles/chat-box container-height)}
        [react/text-input {:placeholder            (i18n/label :t/type-a-message)
                           :auto-focus             true
