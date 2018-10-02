@@ -109,11 +109,11 @@ class UserNameText(BaseText):
             '//android.widget.ImageView[@content-desc="chat-icon"]/../../android.widget.TextView')
 
 
-class ShareMyContactKeyButton(BaseButton):
+class ShareMyProfileButton(BaseButton):
 
     def __init__(self, driver):
-        super(ShareMyContactKeyButton, self).__init__(driver)
-        self.locator = self.Locator.accessibility_id('share-my-contact-code-button')
+        super(ShareMyProfileButton, self).__init__(driver)
+        self.locator = self.Locator.accessibility_id('share-my-profile-button')
 
 
 class EditButton(BaseButton):
@@ -154,7 +154,7 @@ class ShareButton(BaseButton):
 
     def __init__(self, driver):
         super(ShareButton, self).__init__(driver)
-        self.locator = self.Locator.accessibility_id('share-code-button')
+        self.locator = self.Locator.accessibility_id('share-my-contact-code-button')
 
 
 class AdvancedButton(BaseButton):
@@ -400,7 +400,7 @@ class ProfileView(BaseView):
         self.main_currency_button = MainCurrencyButton(self.driver)
 
         self.username_text = UserNameText(self.driver)
-        self.share_my_contact_key_button = ShareMyContactKeyButton(self.driver)
+        self.share_my_profile_button = ShareMyProfileButton(self.driver)
         self.edit_button = EditButton(self.driver)
         self.profile_picture = ProfilePictureElement(self.driver)
         self.edit_picture_button = EditPictureButton(self.driver)
