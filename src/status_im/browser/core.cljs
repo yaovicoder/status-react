@@ -249,7 +249,7 @@
   (let [{:dapps/keys [permissions]} db]
     (if (and (#{"eth_accounts" "eth_coinbase" "eth_sendTransaction" "eth_sign"
                 "eth_signTypedData" "personal_sign" "personal_ecRecover"} method)
-             (not (some #{"WEB3"} (get-in permissions [dapp-name :permissions]))))
+             (not (some #{constants/dapp-permission-web3} (get-in permissions [dapp-name :permissions]))))
       (send-to-bridge cofx
                       {:type      constants/web3-send-async-callback
                        :messageId message-id
@@ -257,10 +257,17 @@
       (web3-send-async cofx payload message-id))))
 
 (fx/defn handle-scanned-qr-code
-  [cofx data message]
-  (fx/merge cofx
-            (send-to-bridge (assoc message :result data))
+  [cofx data {:keys [dapp-name permission message-id]}]
+  (fx/merge (assoc-in cofx [:db :browser/options :yielding-control?] false)
+            (browser.permissions/send-response-to-bridge permission message-id true data)
+            (browser.permissions/process-next-permission dapp-name)
             (navigation/navigate-back)))
+
+(fx/defn handle-canceled-qr-code
+  [cofx {:keys [dapp-name permission message-id]}]
+  (fx/merge (assoc-in cofx [:db :browser/options :yielding-control?] false)
+            (browser.permissions/send-response-to-bridge permission message-id true nil)
+            (browser.permissions/process-next-permission dapp-name)))
 
 (fx/defn process-bridge-message
   [{:keys [db] :as cofx} message]
@@ -282,13 +289,6 @@
 
       (= type constants/web3-send-async-read-only)
       (web3-send-async-read-only cofx dapp-name payload messageId)
-
-      (= type constants/scan-qr-code)
-      (qr-scanner/scan-qr-code cofx
-                               {:modal? false}
-                               (merge {:handler :browser.bridge.callback/qr-code-scanned}
-                                      {:type constants/scan-qr-code-callback
-                                       :data data}))
 
       (= type constants/api-request)
       (browser.permissions/process-permission cofx dapp-name permission messageId))))
