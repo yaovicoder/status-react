@@ -16,7 +16,9 @@ def getBuildType() {
   return params.BUILD_TYPE
 }
 
-def buildBranch(name = null, buildType) {
+def buildBranch(name = null, buildType = null) {
+  /* default to current build type */
+  buildType = buildType ? buildType : getBuildType()
   /* need to drop origin/ to match definitions of child jobs */
   def branchName = env.GIT_BRANCH.replace('origin/', '')
   /* always pass the BRANCH and BUILD_TYPE params with current branch */
@@ -158,12 +160,16 @@ def githubNotify(apkUrl, e2eUrl, ipaUrl, dmgUrl, appUrl, changeId) {
   }
 }
 
-def setBuildDesc(urlsList) {
-  def desc = '<h3>Public Links</h3></br>'
-  def fname = ''
-  urlsList.each {
-    fname = it.split('/').last()
-    desc += "<a href=\"${it}\">${fname}</a></br>"
+def pkgFind(glob) {
+  return findFiles(glob: "pkg/*${glob}")[0].path
+}
+
+def setBuildDesc(Map links) {
+  def desc = 'Links: \n'
+  links.each { type, url ->
+    if (url != null) {
+      desc += "<a href=\"${url}\">${type}</a>  \n"
+    }
   }
   currentBuild.description = desc
 }
