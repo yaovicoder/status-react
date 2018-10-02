@@ -95,6 +95,10 @@ def uploadArtifact(path) {
   /* defaults for upload */
   def domain = 'ams3.digitaloceanspaces.com'
   def bucket = 'status-im'
+  /* There's so many PR builds we need a separate bucket */
+  if (getBuildType() == 'pr') {
+    bucket = 'status-im-prs'
+  }
   withCredentials([usernamePassword(
     credentialsId: 'digital-ocean-access-keys',
     usernameVariable: 'DO_ACCESS_KEY',
@@ -152,6 +156,16 @@ def githubNotify(apkUrl, e2eUrl, ipaUrl, dmgUrl, appUrl, changeId) {
     def ghOutput = sh(returnStdout: true, script: script)
     println("Result of github comment curl: " + ghOutput);
   }
+}
+
+def setBuildDesc(urlsList) {
+  def desc = '<h3>Public Links</h3></br>'
+  def fname = ''
+  urlsList.each {
+    fname = it.split('/').last()
+    desc += "<a href=\"${it}\">${fname}</a></br>"
+  }
+  currentBuild.description = desc
 }
 
 def getParentRunEnv(name) {
