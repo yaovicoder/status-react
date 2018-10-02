@@ -155,6 +155,27 @@
                     :admins #{"1"}
                     :members #{"1"}}]
       (is (= expected (group-chats/build-group events)))))
+  (testing "name changed"
+    (let [events [{:type    "chat-created"
+                   :clock-value 0
+                   :name  "chat-name"
+                   :from    "1"}
+                  {:type    "member-added"
+                   :clock-value 1
+                   :from    "1"
+                   :member  "2"}
+                  {:type    "admin-added"
+                   :clock-value 2
+                   :from    "1"
+                   :member  "2"}
+                  {:type    "name-changed"
+                   :clock-value 3
+                   :from    "2"
+                   :name  "new-name"}]
+          expected {:name "new-name"
+                    :admins #{"1" "2"}
+                    :members #{"1" "2"}}]
+      (is (= expected (group-chats/build-group events)))))
   (testing "invalid events"
     (let [events [{:type    "chat-created"
                    :name "chat-name"
@@ -214,50 +235,60 @@
   (let [multi-admin-group {:admins #{"1" "2"}
                            :members #{"1" "2" "3"}}
         single-admin-group {:admins #{"1"}
-                           :members #{"1" "2" "3"}}]
-  (testing "member-addeds"
-    (testing "admins can add members"
-      (is (group-chats/valid-event? multi-admin-group
+                            :members #{"1" "2" "3"}}]
+    (testing "member-addeds"
+      (testing "admins can add members"
+        (is (group-chats/valid-event? multi-admin-group
                                       {:type "member-added" :clock-value 6 :from "1" :member "4"})))
-    (testing "non-admin members cannot add members"
-      (is (not (group-chats/valid-event? multi-admin-group
+      (testing "non-admin members cannot add members"
+        (is (not (group-chats/valid-event? multi-admin-group
                                            {:type "member-added" :clock-value 6 :from "3" :member "4"})))))
-  (testing "admin-addeds"
-    (testing "admins can make other member admins"
-      (is (group-chats/valid-event? multi-admin-group
+    (testing "admin-addeds"
+      (testing "admins can make other member admins"
+        (is (group-chats/valid-event? multi-admin-group
                                       {:type "admin-added" :clock-value 6 :from "1" :member "3"})))
-    (testing "non-admins can't make other member admins"
-      (is (not (group-chats/valid-event? multi-admin-group
+      (testing "non-admins can't make other member admins"
+        (is (not (group-chats/valid-event? multi-admin-group
                                            {:type "admin-added" :clock-value 6 :from "3" :member "3"}))))
-    (testing "non-existing users can't be made admin"
-      (is (not (group-chats/valid-event? multi-admin-group
+      (testing "non-existing users can't be made admin"
+        (is (not (group-chats/valid-event? multi-admin-group
                                            {:type "admin-added" :clock-value 6 :from "1" :member "not-existing"})))))
-  (testing "member-removed"
-    (testing "admins can remove non-admin members"
-      (is (group-chats/valid-event? multi-admin-group
+    (testing "member-removed"
+      (testing "admins can remove non-admin members"
+        (is (group-chats/valid-event? multi-admin-group
                                       {:type "member-removed" :clock-value 6 :from "1" :member "3"})))
-    (testing "admins can't remove themselves"
-      (is (not (group-chats/valid-event? multi-admin-group
-                                      {:type "member-removed" :clock-value 6 :from "1" :member "1"}))))
-    (testing "participants non-admin can remove themselves"
-      (is (group-chats/valid-event? multi-admin-group
+      (testing "admins can't remove themselves"
+        (is (not (group-chats/valid-event? multi-admin-group
+                                           {:type "member-removed" :clock-value 6 :from "1" :member "1"}))))
+      (testing "participants non-admin can remove themselves"
+        (is (group-chats/valid-event? multi-admin-group
                                       {:type "member-removed" :clock-value 6 :from "3" :member "3"})))
-    (testing "non-admin can't remove other members"
-      (is (not (group-chats/valid-event? multi-admin-group
-                                      {:type "member-removed" :clock-value 6 :from "3" :member "1"})))))
-  (testing "admin-removed"
-    (testing "admins can remove themselves"
-      (is (group-chats/valid-event? multi-admin-group
+      (testing "non-admin can't remove other members"
+        (is (not (group-chats/valid-event? multi-admin-group
+                                           {:type "member-removed" :clock-value 6 :from "3" :member "1"})))))
+    (testing "admin-removed"
+      (testing "admins can remove themselves"
+        (is (group-chats/valid-event? multi-admin-group
                                       {:type "admin-removed" :clock-value 6 :from "1" :member "1"})))
-    (testing "admins can't remove other admins"
-      (is (not (group-chats/valid-event? multi-admin-group
-                                      {:type "admin-removed" :clock-value 6 :from "1" :member "2"}))))
-    (testing "participants non-admin can't remove other admins"
-      (is (not (group-chats/valid-event? multi-admin-group
-                                      {:type "admin-removed" :clock-value 6 :from "3" :member "1"}))))
-    (testing "the last admin can't be removed"
-      (is (not (group-chats/valid-event? single-admin-group
-                                      {:type "admin-removed" :clock-value 6 :from "1" :member "1"})))))))
+      (testing "admins can't remove other admins"
+        (is (not (group-chats/valid-event? multi-admin-group
+                                           {:type "admin-removed" :clock-value 6 :from "1" :member "2"}))))
+      (testing "participants non-admin can't remove other admins"
+        (is (not (group-chats/valid-event? multi-admin-group
+                                           {:type "admin-removed" :clock-value 6 :from "3" :member "1"}))))
+      (testing "the last admin can't be removed"
+        (is (not (group-chats/valid-event? single-admin-group
+                                           {:type "admin-removed" :clock-value 6 :from "1" :member "1"}))))
+      (testing "name-changed"
+        (testing "a change from an admin"
+          (is (group-chats/valid-event? multi-admin-group
+                                        {:type "name-changed" :clock-value 6 :from "1" :name "new-name"}))))
+      (testing "a change from an non-admin"
+        (is (not (group-chats/valid-event? multi-admin-group
+                                           {:type "name-changed" :clock-value 6 :from "3" :name "new-name"}))))
+      (testing "an empty name"
+        (is (not (group-chats/valid-event? multi-admin-group
+                                           {:type "name-changed" :clock-value 6 :from "1" :name "   "})))))))
 
 (deftest create-test
   (testing "create a new chat"
