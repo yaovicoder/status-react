@@ -5,6 +5,8 @@ def plutil(name, value) {
 }
 
 def compile(type = 'nightly') {
+  sh 'env'
+  sh 'qmake --version'
   def target = (type == 'release' ? 'adhoc' : 'nightly')
   /* configure build metadata */
   plutil('CFBundleShortVersionString', common.version())
