@@ -3,6 +3,7 @@
   (:require-macros [status-im.utils.db :refer [allowed-keys]])
   (:require [cljs.spec.alpha :as spec]
             status-im.ui.screens.contacts.db
+            [cljs.spec.gen.alpha :as gen]
             [clojure.string :as s]))
 
 ;; required
@@ -46,10 +47,10 @@
 (spec/def :group-chat/participants (spec/coll-of :global/public-key :kind set?))
 (spec/def :group-chat/signature string?)
 
-(spec/def :message.content/text (comp string? not-empty))
+(spec/def :message.content/text (spec/and string? (complement s/blank?)))
 (spec/def :message.content/response-to string?)
 (spec/def :message.content/command-path (spec/tuple string? (spec/coll-of (spec/or :scope keyword? :chat-id string?) :kind set?)))
-(spec/def :message.content/params (spec/map-of keyword? identity))
+(spec/def :message.content/params (spec/map-of keyword? any?))
 
 (spec/def ::content (spec/conformer (fn [content]
                                       (cond
@@ -58,8 +59,8 @@
                                         :else :clojure.spec/invalid))))
 (spec/def ::content-type #{"text/plain" "command"})
 (spec/def ::message-type #{:group-user-message :public-group-user-message :user-message})
-(spec/def ::clock-value (spec/nilable pos?))
-(spec/def ::timestamp (spec/nilable pos?))
+(spec/def ::clock-value (spec/nilable pos-int?))
+(spec/def ::timestamp (spec/nilable pos-int?))
 
 (spec/def :message/id string?)
 (spec/def :message/ids (spec/coll-of :message/id :kind set?))

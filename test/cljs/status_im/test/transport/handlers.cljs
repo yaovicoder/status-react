@@ -1,5 +1,8 @@
 (ns status-im.test.transport.handlers
   (:require [cljs.test :refer-macros [deftest is testing]]
+            [cljs.spec.alpha :as spec]
+            [clojure.spec.gen.alpha :as gen]
+            [status-im.transport.db :as db]
             [status-im.transport.handlers :as handlers]))
 
 (def sig "0x04325367620ae20dd878dbb39f69f02c567d789dd21af8a88623dc5b529827c2812571c380a2cd8236a2851b8843d6486481166c39debf60a5d30b9099c66213e4")
