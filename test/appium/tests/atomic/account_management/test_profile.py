@@ -30,8 +30,8 @@ class TestProfileSingleDevice(SingleDeviceTestCase):
         sign_in_view = SignInView(self.driver)
         sign_in_view.create_user()
         profile_view = sign_in_view.profile_button.click()
-        profile_view.share_my_contact_key_button.click()
-        public_key = profile_view.public_key_text.text
+        profile_view.share_my_profile_button.click()
+        public_key = profile_view.my_public_key_text.text
         profile_view.share_button.click()
         profile_view.share_via_messenger()
         if not profile_view.element_by_text_part(public_key).is_element_present():
@@ -54,9 +54,9 @@ class TestProfileSingleDevice(SingleDeviceTestCase):
         sign_in_view = SignInView(self.driver)
         sign_in_view.create_user()
         profile_view = sign_in_view.profile_button.click()
-        profile_view.share_my_contact_key_button.click()
-        public_key = profile_view.public_key_text.text
-        profile_view.public_key_text.long_press_element()
+        profile_view.share_my_profile_button.click()
+        public_key = profile_view.my_public_key_text.text
+        profile_view.my_public_key_text.long_press_element()
         profile_view.copy_text()
         profile_view.cross_icon.click()
         home = profile_view.home_button.click()
