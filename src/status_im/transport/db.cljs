@@ -49,7 +49,7 @@
 (spec/def :message.content/text (comp string? not-empty))
 (spec/def :message.content/response-to string?)
 (spec/def :message.content/command-path (spec/tuple string? (spec/coll-of (spec/or :scope keyword? :chat-id string?) :kind set?)))
-(spec/def :message.content/params (spec/map-of keyword? identity))
+(spec/def :message.content/params (spec/map-of keyword? any?))
 
 (spec/def ::content (spec/conformer (fn [content]
                                       (cond
@@ -85,7 +85,7 @@
                                            :req-opt [:message.content/response-to]))
 (spec/def :message.command/content (spec/keys :req-un [:message.content/command-path :message.content/params]))
 
-(defmulti content-type ::content-type)
+(defmulti content-type :content-type)
 
 (defmethod content-type "command" [_]
   (spec/merge :message/message-common
@@ -95,4 +95,4 @@
   (spec/merge :message/message-common
               (spec/keys :req-un [:message.text/content])))
 
-(spec/def :message/message (spec/multi-spec content-type ::content-type))
+(spec/def :message/message (spec/multi-spec content-type :content-type))
