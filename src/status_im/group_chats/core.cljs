@@ -84,8 +84,9 @@
 
 (defn chat->group-update
   "Transform a chat in a GroupMembershipUpdate"
-  [chat]
-  (select-keys chat [:chat-id :events]))
+  [chat-id {:keys [events]}]
+  (transport/map->GroupMembershipUpdate. {:chat-id chat-id
+                                          :events events}))
 
 (defn handle-sign-response
   "Callback to dispatch on sign response"
@@ -165,24 +166,27 @@
 (defn valid-event?
   "Check if event can be applied to current group"
   [{:keys [admins members]} {:keys [chat-id from member] :as new-event}]
-  (case (:type new-event)
-    "chat-created"   (and (empty? admins)
-                          (empty? members))
-    "member-added"    (admins from)
-    "admin-added"     (and (admins from)
-                           (members member))
-    "member-removed" (or
-                      ;; An admin removing a member
-                      (and (admins from)
-                           (not (admins member)))
-                      ;; Members can remove themselves
-                      (and (not (admins member))
-                           (members member)
-                           (= from member)))
-    "admin-removed" (and (admins from)
-                         (= from member)
-                         (not= #{from} admins))
-    false))
+  (when from
+    (case (:type new-event)
+      "chat-created"   (and (empty? admins)
+                            (empty? members))
+      "name-changed"   (and (admins from)
+                            (not (string/blank? (:name new-event))))
+      "member-added"    (admins from)
+      "admin-added"     (and (admins from)
+                             (members member))
+      "member-removed" (or
+                        ;; An admin removing a member
+                        (and (admins from)
+                             (not (admins member)))
+                        ;; Members can remove themselves
+                        (and (not (admins member))
+                             (members member)
+                             (= from member)))
+      "admin-removed" (and (admins from)
+                           (= from member)
+                           (not= #{from} admins))
+      false)))
 
 (defn process-event
   "Add/remove an event to a group"
@@ -192,8 +196,9 @@
       "chat-created"   {:name       name
                         :admins     #{from}
                         :members    #{from}}
-      "member-added"    (update group :members conj member)
-      "admin-added"     (update group :admins conj member)
+      "name-changed"   (assoc group :name name)
+      "member-added"   (update group :members conj member)
+      "admin-added"    (update group :admins conj member)
       "member-removed" (update group :members disj member)
       "admin-removed"  (update group :admins disj member))
     group))
@@ -221,7 +226,6 @@
      (map #(hash-map :type "member-added" :member %)  member-added)
      (map #(hash-map :type "admin-added" :member %) admin-added))))
 
->>>>>>> WIP
 (re-frame/reg-fx
  :group-chats/sign-membership
  sign-membership)
@@ -234,9 +238,10 @@
 (fx/defn update-membership
   "Upsert chat when version is greater or not existing"
   [cofx previous-chat {:keys [chat-id] :as new-chat}]
-  (let [all-events (clojure.set/union (into #{} (:events previous-chat))
-                                      (into #{} (:events new-chat)))
-        new-group  (build-group all-events)]
+  (let [all-events         (clojure.set/union (into #{} (:events previous-chat))
+                                              (into #{} (:events new-chat)))
+        unwrapped-events   (mapcat :events all-events)
+        new-group          (build-group unwrapped-events)]
     (models.chat/upsert-chat cofx
                              {:chat-id              chat-id
                               :name                 (:name new-group)
@@ -256,7 +261,7 @@
                 events] :as membership-update}
    sender-signature]
   (when (and config/group-chats-enabled?
-             (valid-chat-id? chat-id (-> events first :from)))
+             (valid-chat-id? chat-id (-> events first :events first :from)))
     (let [previous-chat (get-in cofx [:db :chats chat-id])]
       (fx/merge cofx
                 (update-membership previous-chat membership-update)
@@ -272,7 +277,7 @@
   (let [chat          (get-in db [:chats chat-id])
         updated-chat  (update chat :events conj signed-events)
         my-public-key (:current-public-key db)
-        group-update (chat->group-update updated-chat)]
+        group-update (chat->group-update chat-id updated-chat)]
     (fx/merge cofx
               (handle-membership-update group-update my-public-key)
               (models.chat/navigate-to-chat chat-id {:navigation-reset? true})
