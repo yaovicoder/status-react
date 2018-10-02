@@ -2,8 +2,8 @@
  status-im.transport.db
   (:require-macros [status-im.utils.db :refer [allowed-keys]])
   (:require [cljs.spec.alpha :as spec]
-            status-im.ui.screens.contacts.db
             [cljs.spec.gen.alpha :as gen]
+            status-im.ui.screens.contacts.db
             [clojure.string :as s]))
 
 ;; required
@@ -49,7 +49,7 @@
 
 (spec/def :message.content/text (spec/and string? (complement s/blank?)))
 (spec/def :message.content/response-to string?)
-(spec/def :message.content/command-path (spec/tuple string? (spec/coll-of (spec/or :scope keyword? :chat-id string?) :kind set?)))
+(spec/def :message.content/command-path (spec/tuple string? (spec/coll-of (spec/or :scope keyword? :chat-id string?) :kind set? :min-count 1)))
 (spec/def :message.content/params (spec/map-of keyword? any?))
 
 (spec/def ::content (spec/conformer (fn [content]
