@@ -57,6 +57,7 @@ def prep(type = 'nightly') {
     podUpdate()
     sh 'pod install --silent'
   }
+  sh 'qmake --version'
 }
 
 def leinBuild(platform) {
