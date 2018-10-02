@@ -95,6 +95,10 @@ def uploadArtifact(path) {
   /* defaults for upload */
   def domain = 'ams3.digitaloceanspaces.com'
   def bucket = 'status-im'
+  /* There's so many PR builds we need a separate bucket */
+  if (getBuildType() == 'pr') {
+    bucket = 'status-im-prs'
+  }
   withCredentials([usernamePassword(
     credentialsId: 'digital-ocean-access-keys',
     usernameVariable: 'DO_ACCESS_KEY',
