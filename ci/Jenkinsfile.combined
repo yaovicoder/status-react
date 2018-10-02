@@ -17,7 +17,6 @@ pipeline {
         println "Current JOB: ${env.JOB_NAME}"
         /* load common lib */
         cmn = load('ci/common.groovy')
-
         /* to avoid missing build tag parallel builds */
         print "Build Number: ${cmn.tagBuild(true)}"
       } }
@@ -72,6 +71,8 @@ pipeline {
         }
         /* special case for iOS Diawi links */
         ipaUrl = ios.getBuildVariables().get('DIAWI_URL')
+        /* add URLs to the build description */
+        cmn.setBuildDesc([apkUrl, e2eUrl, ipaUrl, appUrl, dmgUrl])
       } }
     }
     stage('Notify') {
