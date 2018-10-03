@@ -29,4 +29,5 @@
 (def background-timer       #js {:setTimeout (fn [])})
 (def testfairy              #js {})
 (def react-navigation       #js {:NavigationActions #js {}})
+(def context-menu           (js/require "react-native-qt-context-menu"))
 
