@@ -17,18 +17,16 @@
 (def chat-id (str random-id admin))
 
 (def initial-message {:chat-id chat-id
-                      :events [{:type "chat-created"
-                                :name "chat-name"
-                                :from admin
-                                :clock-value 1}
-                               {:type "member-added"
-                                :from admin
-                                :clock-value 3
-                                :member member-2}
-                               {:type "member-added"
-                                :from admin
-                                :clock-value 3
-                                :member member-3}]})
+                      :events [{:from admin
+                                :events [{:type "chat-created"
+                                          :name "chat-name"
+                                          :clock-value 1}
+                                         {:type "member-added"
+                                          :clock-value 3
+                                          :member member-2}
+                                         {:type "member-added"
+                                          :clock-value 3
+                                          :member member-3}]}]})
 
 (deftest handle-group-membership-update
   (with-redefs [config/group-chats-enabled? true]
@@ -80,25 +78,26 @@
             (testing "it noops"
               (is (= (get-in actual [:db :chats chat-id])
                      (get-in cofx [:db :chats chat-id]))))))
-        (testing "the message has already been received"
+        (testing "a new message comes in"
           (let [actual (group-chats/handle-membership-update cofx
                                                              {:chat-id chat-id
-                                                              :events [{:type "admin-added"
-                                                                        :from member-1
-                                                                        :clock-value 10
-                                                                        :member member-2}
-                                                                       {:type "admin-removed"
-                                                                        :from member-1
-                                                                        :clock-value 11
-                                                                        :member member-1}
-                                                                       {:type "member-removed"
-                                                                        :from member-2
-                                                                        :clock-value 12
-                                                                        :member member-3}
-                                                                       {:type "member-added"
-                                                                        :from member-2
-                                                                        :clock-value 12
-                                                                        :member member-4}]}
+                                                              :events [{:from member-1
+                                                                        :events [{:type "chat-created"
+                                                                                  :clock-value 1
+                                                                                  :name "group-name"}
+                                                                                 {:type "admin-added"
+                                                                                  :clock-value 10
+                                                                                  :member member-2}
+                                                                                 {:type "admin-removed"
+                                                                                  :clock-value 11
+                                                                                  :member member-1}]}
+                                                                       {:from member-2
+                                                                        :events [{:type "member-removed"
+                                                                                  :clock-value 12
+                                                                                  :member member-3}
+                                                                                 {:type "member-added"
+                                                                                  :clock-value 12
+                                                                                  :member member-4}]}]}
                                                              member-3)
                 actual-chat (get-in actual [:db :chats chat-id])]
             (testing "the chat is updated"

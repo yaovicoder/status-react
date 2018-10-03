@@ -80,6 +80,7 @@
 (fx/defn handle-membership-update-received
   "Verify signatures in status-go and act if successful"
   [cofx membership-update signature]
+  (println membership-update signature)
   {:group-chats/verify-membership-signature [[membership-update signature]]})
 
 (defn chat->group-update
@@ -240,7 +241,10 @@
   [cofx previous-chat {:keys [chat-id] :as new-chat}]
   (let [all-events         (clojure.set/union (into #{} (:events previous-chat))
                                               (into #{} (:events new-chat)))
-        unwrapped-events   (mapcat :events all-events)
+        unwrapped-events   (mapcat
+                            (fn [{:keys [events from]}]
+                              (map #(assoc % :from from) events))
+                            all-events)
         new-group          (build-group unwrapped-events)]
     (models.chat/upsert-chat cofx
                              {:chat-id              chat-id
@@ -261,7 +265,7 @@
                 events] :as membership-update}
    sender-signature]
   (when (and config/group-chats-enabled?
-             (valid-chat-id? chat-id (-> events first :events first :from)))
+             (valid-chat-id? chat-id (-> events first :from)))
     (let [previous-chat (get-in cofx [:db :chats chat-id])]
       (fx/merge cofx
                 (update-membership previous-chat membership-update)
