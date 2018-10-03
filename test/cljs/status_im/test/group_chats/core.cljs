@@ -296,16 +296,14 @@
                   :db {:current-public-key "me"
                        :group/selected-contacts #{"1" "2"}}}]
         (is (= {:chat-id "randomme"
+                :from    "me"
                 :events [{:type "chat-created"
-                          :from "me"
                           :clock-value 1
                           :name "group-name"}
                          {:type "member-added"
-                          :from "me"
                           :clock-value 2
                           :member "1"}
                          {:type "member-added"
-                          :from "me"
                           :clock-value 3
                           :member "2"}]}
                (:group-chats/sign-membership (group-chats/create cofx "group-name"))))))))
@@ -322,17 +320,39 @@
               {:type "admin-added" :member "3"}]
              (group-chats/membership-changes old-group new-group))))))
 
+(deftest signature-pairs-test
+  (let [event-1 {:from "1"
+                 :signature "signature-1"
+                 :events [{:type "a" :name "a" :clock-value 1}
+                          {:type "b" :name "b" :clock-value 2}]}
+        event-2 {:from "2"
+                 :signature "signature-2"
+                 :events [{:type "c" :name "c" :clock-value 1}
+                          {:type "d" :name "d" :clock-value 2}]}
+        message {:chat-id "randomme"
+
+                 :events [event-1
+                          event-2]}
+        expected (js/JSON.stringify
+                  (clj->js [[(group-chats/signature-material "randomme" (:events event-1))
+                             "signature-1"
+                             "1"]
+                            [(group-chats/signature-material "randomme" (:events event-2))
+                             "signature-2"
+                             "2"]]))]
+
+    (is (= expected (group-chats/signature-pairs message)))))
+
 (deftest signature-material-test
   (is (= (js/JSON.stringify (clj->js [[[["a" "a-value"]
                                         ["b" "b-value"]
                                         ["c" "c-value"]]
                                        [["a" "a-value"]
                                         ["e" "e-value"]]] "chat-id"]))
-         (group-chats/signature-material {:chat-id "chat-id"
-                                          :events [{:b "b-value"
-                                                    :a "a-value"
-                                                    :c "c-value"}
-                                                   {:e "e-value"
-                                                    :a "a-value"}]}))))
+         (group-chats/signature-material "chat-id" [{:b "b-value"
+                                                     :a "a-value"
+                                                     :c "c-value"}
+                                                    {:e "e-value"
+                                                     :a "a-value"}]))))
 
 
