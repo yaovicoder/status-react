@@ -27,14 +27,17 @@
       js/JSON.parse
       (js->clj :keywordize-keys true)))
 
-(defn signature-material [{:keys [chat-id events]}]
+(defn signature-material [chat-id events]
   (js/JSON.stringify
    (clj->js [(mapv event->vector events) chat-id])))
 
-(defn signature-pairs [{:keys [admin signature] :as payload}]
-  (js/JSON.stringify (clj->js [[(signature-material payload)
-                                signature
-                                (subs admin 2)]])))
+(defn signature-pairs [{:keys [chat-id events] :as payload}]
+  (let [pairs (mapv (fn [{:keys [events signature from]}]
+                      [(signature-material chat-id events)
+                       signature
+                       (subs from 2)])
+                    events)]
+    (js/JSON.stringify (clj->js pairs))))
 
 (defn valid-chat-id?
   ;; We need to make sure the chat-id ends with the admin pk (and it's not the same).
@@ -58,13 +61,13 @@
 (defn send-membership-update
   "Send a membership update to all participants but the sender"
   [cofx payload chat-id]
-  (let [{:keys [participants]} payload
+  (let [members (get-in cofx [:db :chats chat-id :members])
         {:keys [current-public-key web3]} (:db cofx)]
     (fx/merge
      cofx
      {:shh/send-group-message {:web3          web3
                                :src           current-public-key
-                               :dsts          (disj participants current-public-key)
+                               :dsts          (disj members current-public-key)
                                :success-event [:transport/set-message-envelope-hash
                                                chat-id
                                                (transport.utils/message-id (:message payload))
@@ -80,8 +83,7 @@
 (fx/defn handle-membership-update-received
   "Verify signatures in status-go and act if successful"
   [cofx membership-update signature]
-  (println membership-update signature)
-  {:group-chats/verify-membership-signature [[membership-update signature]]})
+  {:group-chats/verify-membership-signature [membership-update signature]})
 
 (defn chat->group-update
   "Transform a chat in a GroupMembershipUpdate"
@@ -105,22 +107,20 @@
       (re-frame/dispatch [:group-chats.callback/verify-signature-failed  error])
       (re-frame/dispatch [:group-chats.callback/verify-signature-success payload sender-signature]))))
 
-(defn sign-membership [payload]
-  (native-module/sign-group-membership (signature-material payload)
+(defn sign-membership [{:keys [chat-id events] :as payload}]
+  (native-module/sign-group-membership (signature-material chat-id events)
                                        (partial handle-sign-response payload)))
 
-(defn verify-membership-signature [signatures]
-  (doseq [[payload sender-signature] signatures]
-    (native-module/verify-group-membership-signatures (signature-pairs payload)
-                                                      (partial handle-verify-signature-response payload sender-signature))))
+(defn verify-membership-signature [payload sender]
+  (native-module/verify-group-membership-signatures (signature-pairs payload)
+                                                    (partial handle-verify-signature-response payload sender)))
 
 (defn- member-added-event [from events member]
   (conj
    events
    {:type "member-added"
     :clock-value (utils.clocks/send (-> events peek :clock-value))
-    :member member
-    :from from}))
+    :member member}))
 
 (fx/defn create
   "Format group update message and sign membership"
@@ -129,14 +129,14 @@
         chat-id           (str (random-guid-generator) my-public-key)
         selected-contacts (:group/selected-contacts db)
         create-event      {:type        "chat-created"
-                           :from        my-public-key
-                           :name   group-name
+                           :name        group-name
                            :clock-value (utils.clocks/send 0)}
         events            (reduce (partial member-added-event my-public-key)
                                   [create-event]
                                   selected-contacts)]
 
     {:group-chats/sign-membership {:chat-id chat-id
+                                   :from   my-public-key
                                    :events events}
      :db (assoc db :group/selected-contacts #{})}))
 
@@ -233,8 +233,8 @@
 
 (re-frame/reg-fx
  :group-chats/verify-membership-signature
- (fn [signatures]
-   (verify-membership-signature signatures)))
+ (fn [[payload sender]]
+   (verify-membership-signature payload sender)))
 
 (fx/defn update-membership
   "Upsert chat when version is greater or not existing"
