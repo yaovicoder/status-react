@@ -238,7 +238,7 @@ function bundleMacOS() {
     ln -sf ../Resources/qt-reportApp.conf Status.app/Contents/MacOS/qt.conf
     otool -l Status.app/Contents/MacOS/reportApp
     install_name_tool -add_rpath "@executable_path/../Frameworks" \
-                      -delete_rpath "$(joinExistingPath "$QT_PATH" 'lib')" \
+                      -delete_rpath "${$QT_PATH}/lib" \
                       'Status.app/Contents/MacOS/reportApp'
     cp -f ../deployment/macos/Info.plist Status.app/Contents
     cp -f ../deployment/macos/status-icon.icns Status.app/Contents/Resources
