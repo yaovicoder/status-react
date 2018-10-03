@@ -5,7 +5,6 @@
             [clojure.string :as string]
             [status-im.ui.screens.chat.styles.message.message :as message.style]
             [status-im.ui.screens.chat.message.message :as message]
-            [status-im.utils.gfycat.core :as gfycat.core]
             [taoensso.timbre :as log]
             [reagent.core :as reagent]
             [status-im.utils.gfycat.core :as gfycat]
@@ -150,12 +149,15 @@
         :reagent-render
         (fn []
           ^{:key (str "message" message-id)}
-          [react/view
-           (if (and group-chat (not outgoing))
-             [message-with-name-and-avatar text message]
-             [text-only-message text message])
-           [react/view {:style (message.style/delivery-status outgoing)}
-            [message/message-delivery-status message]]])}))))
+          [react/touchable-highlight
+           {:on-long-press (fn [_]
+                             (re-frame/dispatch [:chat.ui/reply-to-message message-id]))}
+           [react/view
+            (if (and group-chat (not outgoing))
+              [message-with-name-and-avatar text message]
+              [text-only-message text message])
+            [react/view {:style (message.style/delivery-status outgoing)}
+             [message/message-delivery-status message]]]])}))))
 
 (def load-step 5)
 
@@ -211,6 +213,24 @@
        [react/view {:style (styles/send-icon empty?)}
         [icons/icon :icons/arrow-left {:style (styles/send-icon-arrow empty?)}]]])))
 
+(views/defview reply-message [from message-text]
+  (views/letsubs [username           [:get-contact-name-by-identity from]
+                  current-public-key [:get-current-public-key]]
+    [react/view {:style styles/reply-content-container}
+     [react/text {:style styles/reply-content-author}
+      (or (and (= from current-public-key)
+               (i18n/label :t/You))
+          username
+          (gfycat/generate-gfy from))]
+     [react/text {:style styles/reply-content-message} message-text]]))
+
+(views/defview reply-message-view []
+  (views/letsubs [{:keys [content from] :as message} [:get-reply-message]]
+    (when message
+      [react/view {:style styles/reply-container}
+       [member-photo from]
+       [reply-message from (:text content)]])))
+
 (views/defview chat-text-input [chat-id input-text]
   (views/letsubs [inp-ref (atom nil)]
     {:should-component-update
@@ -250,6 +270,7 @@
     [react/view {:style styles/chat-view}
      [toolbar-chat-view current-chat]
      [messages-view current-chat]
+     [reply-message-view]
      [chat-text-input chat-id input-text]]))
 
 (views/defview chat-profile []

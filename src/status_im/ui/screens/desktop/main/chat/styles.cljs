@@ -208,3 +208,15 @@
   {:margin-bottom  4
    :font-size      14
    :color          colors/black})
+
+(def reply-container
+  {:flex-direction   :row})
+
+(def reply-content-container
+  {:flex-direction :column})
+
+(def reply-content-author
+  {})
+
+(def reply-content-message
+  {:border-radius    8})
