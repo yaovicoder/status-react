@@ -57,7 +57,7 @@
      [react/view
       (when (and (not group-chat) (not public?))
         [react/text {:style (styles/profile-actions-text colors/black)
-                     :on-press #(re-frame/dispatch [:show-profile-desktop whisper-identity])}
+                     :on-press #(re-frame/dispatch [:show-context-menu])}
          (i18n/label :t/view-profile)])
       [react/text {:style (styles/profile-actions-text colors/black)
                    :on-press #(re-frame/dispatch [:chat.ui/clear-history-pressed])}

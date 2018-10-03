@@ -14,6 +14,7 @@
     "node_modules/react-native-webview-bridge/desktop",
     "node_modules/react-native-keychain/desktop",
     "node_modules/react-native-securerandom/desktop",
+    "node_modules/react-native-qt-context-menu/desktop",
     "modules/react-native-status/desktop",
     "node_modules/google-breakpad"
   ],
@@ -23,14 +24,14 @@
     "../../../../../resources/fonts/SF-Pro-Text-Light.otf"
   ],
   "dependencies": {
-    "assert": "1.4.1",
-    "asyncstorage-down": "4.0.1",
     "@babel/core": "7.0.1",
     "@babel/generator": "7.0.0",
     "@babel/helper-builder-react-jsx": "7.0.0",
     "@babel/plugin-transform-block-scoping": "7.0.0",
-    "@babel/register": "7.0.0",
     "@babel/preset-env": "7.1.0",
+    "@babel/register": "7.0.0",
+    "assert": "1.4.1",
+    "asyncstorage-down": "4.0.1",
     "babel-preset-react-native": "5.0.2",
     "bignumber.js": "github:status-im/bignumber.js#master",
     "buffer": "3.6.0",
@@ -73,6 +74,7 @@
     "react-native-level-fs": "3.0.0",
     "react-native-os": "1.1.0",
     "react-native-qrcode": "0.2.6",
+    "react-native-qt-context-menu": "github:status-im/react-native-qt-context-menu",
     "react-native-securerandom": "git+https://github.com/status-im/react-native-securerandom.git",
     "react-native-splash-screen": "3.0.6",
     "react-native-svg": "6.3.1",
