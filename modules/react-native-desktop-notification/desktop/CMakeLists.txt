@@ -20,6 +20,7 @@ set(SnoreNotify_CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${SnoreNotify_PREFIX} -DBUILD_
 
 ExternalProject_Add(SnoreNotify_ep
   GIT_REPOSITORY https://github.com/status-im/snorenotify.git
+  GIT_TAG 034a5fb6720f049f190bc1c052d870b7aeaaae4f
   CMAKE_ARGS ${SnoreNotify_CMAKE_ARGS}
   BUILD_BYPRODUCTS ${SnoreNotify_SHARED_LIB}
   LOG_BUILD 1
