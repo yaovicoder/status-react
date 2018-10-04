@@ -219,13 +219,6 @@
   [_ _]
   [message-content-status])
 
-;; TODO(janherich) in the future, `content-type-command-request` will be deprecated
-;; as it's the same thing as command
-(defmethod message-content constants/content-type-command-request
-  [wrapper message]
-  [wrapper message
-   [message-view message [message-content-command message]]])
-
 (defmethod message-content constants/content-type-command
   [wrapper message]
   [wrapper message
