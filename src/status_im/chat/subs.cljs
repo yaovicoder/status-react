@@ -8,7 +8,8 @@
             [status-im.utils.platform :as platform]
             [status-im.utils.gfycat.core :as gfycat]
             [status-im.i18n :as i18n]
-            [status-im.models.transactions :as transactions]))
+            [status-im.models.transactions :as transactions]
+            [status-im.chat.models :as chat-model]))
 
 (reg-sub :get-chats :chats)
 
@@ -346,8 +347,8 @@
 (reg-sub
  :get-chats-unread-messages-number
  :<- [:get-active-chats]
- (fn [chats _]
-   (apply + (map (comp count :unviewed-messages) (vals chats)))))
+ (fn [active-chats _]
+   (chat-model/unread-messages-number active-chats)))
 
 (reg-sub
  :transaction-confirmed?
