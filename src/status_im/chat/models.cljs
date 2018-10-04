@@ -16,7 +16,9 @@
             [status-im.utils.clocks :as utils.clocks]
             [status-im.utils.datetime :as time]
             [status-im.utils.gfycat.core :as gfycat]
-            [status-im.utils.fx :as fx]))
+            [status-im.utils.fx :as fx]
+            [status-im.utils.platform :as platform]
+            [status-im.ui.components.react :as react]))
 
 (defn multi-user-chat? [cofx chat-id]
   (get-in cofx [:db :chats chat-id :group-chat]))
@@ -49,6 +51,9 @@
      :timestamp          now
      :contacts           [chat-id]
      :last-clock-value   0}))
+
+(defn unread-messages-number [chats]
+  (apply + (map (comp count :unviewed-messages) (vals chats))))
 
 (fx/defn upsert-chat
   "Upsert chat when not deleted"
@@ -142,6 +147,13 @@
   (when (not (get-in db [:chats chat-id :group-chat]))
     (transport.message/send (protocol/map->MessagesSeen {:message-ids message-ids}) chat-id cofx)))
 
+(fx/defn update-dock-badge
+  [cofx]
+  (when platform/desktop?
+    (let [chats (get-in cofx [:db :chats])
+          active-chats (into {} (filter (comp :is-active second) chats))]
+      {:set-dock-badge (unread-messages-number active-chats)})))
+
 ;; TODO (janherich) - ressurect `constants/system` messages for group chats in the future
 (fx/defn mark-messages-seen
   "Marks all unviewed loaded messages as seen in particular chat"
@@ -166,7 +178,8 @@
                            (update-in [:chats chat-id :unviewed-messages]
                                       #(apply disj % loaded-unviewed-ids)))
                    :data-store/tx [(user-statuses-store/save-statuses-tx updated-statuses)]}
-                  (send-messages-seen chat-id loaded-unviewed-ids))))))
+                  (send-messages-seen chat-id loaded-unviewed-ids)
+                  (update-dock-badge))))))
 
 (fx/defn preload-chat-data
   "Takes chat-id and coeffects map, returns effects necessary when navigating to chat"
@@ -228,3 +241,8 @@
    (utils/show-popup nil
                      (i18n/label :cooldown/warning-message)
                      #())))
+
+(re-frame/reg-fx
+ :set-dock-badge
+ (fn [number]
+   (.setDockBadge react/desktop-notification number)))
