@@ -26,7 +26,6 @@
         status-message (-> payload
                            transport.utils/to-utf8
                            transit/deserialize)]
-    (println sig (get-in cofx [:db :current-public-key]))
     (when (and sig status-message)
       (try
         (when-let [valid-message (message/validate status-message)]

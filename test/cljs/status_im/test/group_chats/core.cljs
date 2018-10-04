@@ -335,11 +335,9 @@
                           event-2]}
         expected (js/JSON.stringify
                   (clj->js [[(group-chats/signature-material "randomme" (:events event-1))
-                             "signature-1"
-                             "1"]
+                             "signature-1"]
                             [(group-chats/signature-material "randomme" (:events event-2))
-                             "signature-2"
-                             "2"]]))]
+                             "signature-2"]]))]
 
     (is (= expected (group-chats/signature-pairs message)))))
 
@@ -354,5 +352,4 @@
                                                      :c "c-value"}
                                                     {:e "e-value"
                                                      :a "a-value"}]))))
-
 

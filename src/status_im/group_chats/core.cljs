@@ -1,8 +1,10 @@
 (ns status-im.group-chats.core
+  (:refer-clojure :exclude [remove])
   (:require [clojure.string :as string]
             [clojure.spec.alpha :as spec]
             [clojure.set :as clojure.set]
             [re-frame.core :as re-frame]
+            [status-im.i18n :as i18n]
             [status-im.utils.config :as config]
             [status-im.utils.clocks :as utils.clocks]
             [status-im.native-module.core :as native-module]
@@ -27,15 +29,29 @@
       js/JSON.parse
       (js->clj :keywordize-keys true)))
 
+(defn- prepare-system-message [added-participants removed-participants contacts]
+  (let [added-participants-names   (map #(get-in contacts [% :name] %) added-participants)
+        removed-participants-names (map #(get-in contacts [% :name] %) removed-participants)]
+    (cond
+      (and (seq added-participants) (seq removed-participants))
+      (str (i18n/label :t/invited) " " (apply str (interpose ", " added-participants-names))
+           " and "
+           (i18n/label :t/removed) " " (apply str (interpose ", " removed-participants-names)))
+
+      (seq added-participants)
+      (str (i18n/label :t/invited) " " (apply str (interpose ", " added-participants-names)))
+
+      (seq removed-participants)
+      (str (i18n/label :t/removed) " " (apply str (interpose ", " removed-participants-names))))))
+
 (defn signature-material [chat-id events]
   (js/JSON.stringify
    (clj->js [(mapv event->vector events) chat-id])))
 
 (defn signature-pairs [{:keys [chat-id events] :as payload}]
-  (let [pairs (mapv (fn [{:keys [events signature from]}]
+  (let [pairs (mapv (fn [{:keys [events signature]}]
                       [(signature-material chat-id events)
-                       signature
-                       (subs from 2)])
+                       signature])
                     events)]
     (js/JSON.stringify (clj->js pairs))))
 
@@ -74,16 +90,10 @@
                                                :group-user-message]
                                :payload       payload}})))
 
-(defn send-group-leave [payload chat-id cofx]
-  (transport.protocol/send cofx
-                           {:chat-id       chat-id
-                            :payload       payload
-                            :success-event [:group/unsubscribe-from-chat chat-id]}))
-
 (fx/defn handle-membership-update-received
-  "Verify signatures in status-go and act if successful"
+  "Extract signatures in status-go and act if successful"
   [cofx membership-update signature]
-  {:group-chats/verify-membership-signature [membership-update signature]})
+  {:group-chats/extract-membership-signature [membership-update signature]})
 
 (defn chat->group-update
   "Transform a chat in a GroupMembershipUpdate"
@@ -99,27 +109,38 @@
       (re-frame/dispatch [:group-chats.callback/sign-failed  error])
       (re-frame/dispatch [:group-chats.callback/sign-success (assoc payload :signature signature)]))))
 
-(defn handle-verify-signature-response
-  "Callback to dispatch on verify signature response"
+(defn add-identities
+  "Add verified identities in a from field"
+  [payload identities]
+  (update payload :events (fn [events]
+                            (map
+                             #(assoc %1 :from (str "0x" %2))
+                             events
+                             identities))))
+
+(defn handle-extract-signature-response
+  "Callback to dispatch on extract signature response"
   [payload sender-signature response-js]
-  (let [{:keys [error]} (parse-response response-js)]
+  (let [{:keys [error identities]} (parse-response response-js)]
     (if error
-      (re-frame/dispatch [:group-chats.callback/verify-signature-failed  error])
-      (re-frame/dispatch [:group-chats.callback/verify-signature-success payload sender-signature]))))
+      (re-frame/dispatch [:group-chats.callback/extract-signature-failed  error])
+      (re-frame/dispatch [:group-chats.callback/extract-signature-success (add-identities payload identities) sender-signature]))))
 
 (defn sign-membership [{:keys [chat-id events] :as payload}]
   (native-module/sign-group-membership (signature-material chat-id events)
                                        (partial handle-sign-response payload)))
 
-(defn verify-membership-signature [payload sender]
-  (native-module/verify-group-membership-signatures (signature-pairs payload)
-                                                    (partial handle-verify-signature-response payload sender)))
+(defn extract-membership-signature [payload sender]
+  (native-module/extract-group-membership-signatures (signature-pairs payload)
+                                                     (partial handle-extract-signature-response payload sender)))
 
-(defn- member-added-event [from events member]
+(defn- member-added-event [events member]
   (conj
    events
    {:type "member-added"
-    :clock-value (utils.clocks/send (-> events peek :clock-value))
+    :clock-value (utils.clocks/send (if events
+                                      (-> events peek :clock-value)
+                                      0))
     :member member}))
 
 (fx/defn create
@@ -131,7 +152,7 @@
         create-event      {:type        "chat-created"
                            :name        group-name
                            :clock-value (utils.clocks/send 0)}
-        events            (reduce (partial member-added-event my-public-key)
+        events            (reduce member-added-event
                                   [create-event]
                                   selected-contacts)]
 
@@ -139,6 +160,35 @@
                                    :from   my-public-key
                                    :events events}
      :db (assoc db :group/selected-contacts #{})}))
+
+(fx/defn remove-member
+  "Format group update message and sign membership"
+  [{:keys [db] :as cofx} chat-id public-key]
+  (let [my-public-key     (:current-public-key db)
+        chat              (get-in cofx [:db :chats chat-id])
+        remove-event       {:type        "member-removed"
+                            :member      public-key
+                            :clock-value (utils.clocks/send 0)}]
+    {:group-chats/sign-membership {:chat-id chat-id
+                                   :from    my-public-key
+                                   :events  [remove-event]}}))
+
+(fx/defn add-members
+  "Add members to a group chat"
+  [{{:keys [current-chat-id selected-participants current-public-key]} :db}]
+  (let [events            (reduce member-added-event
+                                  []
+                                  selected-participants)]
+    {:group-chats/sign-membership {:chat-id current-chat-id
+                                   :from    current-public-key
+                                   :events  events}}))
+(fx/defn remove
+  "Remove & leave chat"
+  [{:keys [db] :as cofx} chat-id]
+  (let [my-public-key     (:current-public-key db)]
+    (fx/merge cofx
+              (remove-member chat-id my-public-key)
+              (models.chat/remove-chat chat-id))))
 
 (defn- valid-name? [name]
   (spec/valid? :profile/name name))
@@ -232,9 +282,9 @@
  sign-membership)
 
 (re-frame/reg-fx
- :group-chats/verify-membership-signature
+ :group-chats/extract-membership-signature
  (fn [[payload sender]]
-   (verify-membership-signature payload sender)))
+   (extract-membership-signature payload sender)))
 
 (fx/defn update-membership
   "Upsert chat when version is greater or not existing"
@@ -254,7 +304,6 @@
                               :events               (into [] all-events)
                               :admins               (:admins new-group)
                               :members              (:members new-group)})))
-
 
 (fx/defn handle-membership-update
   "Upsert chat and receive message if valid"

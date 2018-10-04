@@ -59,12 +59,6 @@
   (rep [this {:keys [message-ids]}]
     (clj->js message-ids)))
 
-(deftype GroupLeaveHandler []
-  Object
-  (tag [this v] "g3")
-  (rep [this _]
-    (clj->js nil)))
-
 (deftype GroupMembershipUpdateHandler []
   Object
   (tag [this v] "g5")
@@ -79,7 +73,6 @@
                               v1.contact/ContactUpdate           (ContactUpdateHandler.)
                               v1.protocol/Message                (MessageHandler.)
                               v1.protocol/MessagesSeen           (MessagesSeenHandler.)
-                              v1/GroupLeave                      (GroupLeaveHandler.)
                               v1/GroupMembershipUpdate           (GroupMembershipUpdateHandler.)}}))
 
 ;;

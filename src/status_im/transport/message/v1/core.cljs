@@ -8,8 +8,3 @@
   (validate [this]
     (when (spec/valid? :message/group-membership-update this)
       this)))
-
-(defrecord GroupLeave
-           []
-  message/StatusMessage
-  (validate [this] this))
