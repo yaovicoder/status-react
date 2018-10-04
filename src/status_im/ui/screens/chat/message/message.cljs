@@ -328,9 +328,10 @@
 
 (defview message-author-name [from message-username]
   (letsubs [username [:get-contact-name-by-identity from]]
-    [react/text {:style style/message-author-name} (or username
-                                                       message-username
-                                                       (gfycat/generate-gfy from))])) ; TODO: We defensively generate the name for now, to be revisited when new protocol is defined
+    [react/text {:style style/message-author-name}
+     (let [known-name (or username message-username)]
+       (str (when known-name (str known-name " :: "))
+            (gfycat/generate-gfy from)))])) ; TODO: We defensively generate the name for now, to be revisited when new protocol is defined
 
 (defn message-body
   [{:keys [last-in-group?

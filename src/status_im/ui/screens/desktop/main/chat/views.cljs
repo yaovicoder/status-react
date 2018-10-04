@@ -69,7 +69,11 @@
 (views/defview message-author-name [{:keys [outgoing from] :as message}]
   (views/letsubs [current-account [:get-current-account]
                   incoming-name   [:get-contact-name-by-identity from]]
-    (let [name (or incoming-name (gfycat/generate-gfy from))]
+    (let [name
+          (str
+           (when incoming-name
+             (str incoming-name " :: "))
+           (gfycat/generate-gfy from))]
       [react/touchable-highlight {:on-press #(re-frame/dispatch [:show-contact-dialog from name (boolean incoming-name)])}
        [react/text {:style styles/author} name]])))
 
