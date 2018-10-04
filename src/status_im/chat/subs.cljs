@@ -14,6 +14,8 @@
 
 (reg-sub :get-current-chat-id :current-chat-id)
 
+(reg-sub :get-current-chat-start-time :current-chat-start-time)
+
 (reg-sub :chat-ui-props :chat-ui-props)
 
 (reg-sub :get-id->command :id->command)
