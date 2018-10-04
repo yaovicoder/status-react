@@ -17,6 +17,7 @@
             [status-im.chat.commands.input :as commands.input]
             [status-im.data-store.core :as data-store]
             [status-im.fleet.core :as fleet]
+            [status-im.group-chats.core :as group-chats]
             [status-im.hardwallet.core :as hardwallet]
             [status-im.i18n :as i18n]
             [status-im.init.core :as init]
@@ -343,6 +344,11 @@
    (network/delete cofx {:network network})))
 
 (handlers/register-handler-fx
+ :network.ui/network-entry-pressed
+ (fn [cofx [_ network]]
+   (network/open-network-details cofx network)))
+
+(handlers/register-handler-fx
  :network/connection-status-changed
  (fn [{db :db :as cofx} [_ is-connected?]]
    (network/handle-connection-status-change cofx is-connected?)))
@@ -418,8 +424,13 @@
 
 (handlers/register-handler-fx
  :browser.bridge.callback/qr-code-scanned
- (fn [cofx [_ _ data message]]
-   (browser/handle-scanned-qr-code cofx data message)))
+ (fn [cofx [_ _ data qr-code-data]]
+   (browser/handle-scanned-qr-code cofx data (:data qr-code-data))))
+
+(handlers/register-handler-fx
+ :browser.bridge.callback/qr-code-canceled
+ (fn [cofx [_ _ qr-code-data]]
+   (browser/handle-canceled-qr-code cofx (:data qr-code-data))))
 
 ;; qr-scanner module
 
@@ -432,6 +443,11 @@
  :qr-scanner.callback/scan-qr-code-success
  (fn [cofx [_ context data]]
    (qr-scanner/set-qr-code cofx context data)))
+
+(handlers/register-handler-fx
+ :qr-scanner.callback/scan-qr-code-cancel
+ (fn [cofx [_ context]]
+   (qr-scanner/set-qr-code-cancel cofx context)))
 
 ;; privacy-policy module
 
@@ -503,11 +519,6 @@
  :chat.ui/start-public-chat
  (fn [cofx [_ topic modal?]]
    (chat/start-public-chat cofx topic modal?)))
-
-(handlers/register-handler-fx
- :chat.ui/start-group-chat
- (fn [cofx [_ group-name]]
-   (chat.group/start-group-chat cofx group-name)))
 
 (handlers/register-handler-fx
  :chat.ui/remove-chat
@@ -681,7 +692,31 @@
 (handlers/register-handler-fx
  :hardwallet.ui/begin-setup-button-pressed
  (fn [{:keys [db]} _]
-   {:db (assoc-in db [:hardwallet :setup-step] :prepare)}))
+   {:db (assoc-in db [:hardwallet :setup-step] :preparing)}))
+
+(handlers/register-handler-fx
+ :hardwallet.ui/pair-card-button-pressed
+ (fn [{:keys [db]} _]
+   {:db (assoc-in db [:hardwallet :setup-step] :enter-pair-code)}))
+
+(handlers/register-handler-fx
+ :hardwallet.ui/pair-code-input-changed
+ (fn [{:keys [db]} [_ pair-code]]
+   {:db (assoc-in db [:hardwallet :pair-code] pair-code)}))
+
+(handlers/register-handler-fx
+ :hardwallet.ui/pair-code-next-button-pressed
+ (fn [{:keys [db]} _]))
+
+(handlers/register-handler-fx
+ :hardwallet.ui/no-pairing-slots-help-button-pressed
+ (fn [cofx _]
+   (browser/open-url "https://hardwallet.status.im" cofx)))
+
+(handlers/register-handler-fx
+ :hardwallet.ui/card-already-linked-help-button-pressed
+ (fn [cofx _]
+   (browser/open-url "https://hardwallet.status.im" cofx)))
 
 (handlers/register-handler-fx
  :hardwallet/connection-error
@@ -727,6 +762,11 @@
  (fn [{:keys [db]} [_ step]]
    (when-not (empty? (get-in db [:hardwallet :pin step]))
      {:db (update-in db [:hardwallet :pin step] pop)})))
+
+(handlers/register-handler-fx
+ :hardwallet.ui/create-pin-button-pressed
+ (fn [{:keys [db]} _]
+   {:db (update-in db [:hardwallet :setup-step] :pin)}))
 
 ;; browser module
 
@@ -817,11 +857,16 @@
 
 (handlers/register-handler-fx
  :browser.permissions.ui/dapp-permission-allowed
- (fn [cofx [_ dapp-name permission]]
-   (browser.permissions/allow-permission cofx dapp-name permission)))
+ (fn [cofx _]
+   (browser.permissions/allow-permission cofx)))
 
 (handlers/register-handler-fx
  :browser.permissions.ui/dapp-permission-denied
+ (fn [cofx _]
+   (browser.permissions/deny-permission cofx)))
+
+(handlers/register-handler-fx
+ :browser.permissions.ui/permission-animation-finished
  (fn [cofx [_ dapp-name]]
    (browser.permissions/process-next-permission cofx dapp-name)))
 
@@ -844,3 +889,32 @@
  :browser.ui/open-modal-chat-button-pressed
  (fn [cofx [_ host]]
    (browser/open-chat-from-browser cofx host)))
+
+;; group-chats module
+
+(handlers/register-handler-fx
+ :group-chats.ui/create-pressed
+ [(re-frame/inject-cofx :random-guid-generator)]
+ (fn [cofx [_ chat-name]]
+   (group-chats/create cofx chat-name)))
+
+(handlers/register-handler-fx
+ :group-chats.ui/name-changed
+ (fn [cofx [_ chat-name]]
+   (group-chats/handle-name-changed cofx chat-name)))
+
+(handlers/register-handler-fx
+ :group-chats.ui/save-pressed
+ (fn [cofx _]
+   (group-chats/save cofx)))
+
+(handlers/register-handler-fx
+ :group-chats.callback/sign-success
+ [(re-frame/inject-cofx :random-guid-generator)]
+ (fn [cofx [_ group-update]]
+   (group-chats/handle-sign-success cofx group-update)))
+
+(handlers/register-handler-fx
+ :group-chats.callback/verify-signature-success
+ (fn [cofx [_ group-update sender-signature]]
+   (group-chats/handle-membership-update cofx group-update sender-signature)))

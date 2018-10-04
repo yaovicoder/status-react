@@ -173,10 +173,10 @@ function bundleLinux() {
     chmod a+x $DEPLOYQT
   fi
 
-  # if [ ! -f $APPIMAGETOOL ]; then
+  if [ ! -f $APPIMAGETOOL ]; then
     wget --output-document="$APPIMAGETOOL" --show-progress -q https://github.com/AppImage/AppImageKit/releases/download/10/appimagetool-x86_64.AppImage
     chmod a+x $APPIMAGETOOL
-  # fi
+  fi
 
   rm -f Application-x86_64.AppImage
   rm -f Status-x86_64.AppImage
@@ -245,7 +245,7 @@ function bundleMacOS() {
     cp -f ../deployment/macos/qt-reportApp.conf Status.app/Contents/Resources
     ln -sf ../Resources/qt-reportApp.conf Status.app/Contents/MacOS/qt.conf
     install_name_tool -add_rpath "@executable_path/../Frameworks" \
-                      -delete_rpath "$(joinExistingPath "$QT_PATH" 'clang_64/lib')" \
+                      -delete_rpath "${QT_PATH}/lib" \
                       'Status.app/Contents/MacOS/reportApp'
     cp -f ../deployment/macos/Info.plist Status.app/Contents
     cp -f ../deployment/macos/status-icon.icns Status.app/Contents/Resources

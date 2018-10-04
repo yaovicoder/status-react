@@ -28,9 +28,10 @@
                            transit/deserialize)]
     (when (and sig status-message)
       (try
-        (fx/merge (assoc cofx :js-obj js-message)
-                  #(message/receive status-message (or chat-id sig) sig timestamp %)
-                  (update-last-received-from-inbox now-in-s timestamp ttl))
+        (when-let [valid-message (message/validate status-message)]
+          (fx/merge (assoc cofx :js-obj js-message)
+                    #(message/receive valid-message (or chat-id sig) sig timestamp %)
+                    (update-last-received-from-inbox now-in-s timestamp ttl)))
         (catch :default e nil))))) ; ignore unknown message types
 
 (defn- js-array->seq [array]
@@ -46,7 +47,8 @@
                                      (receive-message now-in-s chat-id message))
                                    (js-array->seq js-messages))]
       (apply fx/merge cofx receive-message-fxs))
-    (log/error "Something went wrong" js-error js-messages)))
+    (do (log/error "Something went wrong" js-error js-messages)
+        cofx)))
 
 (handlers/register-handler-fx
  :protocol/receive-whisper-message

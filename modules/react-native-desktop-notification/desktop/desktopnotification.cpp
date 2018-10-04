@@ -79,7 +79,3 @@ void DesktopNotification::sendNotification(QString text) {
       text, Snore::Icon::defaultIcon());
   Snore::SnoreCore::instance().broadcastNotification(notification);
 }
-
-void DesktopNotification::setDockBadge(int number) {
-  Snore::SnoreCore::instance().setDockBadge(number);
-}

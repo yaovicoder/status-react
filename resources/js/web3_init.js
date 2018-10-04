@@ -6,68 +6,83 @@ function bridgeSend(data){
     WebViewBridge.send(JSON.stringify(data));
 }
 
-window.addEventListener('message', function (event) {
-    if (!event.data || !event.data.type) { return; }
-    if (event.data.type === 'STATUS_API_REQUEST') {
-        bridgeSend({
-            type: 'status-api-request',
-            permissions: event.data.permissions,
-            host: window.location.hostname
-        });
+function sendAPIrequest(permission, params) {
+    var messageId = callbackId++;
+    var params = params || {};
+
+    bridgeSend({
+        type: 'api-request',
+        permission: permission,
+        messageId: messageId,
+        host: window.location.hostname
+    });
+
+    return new Promise(function (resolve, reject) {
+        params['resolve'] = resolve;
+        params['reject'] = reject;
+        callbacks[messageId] = params;
+    });
+}
+
+function qrCodeResponse(data, callback){
+    var result = data.data;
+    var regex = new RegExp(callback.regex);
+    if (!result) {
+        if (callback.reject) {
+            callback.reject(new Error("Cancelled"));
+        }
     }
-});
+    else if (regex.test(result)) {
+        if (callback.resolve) {
+            callback.resolve(result);
+        }
+    } else {
+        if (callback.reject) {
+            callback.reject(new Error("Doesn't match"));
+        }
+    }
+}
 
 WebViewBridge.onMessage = function (message) {
     data = JSON.parse(message);
+    var id = data.messageId;
+    var callback = callbacks[id];
 
-    if (data.type === "status-api-success")
-    {
-        window.dispatchEvent(new CustomEvent('statusapi', { detail: { permissions: data.keys,
-                                                                      data:        data.data
-                                                                    } }));
-    }
-
-    else if (data.type === "web3-send-async-callback")
-    {
-        var id = data.messageId;
-        var callback = callbacks[id];
-        if (callback) {
-            if (callback.results)
-            {
-                callback.results.push(data.error || data.result);
-                if (callback.results.length == callback.num)
-                    callback.callback(undefined, callback.results);
-            }
-            else
-            {
-                callback.callback(data.error, data.result);
-            }
-        }
-    }
-
-    else if (data.type === "scan-qr-code-callback")
-    {
-        var id = data.data.messageId;
-        var callback = callbacks[id];
-        if (callback) {
-            var result = data.result;
-            var regex = new RegExp(callback.regex);
-            if (regex.test(result)) {
-                if (callback.resolve) {
-                    callback.resolve(result);
-                }
+    if (callback) {
+        if (data.type === "api-response") {
+            if (data.permission == 'qr-code'){
+                qrCodeResponse(data, callback);
+            } else if (data.isAllowed) {
+                callback.resolve(data.data);
             } else {
-                if (callback.reject) {
-                    callback.reject(result);
+                callback.reject(new Error("Denied"));
+            }
+        } else if (data.type === "web3-send-async-callback") {
+            var id = data.messageId;
+            var callback = callbacks[id];
+            if (callback) {
+                if (callback.results) {
+                    callback.results.push(data.error || data.result);
+                    if (callback.results.length == callback.num)
+                        callback.callback(undefined, callback.results);
+                } else {
+                    callback.callback(data.error, data.result);
                 }
             }
         }
     }
 };
 
+var StatusAPI = function () {};
+
+StatusAPI.prototype.getContactCode = function () {
+    return sendAPIrequest('contact-code');
+};
+
 var StatusHttpProvider = function () {};
 
 StatusHttpProvider.prototype.isStatus = true;
+StatusHttpProvider.prototype.status = new StatusAPI();
 StatusHttpProvider.prototype.isConnected = function () { return true; };
 
 function web3Response (payload, result){
@@ -133,18 +148,12 @@ StatusHttpProvider.prototype.sendAsync = function (payload, callback) {
     }
 };
 
-StatusHttpProvider.prototype.scanQRCode = function (regex) {
-    return new Promise(function (resolve, reject) {
-        var messageId = callbackId++;
-        callbacks[messageId] = {resolve: resolve, reject: reject, regex: regex};
-        bridgeSend({type:  'scan-qr-code',
-                    messageId: messageId});
-    });
-};
-
-
 StatusHttpProvider.prototype.enable = function () {
     return new Promise(function (resolve, reject) { setTimeout(resolve, 1000);});
+};
+
+StatusHttpProvider.prototype.scanQRCode = function (regex) {
+    return sendAPIrequest('qr-code', {regex: regex});
 };
 }
 
