@@ -333,7 +333,10 @@
                    (or
                     js/goog.DEBUG
                     (not @main-component)))
-          (reset! main-component (get-main-component2 @initial-view-id))))
+          (reset! main-component (get-main-component2
+                                  (if js/goog.DEBUG
+                                    @initial-view-id
+                                    @view-id)))))
       :component-will-unmount
       utils.universal-links/finalize
       :component-will-update
@@ -344,7 +347,10 @@
                    (or
                     js/goog.DEBUG
                     (not @main-component)))
-          (reset! main-component (get-main-component2 @initial-view-id)))
+          (reset! main-component (get-main-component2
+                                  (if js/goog.DEBUG
+                                    @initial-view-id
+                                    @view-id))))
         (react/dismiss-keyboard!))
       :component-did-update
       (fn []
