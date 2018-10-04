@@ -22,6 +22,10 @@
             [status-im.ui.components.colors :as colors]
             [clojure.string :as string]))
 
+(defn- formatted-author-text [from username]
+  (str (when username (str username " :: "))
+       (gfycat/generate-gfy from))) ; TODO: We defensively generate the name for now, to be revisited when new protocol is defined
+
 (defview message-content-status []
   (letsubs [{:keys [chat-id group-id name color public-key]} [:get-current-chat]
             members                                          [:get-current-chat-contacts]]
@@ -173,8 +177,7 @@
       [vector-icons/icon :icons/reply {:color (if outgoing colors/wild-blue-yonder colors/gray)}]
       [react/text {:style (style/quoted-message-author outgoing)} (or (and (= from current-public-key)
                                                                            (i18n/label :t/You))
-                                                                      username
-                                                                      (gfycat/generate-gfy from))]]
+                                                                      (formatted-author-text from username))]]
      [react/text {:style           (style/quoted-message-text outgoing)
                   :number-of-lines 5}
       text]]))
@@ -329,9 +332,7 @@
 (defview message-author-name [from message-username]
   (letsubs [username [:get-contact-name-by-identity from]]
     [react/text {:style style/message-author-name}
-     (let [known-name (or username message-username)]
-       (str (when known-name (str known-name " :: "))
-            (gfycat/generate-gfy from)))])) ; TODO: We defensively generate the name for now, to be revisited when new protocol is defined
+     (formatted-author-text from (or username message-username))]))
 
 (defn message-body
   [{:keys [last-in-group?
