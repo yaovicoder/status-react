@@ -265,6 +265,7 @@
                  :qr/current-qr-context
                  :chat/chats
                  :chat/current-chat-id
+                 :chat/current-chat-start-time
                  :chat/chat-id
                  :chat/new-chat
                  :chat/new-chat-name

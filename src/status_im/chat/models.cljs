@@ -170,9 +170,11 @@
 
 (fx/defn preload-chat-data
   "Takes chat-id and coeffects map, returns effects necessary when navigating to chat"
-  [{:keys [db] :as cofx} chat-id]
+  [{:keys [db now] :as cofx} chat-id]
   (fx/merge cofx
-            {:db (-> (assoc db :current-chat-id chat-id)
+            {:db (-> (assoc db
+                            :current-chat-id         chat-id
+                            :current-chat-start-time now)
                      (set-chat-ui-props {:validation-messages nil}))}
             (mark-messages-seen chat-id)))
 

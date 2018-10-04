@@ -72,11 +72,12 @@
   [message-datemark/chat-datemark value])
 
 (defmethod message-row :default
-  [{:keys [group-chat current-public-key modal? row]}]
+  [{:keys [group-chat current-public-key modal? current-chat-start-time row]}]
   [message/chat-message (assoc row
-                               :group-chat group-chat
-                               :modal? modal?
-                               :current-public-key current-public-key)])
+                               :group-chat              group-chat
+                               :modal?                  modal?
+                               :current-public-key      current-public-key
+                               :current-chat-start-time current-chat-start-time)])
 
 (defview messages-view-animation [message-view]
   ;; smooths out appearance of message-view
@@ -115,9 +116,10 @@
           (i18n/label :t/empty-chat-description))]])))
 
 (defview messages-view [group-chat modal?]
-  (letsubs [messages           [:get-current-chat-messages-stream]
-            chat               [:get-current-chat]
-            current-public-key [:get-current-public-key]]
+  (letsubs [messages                [:get-current-chat-messages-stream]
+            chat                    [:get-current-chat]
+            current-public-key      [:get-current-public-key]
+            current-chat-start-time [:get-current-chat-start-time]]
     {:component-did-mount #(re-frame/dispatch [:chat.ui/set-chat-ui-props {:messages-focused? true
                                                                            :input-focused? false}])}
     (if (empty? messages)
@@ -125,10 +127,11 @@
       [list/flat-list {:data                      messages
                        :key-fn                    #(or (:message-id %) (:value %))
                        :render-fn                 (fn [message]
-                                                    [message-row {:group-chat         group-chat
-                                                                  :modal?             modal?
-                                                                  :current-public-key current-public-key
-                                                                  :row                message}])
+                                                    [message-row {:group-chat              group-chat
+                                                                  :modal?                  modal?
+                                                                  :current-public-key      current-public-key
+                                                                  :row                     message
+                                                                  :current-chat-start-time current-chat-start-time}])
                        :inverted                  true
                        :onEndReached              #(re-frame/dispatch [:chat.ui/load-more-messages])
                        :enableEmptySections       true
