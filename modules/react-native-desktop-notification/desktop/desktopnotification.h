@@ -33,6 +33,7 @@ public:
     QVariantMap constantsToExport() override;
 
     Q_INVOKABLE void sendNotification(QString text);
+    Q_INVOKABLE void setDockBadge(int number);
 private:
     QScopedPointer<DesktopNotificationPrivate> d_ptr;
 };
