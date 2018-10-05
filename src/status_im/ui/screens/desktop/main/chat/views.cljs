@@ -214,10 +214,11 @@
 
 (views/defview chat-text-input [chat-id input-text]
   (views/letsubs [inp-ref (atom nil)]
-    {:should-component-update
-     (fn [_ [_ old-chat-id] [_ new-chat-id]]
-       ;; update component only when switch to another chat
-       (not= old-chat-id new-chat-id))}
+    {:component-will-update
+     (fn [e [_ old-chat-id]]
+       (let [new-chat-id (second (.. e -props -argv))]
+         (when (not= old-chat-id new-chat-id)
+           (.clear @inp-ref))))}
     (let [component               (reagent/current-component)
           set-container-height-fn #(reagent/set-state component {:container-height %})
           {:keys [container-height]} (reagent/state component)]
