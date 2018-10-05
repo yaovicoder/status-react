@@ -17,15 +17,16 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUNICODE -std=c++11")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DUNICODE -std=c11")
 
 if("${CMAKE_SYSTEM_NAME}" MATCHES "Windows")
-  if("${CMAKE_HOST_SYSTEM_NAME}" MATCHES "Linux")
-    include(./Toolchain-Ubuntu-mingw64.cmake)
-  else()
-  message(FATAL_ERROR "Can only cross-compile to Windows from Linux")
+  if(NOT "${CMAKE_HOST_SYSTEM_NAME}" STREQUAL "Linux")
+    message(FATAL_ERROR "Can only cross-compile to Windows from Linux")
   endif()
 endif()
 set(CMAKE_OSX_DEPLOYMENT_TARGET "10.9")
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/CMakeModules/")
+
+set(USED_QT_MODULES Core Qml Quick WebSockets Svg)
+include(QtConfiguration)
 
 message(STATUS "EXTERNAL_MODULES_DIR: ${EXTERNAL_MODULES_DIR}")
 

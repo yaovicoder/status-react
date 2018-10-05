@@ -20,7 +20,6 @@ external_modules_dir=( \
   'node_modules/react-native-fs/desktop' \
   'node_modules/react-native-http-bridge/desktop' \
   'node_modules/react-native-webview-bridge/desktop' \
-  'node_modules/react-native-keychain/desktop' \
   'node_modules/react-native-securerandom/desktop' \
   'modules/react-native-status/desktop' \
   'node_modules/google-breakpad' \
@@ -38,6 +37,10 @@ function is_macos() {
 
 function is_linux() {
   [[ "$OS" =~ Linux ]]
+}
+
+function is_windows_target() {
+  [[ "$TARGET_SYSTEM_NAME" =~ Windows ]]
 }
 
 function program_exists() {
@@ -81,17 +84,15 @@ function init() {
       fi
       set -e
     fi
-  fi
 
-  if is_macos; then
     DEPLOYQT="$MACDEPLOYQT"
+  elif is_windows_target; then
+    if ! program_exists 'conan'; then
+      echo "${RED}Conan package manager is not installed. Please install it from https://conan.io/${NC}"
+      exit 1
+    fi
+    conan install -if ./desktop/toolchain/ -g cmake -s arch_target=x86_64 -s os_target=Windows statustoolchain-x86_64-w64-mingw32/1.23.0-1@status-im/experimental
   fi
-
-  # if [ "$TARGET_SYSTEM_NAME" = "Windows" ]; then
-  #   if ! program_exists 'x86_64-w64-mingw32-g++'; then
-  #     sudo apt-get install g++-mingw-w64 mingw-w64-{tools,x86-64-dev}
-  #   fi
-  # fi
 }
 
 function joinStrings() {
@@ -136,24 +137,30 @@ function buildClojureScript() {
 function compile() {
   pushd desktop
     rm -rf CMakeFiles CMakeCache.txt cmake_install.cmake Makefile reportApp/CMakeFiles desktop/node_modules/google-breakpad/CMakeFiles desktop/node_modules/react-native-keychain/desktop/qtkeychain-prefix/src/qtkeychain-build/CMakeFiles
+    if is_windows_target; then
+      CMAKE_TOOLCHAIN_FILE='Toolchain-Ubuntu-mingw64.cmake'
+      bin="/home/$USER/.conan/data/statustoolchain-x86_64-w64-mingw32/1.23.0-1/status-im/experimental/package/6dd81ead6edc4ffe1e7b0f43c96eee6958954311/bin"
+      CMAKE_C_COMPILER="$bin/x86_64-w64-mingw32-gcc"
+      CMAKE_CXX_COMPILER="$bin/x86_64-w64-mingw32-g++"
+    fi
     cmake -Wno-dev \
-          -DCMAKE_TOOLCHAIN_FILE=Toolchain-Ubuntu-mingw64.cmake \
-          -DQTROOT=$QT_PATH/gcc_64 \
+          -DCMAKE_TOOLCHAIN_FILE="$CMAKE_TOOLCHAIN_FILE" \
+          -DCMAKE_C_COMPILER="$CMAKE_C_COMPILER" \
+          -DCMAKE_CXX_COMPILER="$CMAKE_CXX_COMPILER" \
           -DCMAKE_BUILD_TYPE=Release \
           -DEXTERNAL_MODULES_DIR="$(joinStrings ${external_modules_dir[@]})" \
           -DDESKTOP_FONTS="$(joinStrings ${external_fonts[@]})" \
           -DJS_BUNDLE_PATH="$WORKFOLDER/StatusIm.jsbundle" \
-          -DCMAKE_C_FLAGS:='-DBUILD_FOR_BUNDLE=1' \
           -DCMAKE_CXX_FLAGS:='-DBUILD_FOR_BUNDLE=1'
     make
   popd
 }
 
 function bundleLinux() {
-  local QTBIN=$(joinExistingPath "/home/pedro/.conan/data/qt5/5.11.2/status-im/experimental/package/85e0115c6e1f0b7dca6b515fb6bee3c0773cfd34/gcc_64/" 'bin')
+  local QTBIN=$(joinExistingPath "$QT_PATH" 'gcc_64/bin')
   if [ ! -d "$QTBIN" ]; then
     # CI environment doesn't contain gcc_64 path component
-    QTBIN=$(joinExistingPath "/home/pedro/.conan/data/qt5/5.11.2/status-im/experimental/package/85e0115c6e1f0b7dca6b515fb6bee3c0773cfd34/" 'bin')
+    QTBIN=$(joinExistingPath "$QT_PATH" 'bin')
   fi
 
   # invoke linuxdeployqt to create StatusIm.AppImage

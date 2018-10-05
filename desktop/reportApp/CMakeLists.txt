@@ -13,9 +13,6 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DUNICODE -std=c11")
 
 set(APP_NAME "reportApp")
 
-set(USED_QT_MODULES Core Qml Quick WebSockets Svg)
-include(QtConfiguration)
-
 set(MAIN_CPP_SOURCE reportpublisher.cpp
                     reportpublisher.cpp
                     main.cpp)

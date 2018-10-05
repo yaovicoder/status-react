@@ -1,3 +1,21 @@
+# Download automatically, you can also just copy the conan.cmake file
+if(NOT EXISTS "${CMAKE_BINARY_DIR}/conan.cmake")
+    message(STATUS "Downloading conan.cmake from https://github.com/conan-io/cmake-conan")
+    file(DOWNLOAD "https://raw.githubusercontent.com/conan-io/cmake-conan/master/conan.cmake"
+                  "${CMAKE_BINARY_DIR}/conan.cmake")
+endif()
+
+include(${CMAKE_BINARY_DIR}/conan.cmake)
+
+conan_check()
+
+conan_cmake_run(REQUIRES qt5/5.11.2@status-im/experimental
+                PROFILE /home/pedro/src/github.com/status-im/status-conan/profiles/status-mingw32-x86_64-gcc63-libstdcxx
+                BASIC_SETUP
+                BUILD missing)
+
+set(QTROOT "${CONAN_QT5_ROOT}/gcc_64")
+
 if(NOT EXISTS ${QTROOT}/bin/qt.conf)
   message(FATAL_ERROR "Could not find qt.conf in ${QTROOT}/bin. Is QTROOT correctly defined?")
 endif()
