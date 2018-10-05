@@ -12,7 +12,8 @@
 (fx/defn status-node-started
   [{db :db :as cofx}]
   (fx/merge cofx
-            {:db (assoc db :status-node-started? true)}
+            {:db (assoc db :status-node-started? true
+                        :status-node-busy?    false)}
             #(when (:password (accounts.db/credentials cofx))
                (accounts.login/login %))))
 
