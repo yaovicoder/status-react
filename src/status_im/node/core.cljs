@@ -138,9 +138,11 @@
 
 (fx/defn initialize
   [{{:keys [status-node-started? status-node-busy?] :as db} :db :as cofx} address]
-  (if (or status-node-started? status-node-busy?)
+  (if status-node-started?
     (restart cofx)
-    (start cofx address)))
+    (if status-node-busy?
+      {:db (assoc db :dispatch-after-start [[:node.needs-reinit address]])}
+      (start cofx address))))
 
 (re-frame/reg-fx
  :node/start

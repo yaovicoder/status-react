@@ -12,9 +12,16 @@
 (fx/defn status-node-started
   [{db :db :as cofx}]
   (fx/merge cofx
-            {:db (assoc db :status-node-started? true
-                        :status-node-busy?    false)}
-            #(when (:password (accounts.db/credentials cofx))
+            (merge
+             {:db (assoc db
+                         :status-node-started? true
+                         :status-node-busy?    false
+                         :dispatch-after-start nil)}
+             (when (:dispatch-after-start db)
+               {:dispatch-n (:dispatch-after-start db)}))
+            #(when (and (nil? (:dispatch-after-start db)) ;; node is not going 
+                                                          ;; to be restarted
+                        (:password (accounts.db/credentials cofx)))
                (accounts.login/login %))))
 
 (fx/defn status-node-stopped

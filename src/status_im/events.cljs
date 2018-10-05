@@ -8,6 +8,7 @@
             [status-im.accounts.update.core :as accounts.update]
             [status-im.bootnodes.core :as bootnodes]
             [status-im.browser.core :as browser]
+            [status-im.node.core :as node]
             [status-im.browser.permissions :as browser.permissions]
             [status-im.chat.commands.input :as commands.input]
             [status-im.chat.models :as chat]
@@ -227,6 +228,15 @@
  :accounts.login.callback/get-user-password-success
  (fn [cofx [_ password]]
    (accounts.login/open-login-callback cofx password)))
+
+;; node module
+
+;; this event usually means that node has started too late
+;; and we need to restart it with the new config
+(handlers/register-handler-fx
+ :node.needs-reinit
+ (fn [cofx [_ address]]
+   (node/initialize cofx address)))
 
 ;; accounts logout module
 

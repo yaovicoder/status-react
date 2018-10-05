@@ -84,6 +84,7 @@
 (spec/def ::status-node-started? (spec/nilable boolean?))
 ;; node is either starting or stopping now
 (spec/def ::status-node-busy? (spec/nilable boolean?))
+(spec/def ::dispatch-after-start (spec/nilable vector?))
 
 ;;height of native keyboard if shown
 (spec/def ::keyboard-height (spec/nilable number?))
@@ -250,6 +251,7 @@
                  ::status-module-initialized?
                  ::status-node-started?
                  ::status-node-busy?
+                 ::dispatch-after-start
                  ::keyboard-height
                  ::keyboard-max-height
                  ::tab-bar-visible?
