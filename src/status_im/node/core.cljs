@@ -127,18 +127,20 @@
                       (get-node-config db network))
         node-config-json (types/clj->json node-config)]
     (log/info "Node config: " node-config-json)
-    {:db         (assoc db :network network)
+    {:db         (assoc db :network           network
+                        :status-node-busy? true)
      :node/start node-config-json}))
 
 (defn restart
-  []
-  {:node/stop nil})
+  [{:keys [db]}]
+  {:db        (assoc db :status-node-busy? true)
+   :node/stop nil})
 
 (fx/defn initialize
-  [{{:keys [status-node-started?] :as db} :db :as cofx} address]
-  (if (not status-node-started?)
-    (start cofx address)
-    (restart)))
+  [{{:keys [status-node-started? status-node-busy?] :as db} :db :as cofx} address]
+  (if (or status-node-started? status-node-busy?)
+    (restart cofx)
+    (start cofx address)))
 
 (re-frame/reg-fx
  :node/start
