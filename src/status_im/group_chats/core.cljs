@@ -59,11 +59,11 @@
   (let [admin-removed  (clojure.set/difference (:admins old-group) (:admins new-group))
         admin-added   (clojure.set/difference (:admins new-group) (:admins old-group))
         member-removed (clojure.set/difference (:contacts old-group) (:contacts new-group))
-        member-added   (clojure.set/difference (:contacts new-group) (:contacts old-group))]
+        members-added   (clojure.set/difference (:contacts new-group) (:contacts old-group))]
     (concat
      (map #(hash-map :type "admin-removed" :member %) admin-removed)
      (map #(hash-map :type "member-removed" :member %) member-removed)
-     (map #(hash-map :type "member-added" :member %)  member-added)
+     [{:type "members-added" :members members-added}]
      (map #(hash-map :type "admin-added" :member %) admin-added))))
 
 (defn signature-material
@@ -100,7 +100,7 @@
                             (empty? contacts))
       "name-changed"   (and (admins from)
                             (not (string/blank? (:name new-event))))
-      "member-added"    (admins from)
+      "members-added"   (admins from)
       "admin-added"     (and (admins from)
                              (contacts member))
       "member-removed" (or
@@ -185,14 +185,10 @@
   (native-module/extract-group-membership-signatures (signature-pairs payload)
                                                      (partial handle-extract-signature-response payload sender)))
 
-(defn- member-added-event [last-clock-value events member]
-  (conj
-   events
-   {:type "member-added"
-    :clock-value (utils.clocks/send (if events
-                                      (-> events peek :clock-value)
-                                      last-clock-value))
-    :member member}))
+(defn- members-added-event [last-clock-value members]
+  {:type "members-added"
+   :clock-value (utils.clocks/send last-clock-value)
+   :members members})
 
 (fx/defn create
   "Format group update message and sign membership"
@@ -200,12 +196,12 @@
   (let [my-public-key     (:current-public-key db)
         chat-id           (str (random-guid-generator) my-public-key)
         selected-contacts (:group/selected-contacts db)
+        clock-value       (utils.clocks/send 0)
         create-event      {:type        "chat-created"
                            :name        group-name
-                           :clock-value (utils.clocks/send 0)}
-        events            (reduce (partial member-added-event 0)
-                                  [create-event]
-                                  selected-contacts)]
+                           :clock-value clock-value}
+        events            [create-event
+                           (members-added-event clock-value selected-contacts)]]
 
     {:group-chats/sign-membership {:chat-id chat-id
                                    :from   my-public-key
@@ -227,14 +223,11 @@
       {:group-chats/sign-membership {:chat-id chat-id
                                      :from    my-public-key
                                      :events  [remove-event]}})))
-
 (fx/defn add-members
   "Add members to a group chat"
   [{{:keys [current-chat-id selected-participants current-public-key]} :db :as cofx}]
   (let [last-clock-value  (get-last-clock-value cofx current-chat-id)
-        events            (reduce (partial member-added-event last-clock-value)
-                                  []
-                                  selected-participants)]
+        events            (members-added-event last-clock-value selected-participants)]
     {:group-chats/sign-membership {:chat-id current-chat-id
                                    :from    current-public-key
                                    :events  events}}))
@@ -272,14 +265,14 @@
 
 (defn process-event
   "Add/remove an event to a group"
-  [group {:keys [type member chat-id from name] :as event}]
+  [group {:keys [type member members chat-id from name] :as event}]
   (if (valid-event? group event)
     (case type
-      "chat-created"   {:name       name
-                        :admins     #{from}
-                        :contacts    #{from}}
+      "chat-created"   {:name     name
+                        :admins   #{from}
+                        :contacts #{from}}
       "name-changed"   (assoc group :name name)
-      "member-added"   (update group :contacts conj member)
+      "members-added"  (update group :contacts clojure.set/union (into #{} members))
       "admin-added"    (update group :admins conj member)
       "member-removed" (update group :contacts disj member)
       "admin-removed"  (update group :admins disj member))

@@ -21,12 +21,9 @@
                                             :events [{:type "chat-created"
                                                       :name "chat-name"
                                                       :clock-value 1}
-                                                     {:type "member-added"
+                                                     {:type "members-added"
                                                       :clock-value 3
-                                                      :member member-2}
-                                                     {:type "member-added"
-                                                      :clock-value 3
-                                                      :member member-3}]}]})
+                                                      :members [member-2 member-3]}]}]})
 
 (deftest get-last-clock-value-test
   (is (= 3 (group-chats/get-last-clock-value {:db {:chats {chat-id initial-message}}} chat-id))))
@@ -98,9 +95,9 @@
                                                                                     :events [{:type "member-removed"
                                                                                               :clock-value 12
                                                                                               :member member-3}
-                                                                                             {:type "member-added"
+                                                                                             {:type "members-added"
                                                                                               :clock-value 12
-                                                                                              :member member-4}]}]}
+                                                                                              :members [member-4]}]}]}
                                                              member-3)
                 actual-chat (get-in actual [:db :chats chat-id])]
             (testing "the chat is updated"
@@ -116,18 +113,18 @@
                    :clock-value 0
                    :name    "chat-name"
                    :from    "1"}
-                  {:type    "member-added"
+                  {:type    "members-added"
+                   :clock-value 1
+                   :from    "1"
+                   :members  ["2"]}
+                  {:type    "admin-added"
                    :clock-value 2
                    :from    "1"
                    :member  "2"}
-                  {:type    "admin-added"
-                   :clock-value 3
-                   :from    "1"
-                   :member  "2"}
-                  {:type    "member-added"
+                  {:type    "members-added"
                    :clock-value 3
                    :from    "2"
-                   :member  "3"}]
+                   :members  ["3"]}]
           expected {:name   "chat-name"
                     :admins #{"1" "2"}
                     :contacts #{"1" "2" "3"}}]
@@ -137,10 +134,10 @@
                    :clock-value 0
                    :name  "chat-name"
                    :from    "1"}
-                  {:type    "member-added"
+                  {:type    "members-added"
                    :clock-value 1
                    :from    "1"
-                   :member  "2"}
+                   :members  ["2"]}
                   {:type    "admin-added"
                    :clock-value 2
                    :from    "1"
@@ -162,10 +159,10 @@
                    :clock-value 0
                    :name  "chat-name"
                    :from    "1"}
-                  {:type    "member-added"
+                  {:type    "members-added"
                    :clock-value 1
                    :from    "1"
-                   :member  "2"}
+                   :members  ["2"]}
                   {:type    "admin-added"
                    :clock-value 2
                    :from    "1"
@@ -187,18 +184,18 @@
                    :clock-value 1
                    :from    "1"
                    :member  "non-existing"}
-                  {:type    "member-added"
+                  {:type    "members-added"
                    :clock-value 2
                    :from    "1"
-                   :member  "2"}
+                   :members  ["2"]}
                   {:type    "admin-added"
                    :clock-value 3
                    :from    "1"
                    :member  "2"}
-                  {:type    "member-added"
+                  {:type    "members-added"
                    :clock-value 4
                    :from    "2"
-                   :member  "3"}
+                   :members  ["3"]}
                   {:type    "admin-removed" ; can't remove an admin from admins unless it's the same user
                    :clock-value 5
                    :from    "1"
@@ -220,14 +217,14 @@
                    :clock-value 2
                    :from    "1"
                    :member  "2"}
-                  {:type    "member-added"
+                  {:type    "members-added"
                    :clock-value 1
                    :from    "1"
-                   :member  "2"}
-                  {:type    "member-added"
+                   :members  ["2"]}
+                  {:type    "members-added"
                    :clock-value 3
                    :from    "2"
-                   :member  "3"}]
+                   :members  ["3"]}]
           expected {:name "chat-name"
                     :admins #{"1" "2"}
                     :contacts #{"1" "2" "3"}}]
@@ -238,14 +235,14 @@
                            :contacts #{"1" "2" "3"}}
         single-admin-group {:admins #{"1"}
                             :contacts #{"1" "2" "3"}}]
-    (testing "member-addeds"
+    (testing "members-added"
       (testing "admins can add members"
         (is (group-chats/valid-event? multi-admin-group
-                                      {:type "member-added" :clock-value 6 :from "1" :member "4"})))
+                                      {:type "members-added" :clock-value 6 :from "1" :members ["4"]})))
       (testing "non-admin members cannot add members"
         (is (not (group-chats/valid-event? multi-admin-group
-                                           {:type "member-added" :clock-value 6 :from "3" :member "4"})))))
-    (testing "admin-addeds"
+                                           {:type "members-added" :clock-value 6 :from "3" :members ["4"]})))))
+    (testing "admin-added"
       (testing "admins can make other member admins"
         (is (group-chats/valid-event? multi-admin-group
                                       {:type "admin-added" :clock-value 6 :from "1" :member "3"})))
@@ -303,12 +300,9 @@
                 :events [{:type "chat-created"
                           :clock-value 1
                           :name "group-name"}
-                         {:type "member-added"
+                         {:type "members-added"
                           :clock-value 2
-                          :member "1"}
-                         {:type "member-added"
-                          :clock-value 3
-                          :member "2"}]}
+                          :members #{"1" "2"}}]}
                (:group-chats/sign-membership (group-chats/create cofx "group-name"))))))))
 
 (deftest membership-changes-test
@@ -319,7 +313,7 @@
                      :contacts #{"1" "3"}}]
       (is (= [{:type "admin-removed" :member "2"}
               {:type "member-removed" :member "2"}
-              {:type "member-added" :member "3"}
+              {:type "members-added" :members #{"3"}}
               {:type "admin-added" :member "3"}]
              (group-chats/membership-changes old-group new-group))))))
 
