@@ -21,7 +21,10 @@
                                     (.hideView js-dependencies/testfairy @input-ref)))
      ;;TODO(rasom): remove this line when default-value will
      ;;be fixed in react-native-desktop
-     :should-component-update (fn [] false)}
+     :should-component-update (fn [_ [_ _ old-error old-warning]
+                                   [_ _ new-error new-warning]]
+                                (or (not= old-error new-error)
+                                    (not= old-warning new-warning)))}
     [text-input/text-input-with-label
      {:style               styles/recovery-phrase-input
       :height              92
