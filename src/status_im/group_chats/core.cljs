@@ -38,34 +38,6 @@
       js/JSON.parse
       (js->clj :keywordize-keys true)))
 
-(defn- prepare-system-message [added-participants removed-participants contacts]
-  (let [added-participants-names   (map #(get-in contacts [% :name] %) added-participants)
-        removed-participants-names (map #(get-in contacts [% :name] %) removed-participants)]
-    (cond
-      (and (seq added-participants) (seq removed-participants))
-      (str (i18n/label :t/invited) " " (apply str (interpose ", " added-participants-names))
-           " and "
-           (i18n/label :t/removed) " " (apply str (interpose ", " removed-participants-names)))
-
-      (seq added-participants)
-      (str (i18n/label :t/invited) " " (apply str (interpose ", " added-participants-names)))
-
-      (seq removed-participants)
-      (str (i18n/label :t/removed) " " (apply str (interpose ", " removed-participants-names))))))
-
-(defn membership-changes
-  "Output a list of changes so that system messages can be derived"
-  [old-group new-group]
-  (let [admin-removed  (clojure.set/difference (:admins old-group) (:admins new-group))
-        admin-added   (clojure.set/difference (:admins new-group) (:admins old-group))
-        member-removed (clojure.set/difference (:contacts old-group) (:contacts new-group))
-        members-added   (clojure.set/difference (:contacts new-group) (:contacts old-group))]
-    (concat
-     (map #(hash-map :type "admin-removed" :member %) admin-removed)
-     (map #(hash-map :type "member-removed" :member %) member-removed)
-     [{:type "members-added" :members members-added}]
-     (map #(hash-map :type "admin-added" :member %) admin-added))))
-
 (defn signature-material
   "Transform an update into a signable string"
   [chat-id events]
@@ -93,7 +65,7 @@
 
 (defn valid-event?
   "Check if event can be applied to current group"
-  [{:keys [admins contacts]} {:keys [chat-id from member] :as new-event}]
+  [{:keys [admins contacts]} {:keys [chat-id from member members] :as new-event}]
   (when from
     (case (:type new-event)
       "chat-created"   (and (empty? admins)
@@ -101,8 +73,8 @@
       "name-changed"   (and (admins from)
                             (not (string/blank? (:name new-event))))
       "members-added"   (admins from)
-      "admin-added"     (and (admins from)
-                             (contacts member))
+      "admins-added"    (and (admins from)
+                             (clojure.set/subset? members contacts))
       "member-removed" (or
                         ;; An admin removing a member
                         (and (admins from)
@@ -273,7 +245,7 @@
                         :contacts #{from}}
       "name-changed"   (assoc group :name name)
       "members-added"  (update group :contacts clojure.set/union (into #{} members))
-      "admin-added"    (update group :admins conj member)
+      "admins-added"   (update group :admins clojure.set/union (into #{} members))
       "member-removed" (update group :contacts disj member)
       "admin-removed"  (update group :admins disj member))
     group))
