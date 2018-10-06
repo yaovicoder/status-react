@@ -315,11 +315,10 @@
 
 (defonce rand-label (rand/id))
 
-(defonce initial-view-id (atom nil))
+(defonce main-component (atom nil))
 
 (defn main []
-  (let [view-id        (re-frame/subscribe [:get :view-id])
-        main-component (atom nil)]
+  (let [view-id        (re-frame/subscribe [:get :view-id])]
     (reagent/create-class
      {:component-did-mount
       (fn []
@@ -327,30 +326,14 @@
         (utils.universal-links/initialize))
       :component-will-mount
       (fn []
-        (when-not @initial-view-id
-          (reset! initial-view-id @view-id))
-        (when (and @initial-view-id
-                   (or
-                    js/goog.DEBUG
-                    (not @main-component)))
-          (reset! main-component (get-main-component2
-                                  (if js/goog.DEBUG
-                                    @initial-view-id
-                                    @view-id)))))
+        (when (and @view-id (not @main-component))
+          (reset! main-component (get-main-component2 @view-id))))
       :component-will-unmount
       utils.universal-links/finalize
       :component-will-update
       (fn []
-        (when-not @initial-view-id
-          (reset! initial-view-id @view-id))
-        (when (and @initial-view-id
-                   (or
-                    js/goog.DEBUG
-                    (not @main-component)))
-          (reset! main-component (get-main-component2
-                                  (if js/goog.DEBUG
-                                    @initial-view-id
-                                    @view-id))))
+        (when (and @view-id (not @main-component))
+          (reset! main-component (get-main-component2 @view-id)))
         (react/dismiss-keyboard!))
       :component-did-update
       (fn []
