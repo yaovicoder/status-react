@@ -78,9 +78,7 @@
 ;;object?
 (spec/def ::webview-bridge (spec/nilable any?))
 (spec/def ::status-module-initialized? (spec/nilable boolean?))
-(spec/def ::status-node-started? (spec/nilable boolean?))
-;; node is either starting or stopping now
-(spec/def ::status-node-busy? (spec/nilable boolean?))
+(spec/def ::status-node-state (spec/nilable #{:stopped :starting :started :stopping}))
 (spec/def ::dispatch-after-start (spec/nilable vector?))
 
 ;;height of native keyboard if shown
@@ -245,7 +243,7 @@
                  ::web3-node-version
                  ::webview-bridge
                  ::status-module-initialized?
-                 ::status-node-started?
+                 ::status-node-state
                  ::status-node-busy?
                  ::dispatch-after-start
                  ::keyboard-height
