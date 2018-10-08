@@ -33,9 +33,10 @@
                   :font           :medium
                   :number-of-lines 1}
       name])
-   [react/text {:style           styles/profile-three-words
-                :number-of-lines 1}
-    (gfy/generate-gfy public-key)]])
+   (when-not (= name (gfy/generate-gfy public-key))
+     [react/text {:style           styles/profile-three-words
+                  :number-of-lines 1}
+      (gfy/generate-gfy public-key)])])
 
 (views/defview copied-tooltip [opacity]
   (views/letsubs []
