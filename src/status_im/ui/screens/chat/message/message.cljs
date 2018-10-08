@@ -194,7 +194,7 @@
      [react/view
       (when (:response-to content)
         [quoted-message (:response-to content) outgoing current-public-key])
-      [react/text {:style           (style/text-message collapsible?)
+      [react/text {:style           (style/text-message collapsible? outgoing)
                    :number-of-lines (when collapsible? number-of-lines)
                    :ref             (partial reset! ref)}
        parsed-text
