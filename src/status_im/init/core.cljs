@@ -61,7 +61,7 @@
 
 (fx/defn initialize-app-db
   "Initialize db to initial state"
-  [{{:keys [status-module-initialized? status-node-started? view-id
+  [{{:keys [status-module-initialized? status-node-state view-id
             network-status network peers-count peers-summary device-UUID]
      :or   {network (get app-db :network)}} :db}]
   {:db (assoc app-db
@@ -70,7 +70,7 @@
               :peers-count (or peers-count 0)
               :peers-summary (or peers-summary [])
               :status-module-initialized? (or platform/ios? js/goog.DEBUG status-module-initialized?)
-              :status-node-started? status-node-started?
+              :status-node-state status-node-state
               :network network
               :device-UUID device-UUID
               :view-id view-id)})
@@ -142,7 +142,7 @@
   (let [{:universal-links/keys [url]
          :keys [accounts/accounts accounts/create contacts/contacts networks/networks
                 network network-status peers-count peers-summary view-id navigation-stack
-                status-module-initialized? status-node-started? device-UUID semaphores]
+                status-module-initialized? status-node-state device-UUID semaphores]
          :or   {network (get app-db :network)}} db
         current-account (get accounts address)
         account-network-id (get current-account :network network)
@@ -152,7 +152,7 @@
                         :view-id view-id
                         :navigation-stack navigation-stack
                         :status-module-initialized? (or platform/ios? js/goog.DEBUG status-module-initialized?)
-                        :status-node-started? status-node-started?
+                        :status-node-state status-node-state
                         :accounts/create create
                         :networks/networks networks
                         :account/account current-account
