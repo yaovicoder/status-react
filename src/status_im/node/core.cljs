@@ -127,22 +127,24 @@
                       (get-node-config db network))
         node-config-json (types/clj->json node-config)]
     (log/info "Node config: " node-config-json)
-    {:db         (assoc db :network           network
-                        :status-node-busy? true)
+    {:db         (assoc db
+                        :network           network
+                        :status-node-state :starting)
      :node/start node-config-json}))
 
 (defn restart
   [{:keys [db]}]
-  {:db        (assoc db :status-node-busy? true)
+  {:db        (assoc db :status-node-state :stopping)
    :node/stop nil})
 
 (fx/defn initialize
-  [{{:keys [status-node-started? status-node-busy?] :as db} :db :as cofx} address]
-  (if status-node-started?
-    (restart cofx)
-    (if status-node-busy?
-      {:db (assoc db :dispatch-after-start [[:node.needs-reinit address]])}
-      (start cofx address))))
+  [{{:keys [status-node-state] :as db} :db :as cofx} address]
+  (let [reinit {:db (assoc db :dispatch-after-start [[:node.needs-reinit address]])}]
+    (cond
+      (= status-node-state :started) (restart cofx)
+      (= status-node-state :starting) reinit
+      (= status-node-state :stopping) reinit
+      :else (start cofx address))))
 
 (re-frame/reg-fx
  :node/start
