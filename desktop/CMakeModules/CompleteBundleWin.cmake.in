@@ -1,26 +1,46 @@
-#set(PROJECT_SOURCE_DIR @PROJECT_SOURCE_DIR@)
+# windeployqt should be used here, but since we get the `Not implemented` error from it, we're trying to manually copy artifacts to output directory
+set(TARGET_DIR $<TARGET_FILE_DIR:${APP_NAME}>)
 
-message("SOURCE_ROOT=@SOURCE_ROOT@")
-message("CMAKE_CURRENT_BINARY_DIR=@CMAKE_CURRENT_BINARY_DIR@")
-message(FATAL_ERROR "@QTROOT@/bin/windeployqt")
-execute_process(COMMAND @QTROOT@/bin/windeployqt --verbose 9 --qmldir @SOURCE_ROOT@ ${CMAKE_CURRENT_BINARY_DIR}/bin/Status.exe)
+#set(ENV{PATH} @QTROOT@/bin:$ENV{PATH})
+#set(ENV{QT_PATH} @QTROOT@/..)
+#message("SOURCE_ROOT=@SOURCE_ROOT@")
+#message("APP_NAME=@APP_NAME@")
+#message("CONAN_BIN_DIRS_QT5=@CONAN_BIN_DIRS_QT5@")
+#message("CONAN_BIN_DIRS_STATUSTOOLCHAIN-X86_64-W64-MINGW32=@CONAN_BIN_DIRS_STATUSTOOLCHAIN-X86_64-W64-MINGW32@")
 
-# on windows windeployqt doesnt install non qt libraries, let cmake do that
-include(BundleUtilities)
+set(qtmodules Core Gui Widgets Qml Quick WebSockets Svg Network Concurrent)
+foreach(qtmodule ${qtmodules})
+  message("Copying ${qtmodule}")
+  add_custom_command(TARGET @APP_NAME@ POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different
+          "@CONAN_BIN_DIRS_QT5@/Qt5${qtmodule}.dll"
+          ${TARGET_DIR})
+endforeach(qtmodule ${qtmodules})
 
-foreach(d @CMAKE_FIND_ROOT_PATH@)
-  list(APPEND SEARCHDIRS ${d}/bin)
-  list(APPEND SEARCHDIRS ${d}/lib)
+set(qtplugindirs "platforms" "styles" "iconengines" "imageformats" "translations")
+foreach(qtplugindir ${qtplugindirs})
+  message("Copying ${qtplugindir}")
+  add_custom_command(TARGET @APP_NAME@ POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "@CONAN_BIN_DIRS_QT5@/../plugins/${qtplugindir}/"
+        "${TARGET_DIR}/${qtplugindir}")
 endforeach()
 
-fixup_bundle("${CMAKE_INSTALL_PREFIX}/Status.exe" "" "${SEARCHDIRS}") 
-#install(PROGRAMS ${VCREDIST_DIR}/vc_redist_2015_x64.exe DESTINATION .)
+set(qtqmldirs "QtQuick" "QtQuick.2" "QtWebView")
+foreach(qtqmldir ${qtqmldirs})
+  message("Copying ${qtqmldir}")
+  add_custom_command(TARGET @APP_NAME@ POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "@CONAN_BIN_DIRS_QT5@/../qml/${qtqmldir}/"
+        "${TARGET_DIR}/${qtqmldir}")
+endforeach()
 
-# if(@DO_SIGN@)
-#   file(GLOB_RECURSE EXES ${CMAKE_INSTALL_PREFIX}/*.exe ${CMAKE_INSTALL_PREFIX}/*.dll)
-#   set(ENV{errorlevel} 1)
-#   foreach(e ${EXES})
-#     message("-- Signing: ${PROJECT_SOURCE_DIR}/scripts/WindowsSign.cmd ${e}")
-#     execute_process(COMMAND ${PROJECT_SOURCE_DIR}/scripts/WindowsSign.cmd "${e}" RESULT_VARIABLE RES)
-#   endforeach()
-# endif()
+foreach(libdir @CONAN_BIN_DIRS_STATUSTOOLCHAIN-X86_64-W64-MINGW32@)
+  if(EXISTS "${libdir}/libwinpthread-1.dll")
+    add_custom_command(TARGET @APP_NAME@ POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${libdir}/libwinpthread-1.dll"
+            ${TARGET_DIR})
+    break()
+  endif()
+endforeach(libdir @CONAN_BIN_DIRS_STATUSTOOLCHAIN-X86_64-W64-MINGW32@)
