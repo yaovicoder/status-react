@@ -272,7 +272,7 @@ function bundleMacOS() {
 function bundle() {
   if is_macos; then
     bundleMacOS
-  else
+  elif is_macos and -not is_windows_target; then
     bundleLinux
   fi
 }

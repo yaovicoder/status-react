@@ -17,8 +17,18 @@ set(MAIN_CPP_SOURCE reportpublisher.cpp
                     reportpublisher.cpp
                     main.cpp)
 
+# Set some Win32 Specific Settings
+IF(WIN32)
+  SET(GUI_TYPE WIN32)
+ENDIF(WIN32)
+# Set some Apple MacOS Specific settings
+IF (APPLE)
+  SET(GUI_TYPE MACOSX_BUNDLE)
+ENDIF (APPLE)
+
 add_executable(
   ${APP_NAME}
+  ${GUI_TYPE}
   ${MAIN_CPP_SOURCE}
   main.qrc
 )
@@ -31,3 +41,6 @@ target_link_libraries(${APP_NAME}
                       PRIVATE ${QT5_LIBRARIES})
 
 set(REACT_NATIVE_DESKTOP_EXTERNAL_PROJECT_DEPS ${REACT_NATIVE_DESKTOP_EXTERNAL_PROJECT_DEPS} reportApp PARENT_SCOPE)
+
+#set(SOURCE_ROOT ${CMAKE_SOURCE_DIR})
+include(CompleteBundle)

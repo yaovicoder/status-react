@@ -10,7 +10,7 @@ include(${CMAKE_BINARY_DIR}/conan.cmake)
 conan_check()
 
 conan_cmake_run(REQUIRES qt5/5.11.2@status-im/experimental
-                PROFILE /home/pedro/src/github.com/status-im/status-conan/profiles/status-mingw32-x86_64-gcc63-libstdcxx
+                PROFILE /home/pedro/src/github.com/status-im/status-conan/profiles/status-mingw32-x86_64-gcc63-libstdcxx # TODO Remove hardcoded path
                 BASIC_SETUP
                 BUILD missing)
 
@@ -57,10 +57,10 @@ if(QT5_CFLAGS)
   endif(WIN32)
 endif(QT5_CFLAGS)
 
-message(STATUS "Qt version: ${Qt5Core_VERSION_STRING}")
+# message(STATUS "Qt version: ${Qt5Core_VERSION_STRING}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${QT5_CFLAGS}")
-message("CMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS}")
-message("QT5_LIBRARIES=${QT5_LIBRARIES}")
+# message("CMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS}")
+# message("QT5_LIBRARIES=${QT5_LIBRARIES}")
 
 #set(CMAKE_REQUIRED_INCLUDES ${Qt5WebEngine_INCLUDE_DIRS};${Qt5WebEngine_PRIVATE_INCLUDE_DIRS})
 set(CMAKE_REQUIRED_LIBRARIES ${QT5_LIBRARIES})
