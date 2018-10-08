@@ -14,8 +14,7 @@
   (fx/merge cofx
             (merge
              {:db (assoc db
-                         :status-node-started? true
-                         :status-node-busy?    false
+                         :status-node-state    :started
                          :dispatch-after-start nil)}
              (when (:dispatch-after-start db)
                {:dispatch-n (:dispatch-after-start db)}))
@@ -25,9 +24,11 @@
                (accounts.login/login %))))
 
 (fx/defn status-node-stopped
-  [cofx]
+  [{db :db :as cofx}]
   (let [{:keys [address]} (accounts.db/credentials cofx)]
-    (node/start cofx address)))
+    (fx/merge cofx
+              {:db (assoc db :status-node-state :stopped)}
+              (node/start address))))
 
 (fx/defn status-module-initialized [{:keys [db]}]
   {:db                             (assoc db :status-module-initialized? true)
