@@ -85,7 +85,6 @@ doo-index.html
 Statusgo.framework
 status-go-local.aar
 status-dev-cli
-status-go-*.zip
 
 #ios
 ios/Pods
