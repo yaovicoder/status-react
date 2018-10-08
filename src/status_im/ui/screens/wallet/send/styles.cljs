@@ -71,7 +71,7 @@
 
 (def advanced-button
   {:flex-direction   :row
-   :background-color colors/blue-light
+   :background-color colors/black-transparent
    :border-radius    50
    :padding          8
    :align-items      :center})

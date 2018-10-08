@@ -1,14 +1,13 @@
 (ns status-im.ui.screens.chat.styles.message.message
   (:require-macros [status-im.utils.styles :refer [defstyle defnstyle]])
-  (:require [status-im.ui.components.styles :as styles]
-            [status-im.ui.components.colors :as colors]
+  (:require [status-im.ui.components.colors :as colors]
             [status-im.ui.screens.chat.styles.photos :as photos]
             [status-im.utils.platform :as platform]
             [status-im.constants :as constants]))
 
-(defstyle style-message-text
+(defnstyle style-message-text [outgoing]
   {:font-size      15
-   :color          colors/text
+   :color          (if outgoing colors/white colors/text)
    :letter-spacing -0.2
    :android        {:line-height 22}
    :ios            {:line-height 22}})
@@ -121,8 +120,8 @@
   {:padding-top 4})
 
 (defn text-message
-  [collapsed?]
-  (assoc style-message-text :margin-bottom (if collapsed? 2 0)))
+  [collapsed? outgoing]
+  (assoc (style-message-text outgoing) :margin-bottom (if collapsed? 2 0)))
 
 (defnstyle emoji-message
   [{:keys [incoming-group]}]

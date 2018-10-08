@@ -21,9 +21,9 @@
     :padding-left   14
     :padding-right  8}
    (if disabled?
-     {:border-color colors/white-light-transparent
-      :border-width 1}
-     {:background-color colors/white-transparent})))
+     {:border-width 1
+      :border-color colors/white-light-transparent}
+     {:background-color colors/white-light-transparent})))
 
 (def cartouche-icon-wrapper
   {:flex            1
