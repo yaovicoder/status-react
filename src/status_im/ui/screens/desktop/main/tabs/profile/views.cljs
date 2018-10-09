@@ -110,7 +110,7 @@
     (let [{:keys [url commit]}         nightly-version
           adv-settings-open?           (= current-view-id :advanced-settings)
           backup-recovery-phrase-open? (= current-view-id :backup-recovery-phrase)
-          notifications? (get-in user [:desktop-notifications?])
+          notifications?               (get-in user [:desktop-notifications?])
           show-backup-seed?            (and (not seed-backed-up?) (not (string/blank? mnemonic)))]
       [react/view
        [react/view {:style styles/profile-edit}
