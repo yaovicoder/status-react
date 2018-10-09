@@ -8,7 +8,7 @@
             [status-im.transport.message.v1.protocol :as protocol]
             [status-im.transport.message.v1.core :as transport]
             [status-im.transport.message.v1.public-chat :as public-chat]
-            [status-im.transport.utils :as transport.utils]
+            [status-im.transport.core :as transport.core]
             [status-im.ui.components.styles :as styles]
             [status-im.ui.screens.navigation :as navigation]
             [status-im.i18n :as i18n]
@@ -105,10 +105,6 @@
      :data-store/tx [(chats-store/clear-history-tx chat-id last-message-clock-value)
                      (messages-store/delete-messages-tx chat-id)]}))
 
-(fx/defn remove-transport
-  [cofx chat-id]
-  (transport.utils/unsubscribe-from-chat cofx chat-id))
-
 (fx/defn deactivate-chat
   [{:keys [db now] :as cofx} chat-id]
   {:db (-> db
@@ -127,7 +123,7 @@
   [{:keys [db now] :as cofx} chat-id]
   (fx/merge cofx
             #(when (public-chat? % chat-id)
-               (remove-transport % chat-id))
+               (transport.core/unsubscribe-from-chat % chat-id))
             (deactivate-chat chat-id)
             (clear-history chat-id)
             (navigation/navigate-to-cofx :home {})))

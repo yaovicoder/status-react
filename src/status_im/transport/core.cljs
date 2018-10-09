@@ -19,6 +19,7 @@
   [{:keys [db web3] :as cofx} current-account-id]
   (log/debug :init-whisper)
   (when-let [public-key (get-in db [:account/account :public-key])]
+
     (let [sym-key-added-callback (fn [chat-id sym-key sym-key-id]
                                    (re-frame/dispatch [::sym-key-added {:chat-id    chat-id
                                                                         :sym-key    sym-key
@@ -69,3 +70,16 @@
   [{:keys [db]}]
   (let [{:transport/keys [filters]} db]
     {:shh/remove-filters (vals filters)}))
+
+(fx/defn remove-transport-chat
+  [{:keys [db]} chat-id]
+  {:db                (update db :transport/chats dissoc chat-id)
+   :data-store/tx     [(transport-store/delete-transport-tx chat-id)]
+   :shh/remove-filter (get-in db [:transport/filters chat-id])})
+
+(fx/defn unsubscribe-from-chat
+  "Unsubscribe from chat on transport layer"
+  [cofx chat-id]
+  (fx/merge cofx
+            (inbox/remove-chat-from-inbox-topic chat-id)
+            (remove-transport-chat chat-id)))

@@ -73,11 +73,6 @@
                                                                      :chat    chat-transport-info})]}
                #(message/receive message chat-id chat-id timestamp %)))))
 
-(handlers/register-handler-fx
- :group/unsubscribe-from-chat
- (fn [cofx [_ chat-id]]
-   (transport.utils/unsubscribe-from-chat chat-id cofx)))
-
 (re-frame/reg-fx
  ;; TODO(janherich): this should be called after `:data-store/tx` actually
  :confirm-messages-processed
