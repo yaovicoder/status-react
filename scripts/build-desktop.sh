@@ -14,6 +14,7 @@ if [ -z $TARGET_SYSTEM_NAME ]; then
   TARGET_SYSTEM_NAME=$OS
 fi
 
+  #'node_modules/react-native-keychain/desktop' \
 external_modules_dir=( \
   'node_modules/react-native-i18n/desktop' \
   'node_modules/react-native-config/desktop' \
@@ -136,7 +137,7 @@ function buildClojureScript() {
 
 function compile() {
   pushd desktop
-    rm -rf CMakeFiles CMakeCache.txt cmake_install.cmake Makefile reportApp/CMakeFiles desktop/node_modules/google-breakpad/CMakeFiles desktop/node_modules/react-native-keychain/desktop/qtkeychain-prefix/src/qtkeychain-build/CMakeFiles
+    rm -rf CMakeFiles CMakeCache.txt cmake_install.cmake Makefile reportApp/CMakeFiles desktop/node_modules/google-breakpad/CMakeFiles desktop/node_modules/react-native-keychain/desktop/qtkeychain-prefix/src/qtkeychain-build/CMakeFiles desktop/node_modules/react-native-keychain/desktop/qtkeychain
     if is_windows_target; then
       CMAKE_TOOLCHAIN_FILE='Toolchain-Ubuntu-mingw64.cmake'
       bin="/home/$USER/.conan/data/statustoolchain-x86_64-w64-mingw32/1.23.0-1/status-im/experimental/package/6dd81ead6edc4ffe1e7b0f43c96eee6958954311/bin"

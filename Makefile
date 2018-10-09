@@ -73,7 +73,7 @@ release-desktop: prod-build-desktop ##@build build release for desktop release
 	scripts/build-desktop.sh
 
 release-windows-desktop: prod-build-desktop ##@build build release for desktop release
-	TARGET_SYSTEM_NAME=Windows scripts/build-desktop.sh
+	PATH=/home/pedro/src/github.com/status-im/status-conan/:${PATH} TARGET_SYSTEM_NAME=Windows scripts/build-desktop.sh
 
 prod-build:
 	lein prod-build

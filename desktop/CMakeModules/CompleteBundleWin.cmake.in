@@ -26,7 +26,7 @@ foreach(qtplugindir ${qtplugindirs})
         "${TARGET_DIR}/${qtplugindir}")
 endforeach()
 
-set(qtqmldirs "QtQuick" "QtQuick.2" "QtWebView")
+set(qtqmldirs "QtQuick" "QtQuick.2" "QtGraphicalEffects" "QtWebView")
 foreach(qtqmldir ${qtqmldirs})
   message("Copying ${qtqmldir}")
   add_custom_command(TARGET @APP_NAME@ POST_BUILD
