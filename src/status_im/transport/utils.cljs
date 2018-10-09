@@ -5,15 +5,21 @@
             [clojure.string :as string]
             [status-im.js-dependencies :as dependencies]
             [status-im.data-store.transport :as transport-store]
-            [status-im.utils.fx :as fx]))
+            [status-im.utils.fx :as fx]
+            [status-im.transport.inbox :as inbox]))
+
+(fx/defn remove-transport-chat
+  [{:keys [db]} chat-id]
+  {:db                (update db :transport/chats dissoc chat-id)
+   :data-store/tx     [(transport-store/delete-transport-tx chat-id)]
+   :shh/remove-filter (get-in db [:transport/filters chat-id])})
 
 (fx/defn unsubscribe-from-chat
   "Unsubscribe from chat on transport layer"
-  [{:keys [db]} chat-id]
-  (let [filter (get-in db [:transport/chats chat-id :filter])]
-    {:db                (update db :transport/chats dissoc chat-id)
-     :data-store/tx     [(transport-store/delete-transport-tx chat-id)]
-     :shh/remove-filter filter}))
+  [cofx chat-id]
+  (fx/merge cofx
+            (inbox/remove-chat-from-inbox-topic chat-id)
+            (remove-transport-chat chat-id)))
 
 (defn from-utf8 [s]
   (.fromUtf8 dependencies/Web3.prototype s))
