@@ -16,7 +16,8 @@
             [status-im.utils.clocks :as utils.clocks]
             [status-im.utils.datetime :as time]
             [status-im.utils.gfycat.core :as gfycat]
-            [status-im.utils.fx :as fx]))
+            [status-im.utils.fx :as fx]
+            [status-im.transport.inbox :as inbox]))
 
 (defn multi-user-chat? [cofx chat-id]
   (get-in cofx [:db :chats chat-id :group-chat]))
@@ -131,8 +132,7 @@
   "Removes chat completely from app, producing all necessary effects for that"
   [{:keys [db now] :as cofx} chat-id]
   (fx/merge cofx
-            #(when (multi-user-chat? % chat-id)
-               (remove-transport % chat-id))
+            (remove-transport chat-id)
             (deactivate-chat chat-id)
             (clear-history chat-id)
             (navigation/navigate-to-cofx :home {})))

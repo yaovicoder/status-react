@@ -89,6 +89,7 @@
   (re-frame/inject-cofx :data-store/get-all-contacts)
   (re-frame/inject-cofx :data-store/get-all-mailservers)
   (re-frame/inject-cofx :data-store/transport)
+  (re-frame/inject-cofx :data-store/transport-inbox-topics)
   (re-frame/inject-cofx :data-store/all-browsers)
   (re-frame/inject-cofx :data-store/all-dapp-permissions)]
  (fn [cofx [_ address]]
