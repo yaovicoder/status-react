@@ -2,17 +2,22 @@
   (:require [goog.object :as object]
             [cljs.core.async :as async]
             [re-frame.core :as re-frame]
+            [status-im.utils.clocks :as utils.clocks]
             [status-im.data-store.realm.core :as core]))
 
+(defn- get-last-clock-value [chat-id]
+  (-> (core/get-by-field @core/account-realm
+                         :message :chat-id chat-id)
+      (core/sorted :clock-value :desc)
+      (core/single-clj :message)
+      :clock-value
+      ;; We cap the clock value to a safe value in case the db has been polluted
+      (utils.clocks/safe-timestamp)))
+
 (defn- normalize-chat [{:keys [chat-id] :as chat}]
-  (let [last-clock-value (-> (core/get-by-field @core/account-realm
-                                                :message :chat-id chat-id)
-                             (core/sorted :clock-value :desc)
-                             (core/single-clj :message)
-                             :clock-value)]
-    (-> chat
-        (update :contacts #(into #{} %))
-        (assoc :last-clock-value (or last-clock-value 0)))))
+  (-> chat
+      (update :contacts #(into #{} %))
+      (assoc :last-clock-value (get-last-clock-value chat-id))))
 
 (re-frame/reg-cofx
  :data-store/all-chats
