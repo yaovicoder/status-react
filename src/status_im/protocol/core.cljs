@@ -44,13 +44,15 @@
               (semaphores/lock :check-sync-state?))))
 
 (fx/defn initialize-protocol
-  [{:data-store/keys [transport mailservers] :keys [db web3] :as cofx} address]
+  [{:data-store/keys [transport transport-inbox-topics mailservers]
+    :keys [db web3] :as cofx} address]
   (let [network (get-in db [:account/account :network])
         network-id (str (get-in db [:account/account :networks network :config :NetworkId]))]
     (fx/merge cofx
               {:db                              (assoc db
                                                        :rpc-url constants/ethereum-rpc-url
-                                                       :transport/chats transport)
+                                                       :transport/chats transport
+                                                       :transport.inbox/topics transport-inbox-topics)
                :protocol/assert-correct-network {:web3 web3
                                                  :network-id network-id}}
               (start-check-sync-state)

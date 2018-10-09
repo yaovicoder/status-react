@@ -13,13 +13,6 @@
             [status-im.utils.handlers :as handlers]
             [taoensso.timbre :as log]))
 
-(fx/defn update-last-received-from-inbox
-  "Distinguishes messages that are expired from those that are not
-   Expired messages are coming from offline inboxing"
-  [{:keys [db now] :as cofx} now-in-s timestamp ttl]
-  (when (> (- now-in-s timestamp) ttl)
-    {:db (assoc db :inbox/last-received now)}))
-
 (fx/defn receive-message
   [cofx now-in-s chat-id js-message]
   (let [{:keys [payload sig timestamp ttl]} (js->clj js-message :keywordize-keys true)
@@ -30,8 +23,7 @@
       (try
         (when-let [valid-message (message/validate status-message)]
           (fx/merge (assoc cofx :js-obj js-message)
-                    #(message/receive valid-message (or chat-id sig) sig timestamp %)
-                    (update-last-received-from-inbox now-in-s timestamp ttl)))
+                    #(message/receive valid-message (or chat-id sig) sig timestamp %)))
         (catch :default e nil))))) ; ignore unknown message types
 
 (defn- js-array->seq [array]
@@ -62,26 +54,6 @@
    (log/error :send-status-message-error err)))
 
 (handlers/register-handler-fx
- :contact/send-new-sym-key
- (fn [{:keys [db] :as cofx}
-      [_ {:keys [chat-id topic message sym-key sym-key-id]}]]
-   (let [{:keys [web3 current-public-key]} db
-         chat-transport-info               (-> (get-in db [:transport/chats chat-id])
-                                               (assoc :sym-key-id sym-key-id
-                                                      :sym-key sym-key
-                                                      :topic topic))]
-     (fx/merge cofx
-               {:db (assoc-in db [:transport/chats chat-id] chat-transport-info)
-                :shh/add-filter {:web3       web3
-                                 :sym-key-id sym-key-id
-                                 :topic      topic
-                                 :chat-id    chat-id}
-                :data-store/tx  [(transport-store/save-transport-tx {:chat-id chat-id
-                                                                     :chat    chat-transport-info})]}
-               #(message/send (v1.contact/NewContactKey. sym-key topic message)
-                              chat-id %)))))
-
-(handlers/register-handler-fx
  :contact/add-new-sym-key
  (fn [{:keys [db] :as cofx} [_ {:keys [sym-key-id sym-key chat-id topic timestamp message]}]]
    (let [{:keys [web3 current-public-key]} db
@@ -93,7 +65,6 @@
                {:db             (assoc-in db
                                           [:transport/chats chat-id]
                                           chat-transport-info)
-                :dispatch       [:inbox/request-chat-history chat-id]
                 :shh/add-filter {:web3       web3
                                  :sym-key-id sym-key-id
                                  :topic      topic
@@ -181,9 +152,7 @@
      :fcm-token     fcm-token}))
 
 (fx/defn resend-contact-request [cofx own-info chat-id {:keys [sym-key topic]}]
-  (message/send (v1.contact/NewContactKey. sym-key
-                                           topic
-                                           (v1.contact/map->ContactRequest own-info))
+  (message/send (v1.contact/map->ContactRequest own-info)
                 chat-id cofx))
 
 (fx/defn resend-contact-message
