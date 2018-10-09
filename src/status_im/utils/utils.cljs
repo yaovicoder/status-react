@@ -66,6 +66,7 @@
  :utils/dispatch-later
  (fn [params]
    (doseq [{:keys [ms dispatch]} params]
+     (println :dispatch-later dispatch)
      (set-timeout #(re-frame/dispatch dispatch) ms))))
 
 (defn clear-timeout [id]

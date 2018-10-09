@@ -21,13 +21,13 @@
 (fx/defn init-chat
   "Initialises chat on protocol layer.
   If topic is not passed as argument it is derived from `chat-id`"
-  [{:keys [db]}
-   {:keys [chat-id topic resend?]
-    :or   {topic   (transport.utils/get-topic chat-id)}}]
+  [{:keys [db now]}
+   {:keys [chat-id topic resend?]}]
   {:db (assoc-in db
                  [:transport/chats chat-id]
                  (transport.db/create-chat {:topic   topic
-                                            :resend? resend?}))})
+                                            :resend? resend?
+                                            :now     now}))})
 
 (fx/defn send
   "Sends the payload using symetric key and topic from db (looked up by `chat-id`)"

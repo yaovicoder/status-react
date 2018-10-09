@@ -22,7 +22,8 @@
                 {:shh/generate-sym-key-from-password [{:web3       (:web3 db)
                                                        :password   chat-id
                                                        :on-success on-success}]}
-                (protocol/init-chat {:chat-id chat-id})))))
+                (protocol/init-chat {:chat-id chat-id
+                                     :topic   (transport.utils/get-topic chat-id)})))))
 
 (handlers/register-handler-fx
  ::add-new-sym-key
@@ -39,5 +40,4 @@
                          :chat    (-> (get-in db [:transport/chats chat-id])
                                       (assoc :sym-key-id sym-key-id)
                                       ;;TODO (yenda) remove once go implements persistence
-                                      (assoc :sym-key sym-key))})]
-      :dispatch       [:inbox/request-chat-history chat-id]})))
+                                      (assoc :sym-key sym-key))})]})))
