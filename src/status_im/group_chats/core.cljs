@@ -126,7 +126,7 @@
                             ;; don't allow anything but group messages
                             (instance? transport.protocol/Message message)
                             (= :group-user-message (:message-type message)))
-                   (protocol.message/receive message chat-id sender-signature nil %))))))
+                   (protocol.message/receive message chat-id sender-signature "" nil %))))))
 
 (defn handle-sign-success
   "Upsert chat and send signed payload to group members"
