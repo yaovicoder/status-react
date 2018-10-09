@@ -51,4 +51,4 @@
 (def text black)
 (def text-gray gray)
 
-(def default-chat-color :purpule) ;; legacy
+(def default-chat-color :purple) ;; legacy
