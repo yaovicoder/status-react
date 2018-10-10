@@ -11,6 +11,7 @@
             [status-im.data-store.realm.schemas.account.dapp-permissions :as dapp-permissions]
             [status-im.data-store.realm.schemas.account.request :as request]
             [status-im.data-store.realm.schemas.account.membership-update :as membership-update]
+            [status-im.data-store.realm.schemas.account.installation :as installation]
             [status-im.data-store.realm.schemas.account.migrations :as migrations]
             [taoensso.timbre :as log]))
 
@@ -173,10 +174,29 @@
           transport/v7
           transport-inbox-topic/v1
           contact/v2
+          transport/v7
+          transport-inbox-topic/v1
+          contact/v1
           message/v7
           mailserver/v11
           user-status/v1
           membership-update/v1
+          local-storage/v1
+          browser/v8
+          dapp-permissions/v9])
+
+(def v18 [chat/v8
+          transport/v7
+          transport-inbox-topic/v1
+          contact/v2
+          transport/v7
+          transport-inbox-topic/v1
+          contact/v1
+          message/v7
+          mailserver/v11
+          user-status/v1
+          membership-update/v1
+          installation/v1
           local-storage/v1
           browser/v8
           dapp-permissions/v9])
@@ -232,4 +252,7 @@
                :migration     migrations/v16}
               {:schema        v17
                :schemaVersion 17
-               :migration     migrations/v17}])
+               :migration     migrations/v17}
+              {:schema        v18
+               :schemaVersion 18
+               :migration     migrations/v18}])
