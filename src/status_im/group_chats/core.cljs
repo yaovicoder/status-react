@@ -122,7 +122,7 @@
       {:shh/send-group-message {:web3          web3
                                 :src           current-public-key
                                 :dsts          (disj members current-public-key)
-                                :success-event [:transport/set-message-envelope-hash
+                                :success-event [:transport/message-sent
                                                 chat-id
                                                 (transport.utils/message-id (:message payload))
                                                 :group-user-message]

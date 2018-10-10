@@ -1,14 +1,10 @@
 (ns ^{:doc "Contact request and update API"}
  status-im.transport.message.contact
-  (:require [re-frame.core :as re-frame]
+  (:require [cljs.spec.alpha :as spec]
             [status-im.data-store.transport :as transport-store]
+            [status-im.transport.db :as transport.db]
             [status-im.transport.message.protocol :as protocol]
-            [status-im.transport.utils :as transport.utils]
-            [status-im.utils.fx :as fx]
-            [cljs.spec.alpha :as spec]
-            [taoensso.timbre :as log]
-            [status-im.constants :as constants]
-            [status-im.transport.db :as transport.db]))
+            [status-im.utils.fx :as fx]))
 
 (defrecord ContactRequest [name profile-image address fcm-token]
   protocol/StatusMessage
@@ -18,7 +14,7 @@
                                    :resend? "contact-request"})
               (protocol/send-with-pubkey {:chat-id chat-id
                                           :payload this
-                                          :success-event [:transport/set-contact-message-envelope-hash chat-id]})))
+                                          :success-event [:transport/contact-message-sent chat-id]})))
   (validate [this]
     (when (spec/valid? :message/contact-request this)
       this)))
@@ -26,7 +22,7 @@
 (defrecord ContactRequestConfirmed [name profile-image address fcm-token]
   protocol/StatusMessage
   (send [this chat-id {:keys [db] :as cofx}]
-    (let [success-event [:transport/set-contact-message-envelope-hash chat-id]
+    (let [success-event [:transport/contact-message-sent chat-id]
           chat         (get-in db [:transport/chats chat-id])
           updated-chat (if chat
                          (assoc chat :resend? "contact-request-confirmation")
@@ -49,7 +45,7 @@
     (let [updated-chat  (assoc chat :resend? "contact-update")
           tx            [(transport-store/save-transport-tx {:chat-id chat-id
                                                              :chat    updated-chat})]
-          success-event [:transport/set-contact-message-envelope-hash chat-id]]
+          success-event [:transport/contact-message-sent chat-id]]
       (fx/merge cofx
                 {:db (assoc-in db
                                [:transport/chats chat-id :resend?]
