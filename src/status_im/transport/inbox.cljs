@@ -2,7 +2,6 @@
  status-im.transport.inbox
   (:require [re-frame.core :as re-frame]
             [status-im.constants :as constants]
-            [status-im.data-store.accounts :as accounts-store]
             [status-im.data-store.core :as data-store]
             [status-im.data-store.transport :as transport-store]
             [status-im.fleet.core :as fleet]
@@ -10,7 +9,6 @@
             [status-im.native-module.core :as status]
             [status-im.transport.utils :as transport.utils]
             [status-im.utils.fx :as fx]
-            [status-im.utils.handlers :as handlers]
             [status-im.utils.utils :as utils]
             [taoensso.timbre :as log]))
 
@@ -32,14 +30,7 @@
 
 (def connection-timeout
   "Time after which mailserver connection is considered to have failed"
-  15000)
-
-(def fetching-timeout
-  "Time we should wait after last message was fetch from mailserver before we
-   consider it done
-   Needs to be at least 10 seconds because that is the time it takes for the app
-   to realize it was disconnected"
-  10000)
+  5000)
 
 (defn- parse-json
   ;; NOTE(dmitryn) Expects JSON response like:
@@ -75,7 +66,7 @@
                                      #(log/error "offline inbox: add-peer error" %))))
 
 (re-frame/reg-fx
- :inbox/add-peer
+ :transport.inbox/add-peer
  (fn [wnode]
    (add-peer! wnode)))
 
@@ -88,7 +79,7 @@
                         (re-frame/dispatch [:inbox.callback/mark-trusted-peer-success response])))))
 
 (re-frame/reg-fx
- :inbox/mark-trusted-peer
+ :transport.inbox/mark-trusted-peer
  (fn [{:keys [wnode web3]}]
    (mark-trusted-peer! web3 wnode)))
 
@@ -116,8 +107,8 @@
   (let [{:keys [address sym-key-id] :as wnode} (mailserver/fetch-current cofx)]
     (fx/merge cofx
               {:db (update-mailserver-status db :added)
-               :inbox/mark-trusted-peer {:web3  (:web3 db)
-                                         :wnode address}}
+               :transport.inbox/mark-trusted-peer {:web3  (:web3 db)
+                                                   :wnode address}}
               (when-not sym-key-id
                 (generate-mailserver-symkey wnode)))))
 
@@ -126,7 +117,7 @@
   (let [{:keys [address sym-key-id] :as wnode} (mailserver/fetch-current cofx)]
     (fx/merge cofx
               {:db (update-mailserver-status db :connecting)
-               :inbox/add-peer address
+               :transport.inbox/add-peer address
                :utils/dispatch-later [{:ms connection-timeout
                                        :dispatch [:inbox/check-connection-timeout]}]}
               (when-not sym-key-id
@@ -190,13 +181,13 @@
                         (log/error "offline inbox: messages request error for topic " topic ": " err)))))
 
 (re-frame/reg-fx
- :inbox/request-messages
+ :transport.inbox/request-messages
  (fn [{:keys [web3 wnode requests]}]
    (doseq [request requests]
      (request-messages! web3 wnode request))))
 
-(defn prepare-request [now-in-s [topic {:keys [request-from]}]]
-  {:from  (max request-from
+(defn prepare-request [now-in-s [topic {:keys [last-request]}]]
+  {:from  (max last-request
                (- now-in-s one-day))
    :to    now-in-s
    :topic topic})
@@ -220,9 +211,9 @@
                         (if topic
                           [[topic (get-in db [:transport.inbox/topics topic])]]
                           (:transport.inbox/topics db)))]
-      {:inbox/request-messages {:web3     web3
-                                :wnode    wnode
-                                :requests requests}})))
+      {:transport.inbox/request-messages {:web3     web3
+                                          :wnode    wnode
+                                          :requests requests}})))
 
 (fx/defn add-mailserver-trusted
   "the current mailserver has been trusted

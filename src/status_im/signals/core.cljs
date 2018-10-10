@@ -3,11 +3,11 @@
             [status-im.accounts.login.core :as accounts.login]
             [status-im.init.core :as init]
             [status-im.node.core :as node]
-            [status-im.transport.message.core :as transport.message]
             [status-im.transport.inbox :as inbox]
+            [status-im.transport.message.core :as transport.message]
+            [status-im.utils.fx :as fx]
             [status-im.utils.types :as types]
-            [taoensso.timbre :as log]
-            [status-im.utils.fx :as fx]))
+            [taoensso.timbre :as log]))
 
 (fx/defn status-node-started
   [{db :db :as cofx}]

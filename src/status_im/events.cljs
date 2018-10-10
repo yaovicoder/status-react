@@ -9,11 +9,11 @@
             [status-im.bootnodes.core :as bootnodes]
             [status-im.browser.core :as browser]
             [status-im.browser.permissions :as browser.permissions]
-            [status-im.chat.models :as chat]
-            [status-im.chat.models.message :as chat.message]
-            [status-im.chat.models.loading :as chat.loading]
-            [status-im.chat.models.input :as chat.input]
             [status-im.chat.commands.input :as commands.input]
+            [status-im.chat.models :as chat]
+            [status-im.chat.models.input :as chat.input]
+            [status-im.chat.models.loading :as chat.loading]
+            [status-im.chat.models.message :as chat.message]
             [status-im.data-store.core :as data-store]
             [status-im.fleet.core :as fleet]
             [status-im.group-chats.core :as group-chats]
@@ -28,8 +28,8 @@
             [status-im.protocol.core :as protocol]
             [status-im.qr-scanner.core :as qr-scanner]
             [status-im.signals.core :as signals]
-            [status-im.transport.message.core :as transport.message]
             [status-im.transport.inbox :as inbox]
+            [status-im.transport.message.core :as transport.message]
             [status-im.ui.screens.currency-settings.models
              :as
              currency-settings.models]
@@ -972,10 +972,10 @@
  (fn [cofx [_ request]]
    (inbox/add-request cofx request)))
 
-;; transport chat module
+;; transport module
 
 (handlers/register-handler-fx
- :transport/receive-whisper-messages
+ :transport/messages-received
  [handlers/logged-in (re-frame/inject-cofx :random-id-generator)]
  (fn [cofx [_ js-error js-messages chat-id]]
    (transport.message/receive-whisper-messages cofx js-error js-messages chat-id)))
@@ -986,13 +986,11 @@
    (log/error :send-status-message-error err)))
 
 (handlers/register-handler-fx
- :transport/set-message-envelope-hash
- ;; message-type is used for tracking
+ :transport/message-sent
  (fn [cofx [_ chat-id message-id message-type envelope-hash-js]]
    (transport.message/set-message-envelope-hash cofx chat-id message-id message-type envelope-hash-js)))
 
 (handlers/register-handler-fx
-
- :transport/set-contact-message-envelope-hash
+ :transport/contact-message-sent
  (fn [cofx [_ chat-id envelope-hash]]
    (transport.message/set-contact-message-envelope-hash cofx chat-id envelope-hash)))

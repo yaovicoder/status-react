@@ -1,7 +1,7 @@
 (ns status-im.transport.message.group-chat
-  (:require [status-im.transport.message.protocol :as protocol]
-            [taoensso.timbre :as log]
-            [cljs.spec.alpha :as spec]))
+  (:require [cljs.spec.alpha :as spec]
+            [status-im.transport.message.protocol :as protocol]
+            [taoensso.timbre :as log]))
 
 (defrecord GroupMembershipUpdate
            [chat-id membership-updates message]
