@@ -41,9 +41,12 @@
                                     ms-2
                                     ms-3])]
         (is (= expected-wnodes
-               (get-in
-                (protocol/initialize-protocol cofx-with-ms "user-address")
-                [:db :inbox/wnodes])))))))
+               (-> (get-in
+                    (protocol/initialize-protocol cofx-with-ms "user-address")
+                    [:db :inbox/wnodes])
+                   (update-in [:eth.beta "1"] dissoc :generating-sym-key?)
+                   (update-in [:eth.beta "2"] dissoc :generating-sym-key?)
+                   (update-in [:eth.test "3"] dissoc :generating-sym-key?))))))))
 
 (def sig "0x04325367620ae20dd878dbb39f69f02c567d789dd21af8a88623dc5b529827c2812571c380a2cd8236a2851b8843d6486481166c39debf60a5d30b9099c66213e4")
 
