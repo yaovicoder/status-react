@@ -1,11 +1,7 @@
 (ns ^{:doc "Utils for transport layer"}
  status-im.transport.utils
-  (:require [cljs-time.coerce :refer [to-long]]
-            [cljs-time.core :refer [now]]
-            [clojure.string :as string]
-            [status-im.js-dependencies :as dependencies]
-            [status-im.data-store.transport :as transport-store]
-            [status-im.utils.fx :as fx]))
+  (:require [clojure.string :as string]
+            [status-im.js-dependencies :as dependencies]))
 
 (defn from-utf8 [s]
   (.fromUtf8 dependencies/Web3.prototype s))
