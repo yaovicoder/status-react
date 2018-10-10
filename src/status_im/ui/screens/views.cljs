@@ -49,6 +49,7 @@
             [status-im.ui.screens.offline-messaging-settings.edit-mailserver.views :refer [edit-mailserver]]
             [status-im.ui.screens.extensions.add.views :refer [add-extension show-extension]]
             [status-im.ui.screens.bootnodes-settings.views :refer [bootnodes-settings]]
+            [status-im.ui.screens.pairing.views :refer [installations]]
             [status-im.ui.screens.bootnodes-settings.edit-bootnode.views :refer [edit-bootnode]]
             [status-im.ui.screens.currency-settings.views :refer [currency-settings]]
             [status-im.ui.screens.help-center.views :refer [help-center]]
@@ -268,6 +269,7 @@
                    :profile-photo-capture            profile-photo-capture
                    :about-app                        about-app/about-app
                    :bootnodes-settings               bootnodes-settings
+                   :installations                    installations
                    :edit-bootnode                    edit-bootnode
                    :offline-messaging-settings       offline-messaging-settings
                    :edit-mailserver                  edit-mailserver
