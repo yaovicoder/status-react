@@ -169,6 +169,13 @@
       {:label-kw            :t/bootnodes
        :action-fn           #(re-frame/dispatch [:navigate-to :bootnodes-settings])
        :accessibility-label :bootnodes-settings-button}])
+   (when config/pairing-enabled?
+     [profile.components/settings-item-separator])
+   (when config/pairing-enabled?
+     [profile.components/settings-item
+      {:label-kw            :t/pair-devices
+       :action-fn           #(re-frame/dispatch [:pairing.ui/pair-devices-pressed])
+       :accessibility-label :pairing-settings-button}])
    (when dev-mode?
      [profile.components/settings-switch-item
       {:label-kw  :t/web3-opt-in
