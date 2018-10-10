@@ -77,10 +77,10 @@
                   incoming-name   [:get-contact-name-by-identity from]]
     (let [name (chat-utils/format-author from incoming-name)]
       [react/touchable-highlight {:on-press #(re-frame/dispatch [:show-contact-dialog from name (boolean incoming-name)])}
-       [react/text {:style styles/author} name]])))
+       [react/text {:style styles/author :font :medium} name]])))
 
 (views/defview member-photo [from]
-  (letsubs [photo-path [:get-photo-path from]]
+  (views/letsubs [photo-path [:get-photo-path from]]
     [react/touchable-highlight  {:on-press #(re-frame/dispatch [:show-profile-desktop from])}
      [react/image {:source {:uri (if (string/blank? photo-path)
                                    (identicon/identicon from)
@@ -134,16 +134,15 @@
     link]])
 
 (views/defview message-with-timestamp
-  [text {:keys [message-id timestamp outgoing content current-public-key]} style]
-  [react/view {:style style}
-   [react/touchable-highlight {:style {}
-                               :on-press #(if (= "right" (.-button (.-nativeEvent %)))
+  [text {:keys [message-id timestamp content current-public-key]}]
+  [react/view {:style {:flex 1 :padding-right 12}}
+   [react/touchable-highlight {:on-press #(if (= "right" (.-button (.-nativeEvent %)))
                                             (do (utils/show-popup "" "Message copied to clipboard")
                                                 (react/copy-to-clipboard text))
                                             (re-frame/dispatch [:chat.ui/reply-to-message message-id]))}
     [react/view {:style styles/message-container}
      (when (:response-to content)
-       [quoted-message (:response-to content) outgoing current-public-key])
+       [quoted-message (:response-to content) false current-public-key])
      [react/view {:flex-direction  :column}
       (doall
        (for [[index-sentence sentence] (map-indexed vector (put-links-in-vector text))]
@@ -154,32 +153,31 @@
            (for [[index word] (map-indexed vector sentence)]
              (if (vector? word)
                ^{:key (str message-id index-sentence index)}
-               [link-button word outgoing]
+               [link-button word false]
                ^{:key (str message-id index-sentence index)}
-               [react/text {:style (styles/message-text outgoing)}
+               [react/text {:style (styles/message-text false)}
                 word])))]))]
      [react/text {:style (styles/message-timestamp-placeholder)}
       (time/timestamp->time timestamp)]
-     [react/text {:style (styles/message-timestamp outgoing)}
+     [react/text {:style (styles/message-timestamp false)}
       (time/timestamp->time timestamp)]]]])
 
 (views/defview text-only-message [text message]
   [react/view {:style (styles/message-row message)}
-   [message-with-timestamp text message (styles/message-box message)]])
+   [message-with-timestamp text message]])
 
 (views/defview photo-placeholder []
   [react/view {:style styles/photo-style}])
 
-(views/defview message-with-name-and-avatar [text {:keys [from first-in-group? last-in-group?] :as message}]
-  [react/view {:style (styles/message-row message)}
-   [react/view {:style styles/message-row-column}
-    (when first-in-group?
-      [message-author-name message])
-    [react/view {:style styles/not-first-in-group-wrapper}
-     (if last-in-group?
-       [member-photo from]
-       [photo-placeholder])
-     [message-with-timestamp text message (styles/message-box message)]]]])
+(views/defview message-with-name-and-avatar [text {:keys [from first-in-group?] :as message}]
+  [react/view
+   (when first-in-group?
+     [react/view {:style {:flex-direction :row :align-items :center}}
+      [member-photo from]
+      [message-author-name message]])
+   [react/view {:style styles/not-first-in-group-wrapper}
+    [photo-placeholder]
+    [message-with-timestamp text message]]])
 
 (defmulti message (fn [_ _ {:keys [content-type]}] content-type))
 
@@ -191,7 +189,7 @@
 
 (defmethod message :default
   [text me? {:keys [message-id chat-id message-status user-statuses from
-                    current-public-key content-type group-chat outgoing type value] :as message}]
+                    current-public-key content-type outgoing type value] :as message}]
   (when (nil? message-id)
     (log/debug "nil?" message))
   (if (= type :datemark)
@@ -212,9 +210,7 @@
         (fn []
           ^{:key (str "message" message-id)}
           [react/view
-           (if (and group-chat (not outgoing))
-             [message-with-name-and-avatar text message]
-             [text-only-message text message])
+           [message-with-name-and-avatar text message]
            [react/view {:style (message.style/delivery-status outgoing)}
             [message/message-delivery-status message]]])}))))
 
@@ -346,11 +342,10 @@
      [chat-text-input chat-id input-text]]))
 
 (views/defview chat-profile []
-  (letsubs [identity        [:get-current-contact-identity]
-            maybe-contact   [:get-current-contact]]
-
+  (views/letsubs [identity        [:get-current-contact-identity]
+                  maybe-contact   [:get-current-contact]]
     (let [contact (or maybe-contact (utils.contacts/whisper-id->new-contact identity))
-          {:keys [pending? whisper-identity public-key]} contact]
+          {:keys [pending? whisper-identity]} contact]
       [react/view {:style styles/chat-profile-body}
        [profile.views/profile-badge contact]
                   ;; for private chat, public key will be chat-id

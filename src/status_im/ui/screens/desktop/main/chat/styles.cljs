@@ -7,18 +7,6 @@
 (def min-input-area-height 20)
 (def max-input-area-height (- max-input-container-height (* 2 chat-vertical-padding)))
 
-(defn message-box [{:keys [outgoing] :as message}]
-  (let [align (if outgoing :flex-end :flex-start)
-        color (if outgoing colors/blue colors/white)]
-    {:align-self       align
-     :background-color color
-     :border-radius    8
-     :padding-left     12
-     :padding-right    12
-     :padding-top      10
-     :padding-bottom   10
-     :max-width        340}))
-
 (defn message-row [{:keys [outgoing first-in-group?] :as message}]
   (let [padding-horizontal (if outgoing :padding-right :padding-left)
         padding-top-value (if first-in-group? 16 8)]
@@ -54,10 +42,8 @@
    :width              230})
 
 (def author
-  {:color         colors/gray
-   :font-size     12
-   :margin-left   48
-   :margin-bottom 4})
+  {:color         colors/black
+   :font-size     12})
 
 (defn chat-box [height]
   {:height            (+ height (* 2 chat-vertical-padding))
@@ -78,7 +64,7 @@
 
 (def messages-view
   {:flex             1
-   :background-color colors/gray-lighter})
+   :background-color colors/white})
 
 (def img-container
   {:height          56
