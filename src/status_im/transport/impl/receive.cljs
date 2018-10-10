@@ -1,10 +1,9 @@
 (ns status-im.transport.impl.receive
-  (:require
-   [status-im.models.contact :as models.contact]
-   [status-im.group-chats.core :as group-chats]
-   [status-im.transport.message.contact :as transport.contact]
-   [status-im.transport.message.group-chat :as transport.group-chat]
-   [status-im.transport.message.protocol :as protocol]))
+  (:require [status-im.group-chats.core :as group-chats]
+            [status-im.models.contact :as models.contact]
+            [status-im.transport.message.contact :as transport.contact]
+            [status-im.transport.message.group-chat :as transport.group-chat]
+            [status-im.transport.message.protocol :as protocol]))
 
 (extend-type transport.group-chat/GroupMembershipUpdate
   protocol/StatusMessage

@@ -1,12 +1,11 @@
 (ns ^{:doc "API for whisper filters"}
  status-im.transport.filters
   (:require [re-frame.core :as re-frame]
-            [status-im.utils.handlers :as handlers]
+            [status-im.transport.inbox :as inbox]
             [status-im.transport.utils :as utils]
-            [status-im.utils.config :as config]
-            [taoensso.timbre :as log]
             [status-im.utils.fx :as fx]
-            [status-im.transport.inbox :as inbox]))
+            [status-im.utils.handlers :as handlers]
+            [taoensso.timbre :as log]))
 
 (defn remove-filter! [filter]
   (.stopWatching filter
@@ -32,7 +31,7 @@
    (let [params   {:topics [topic]
                    :symKeyID sym-key-id}
          callback (fn [js-error js-message]
-                    (re-frame/dispatch [:transport/receive-whisper-messages js-error js-message chat-id]))]
+                    (re-frame/dispatch [:transport/messages-received js-error js-message chat-id]))]
      (add-filter! web3 params callback chat-id))))
 
 (re-frame/reg-fx
@@ -41,7 +40,7 @@
    (let [params   {:topics [topic]
                    :privateKeyID private-key-id}
          callback (fn [js-error js-message]
-                    (re-frame/dispatch [:transport/receive-whisper-messages js-error js-message]))]
+                    (re-frame/dispatch [:transport/messages-received js-error js-message]))]
      (add-filter! web3 params callback :discovery-topic))))
 
 (handlers/register-handler-fx

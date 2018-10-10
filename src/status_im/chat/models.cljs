@@ -1,21 +1,18 @@
 (ns status-im.chat.models
-  (:require [clojure.string :as string]
-            [re-frame.core :as re-frame]
+  (:require [re-frame.core :as re-frame]
             [status-im.data-store.chats :as chats-store]
             [status-im.data-store.messages :as messages-store]
             [status-im.data-store.user-statuses :as user-statuses-store]
+            [status-im.i18n :as i18n]
+            [status-im.transport.chat.core :as transport.chat]
             [status-im.transport.message.protocol :as protocol]
             [status-im.transport.message.public-chat :as public-chat]
-            [status-im.transport.chat.core :as transport.chat]
-            [status-im.ui.components.styles :as styles]
+            [status-im.ui.components.colors :as colors]
             [status-im.ui.screens.navigation :as navigation]
-            [status-im.i18n :as i18n]
-            [status-im.utils.utils :as utils]
             [status-im.utils.clocks :as utils.clocks]
-            [status-im.utils.datetime :as time]
-            [status-im.utils.gfycat.core :as gfycat]
             [status-im.utils.fx :as fx]
-            [status-im.ui.components.colors :as colors]))
+            [status-im.utils.gfycat.core :as gfycat]
+            [status-im.utils.utils :as utils]))
 
 (defn multi-user-chat? [cofx chat-id]
   (get-in cofx [:db :chats chat-id :group-chat]))

@@ -1,10 +1,10 @@
 (ns ^{:doc "DB spec and utils for the transport layer"}
  status-im.transport.db
-  (:require-macros [status-im.utils.db :refer [allowed-keys]])
   (:require [cljs.spec.alpha :as spec]
+            [clojure.string :as s]
             status-im.ui.screens.contacts.db
-            [status-im.utils.clocks :as utils.clocks]
-            [clojure.string :as s]))
+            [status-im.utils.clocks :as utils.clocks])
+  (:require-macros [status-im.utils.db :refer [allowed-keys]]))
 
 ;; required
 (spec/def ::ack (spec/coll-of string? :kind vector?))
