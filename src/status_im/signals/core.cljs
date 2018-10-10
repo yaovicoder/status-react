@@ -3,7 +3,7 @@
             [status-im.accounts.login.core :as accounts.login]
             [status-im.init.core :as init]
             [status-im.node.core :as node]
-            [status-im.transport.handlers :as transport.handlers]
+            [status-im.transport.message.core :as transport.message]
             [status-im.transport.inbox :as inbox]
             [status-im.utils.types :as types]
             [taoensso.timbre :as log]
@@ -33,7 +33,7 @@
               {:db (assoc db
                           :peers-summary peers-summary
                           :peers-count peers-count)}
-              (transport.handlers/resend-contact-messages previous-summary)
+              (transport.message/resend-contact-messages previous-summary)
               (inbox/peers-summary-change previous-summary))))
 
 (fx/defn process
@@ -43,8 +43,8 @@
       "node.ready"         (status-node-started cofx)
       "node.stopped"       (status-node-stopped cofx)
       "module.initialized" (status-module-initialized cofx)
-      "envelope.sent"      (transport.handlers/update-envelope-status cofx (:hash event) :sent)
-      "envelope.expired"   (transport.handlers/update-envelope-status cofx (:hash event) :sent)
+      "envelope.sent"      (transport.message/update-envelope-status cofx (:hash event) :sent)
+      "envelope.expired"   (transport.message/update-envelope-status cofx (:hash event) :sent)
       "mailserver.request.completed" (inbox/update-inbox-topic cofx {:request-id (:requestID event)
                                                                      :cursor     (:cursor event)})
       "mailserver.request.expired"   (inbox/resend-request cofx {:request-id (:hash event)})

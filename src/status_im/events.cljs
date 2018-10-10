@@ -28,6 +28,8 @@
             [status-im.protocol.core :as protocol]
             [status-im.qr-scanner.core :as qr-scanner]
             [status-im.signals.core :as signals]
+            [status-im.transport.message.core :as transport.message]
+            [status-im.transport.inbox :as inbox]
             [status-im.ui.screens.currency-settings.models
              :as
              currency-settings.models]
@@ -936,3 +938,61 @@
  :group-chats.callback/extract-signature-success
  (fn [cofx [_ group-update sender-signature]]
    (group-chats/handle-membership-update cofx group-update sender-signature)))
+
+;; inbox module
+
+(handlers/register-handler-fx
+ :inbox.ui/reconnect-mailserver-pressed
+ (fn [cofx [_ args]]
+   (inbox/connect-to-mailserver cofx)))
+
+(handlers/register-handler-fx
+ :inbox/check-connection-timeout
+ (fn [cofx _]
+   (inbox/check-connection cofx)))
+
+(handlers/register-handler-fx
+ :inbox.callback/generate-mailserver-symkey-success
+ (fn [cofx [_ wnode sym-key-id]]
+   (inbox/add-mailserver-sym-key cofx wnode sym-key-id)))
+
+(handlers/register-handler-fx
+ :inbox.callback/mark-trusted-peer-success
+ (fn [cofx _]
+   (inbox/add-mailserver-trusted cofx)))
+
+(handlers/register-handler-fx
+ :inbox.callback/mark-trusted-peer-error
+ (fn [cofx [_ error]]
+   (log/error "Error on mark-trusted-peer: " error)
+   (inbox/check-connection cofx)))
+
+(handlers/register-handler-fx
+ :inbox.callback/request-messages-success
+ (fn [cofx [_ request]]
+   (inbox/add-request cofx request)))
+
+;; transport chat module
+
+(handlers/register-handler-fx
+ :transport/receive-whisper-messages
+ [handlers/logged-in (re-frame/inject-cofx :random-id-generator)]
+ (fn [cofx [_ js-error js-messages chat-id]]
+   (transport.message/receive-whisper-messages cofx js-error js-messages chat-id)))
+
+(handlers/register-handler-fx
+ :transport/send-status-message-error
+ (fn [{:keys [db] :as cofx} [_ err]]
+   (log/error :send-status-message-error err)))
+
+(handlers/register-handler-fx
+ :transport/set-message-envelope-hash
+ ;; message-type is used for tracking
+ (fn [cofx [_ chat-id message-id message-type envelope-hash-js]]
+   (transport.message/set-message-envelope-hash cofx chat-id message-id message-type envelope-hash-js)))
+
+(handlers/register-handler-fx
+
+ :transport/set-contact-message-envelope-hash
+ (fn [cofx [_ chat-id envelope-hash]]
+   (transport.message/set-contact-message-envelope-hash cofx chat-id envelope-hash)))

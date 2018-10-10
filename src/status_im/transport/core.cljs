@@ -4,12 +4,13 @@
             [re-frame.core :as re-frame]
             [status-im.constants :as constants]
             [status-im.data-store.transport :as transport-store]
-            [status-im.transport.handlers :as transport.handlers]
             [status-im.transport.inbox :as inbox]
+            [status-im.transport.message.core :as message]
+            [status-im.transport.shh :as shh]
             [status-im.transport.utils :as transport.utils]
+            [status-im.utils.fx :as fx]
             [status-im.utils.handlers :as handlers]
-            [taoensso.timbre :as log]
-            [status-im.utils.fx :as fx]))
+            [taoensso.timbre :as log]))
 
 (fx/defn init-whisper
   "Initialises whisper protocol by:
@@ -33,7 +34,7 @@
                                         :transport  (:transport/chats db)
                                         :on-success sym-key-added-callback}}
                 (inbox/connect-to-mailserver)
-                (transport.handlers/resend-contact-messages [])))))
+                (message/resend-contact-messages [])))))
 
 ;;TODO (yenda) remove once go implements persistence
 ;;Since symkeys are not persisted, we restore them via add sym-keys,
@@ -70,16 +71,3 @@
   [{:keys [db]}]
   (let [{:transport/keys [filters]} db]
     {:shh/remove-filters (vals filters)}))
-
-(fx/defn remove-transport-chat
-  [{:keys [db]} chat-id]
-  {:db                (update db :transport/chats dissoc chat-id)
-   :data-store/tx     [(transport-store/delete-transport-tx chat-id)]
-   :shh/remove-filter (get-in db [:transport/filters chat-id])})
-
-(fx/defn unsubscribe-from-chat
-  "Unsubscribe from chat on transport layer"
-  [cofx chat-id]
-  (fx/merge cofx
-            (inbox/remove-chat-from-inbox-topic chat-id)
-            (remove-transport-chat chat-id)))

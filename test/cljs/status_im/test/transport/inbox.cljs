@@ -82,12 +82,12 @@
     (testing "inbox is ready"
       (testing "last request is > the 7 days ago"
         (let [cofx-with-last-request (assoc-in cofx [:db :account/account :last-request] 400000)
-              actual (inbox/request-messages cofx-with-last-request)]
+              actual (inbox/request-messages cofx-with-last-request nil)]
           (testing "it uses last request"
             (is (= 400000 (get-in actual [::inbox/request-messages 0 :from]))))))
       (testing "last request is < the 7 days ago"
         (let [cofx-with-last-request (assoc-in cofx [:db :account/account :last-request] 2)
-              actual (inbox/request-messages cofx-with-last-request)]
+              actual (inbox/request-messages cofx-with-last-request nil)]
           (testing "it uses last 7 days for catching up"
             (is (= 395200 (get-in actual [::inbox/request-messages 0 :from]))))
           (testing "it only uses topics that dont have fetch history set"
@@ -101,72 +101,15 @@
                    (get-in actual [::inbox/request-messages 1 :topics])))))))
     (testing "inbox is not ready"
       (testing "it does not do anything"
-        (is (nil? (inbox/request-messages {:db {}})))))))
-
-(deftest request-messages-params
-  (let [mailserver {:address    "peer"
-                    :sym-key-id "id"}]
-    (testing "from is greater that to"
-      (testing "it returns an empty sequence"
-        (is (empty? (inbox/request-inbox-messages-params mailserver 2 0 ["a" "b" "c"])))))
-    (testing "from is equal to to"
-      (testing "it returns an empty sequence"
-        (is (empty? (inbox/request-inbox-messages-params mailserver 2 2 ["a" "b" "c"])))))
-    (testing "to is less than the step"
-      (is (= #{{:topic          "a"
-                :mailServerPeer "peer"
-                :symKeyID       "id"
-                :from           0
-                :to             3}
-               {:topic          "b"
-                :mailServerPeer "peer"
-                :symKeyID       "id"
-                :from           0
-                :to             3}}
-             (into #{} (inbox/request-inbox-messages-params mailserver 0 3 ["a" "b"])))))
-    (testing "to is equal the step"
-      (is (= #{{:topic          "a"
-                :mailServerPeer "peer"
-                :symKeyID       "id"
-                :from           0
-                :to             86400}
-               {:topic          "b"
-                :mailServerPeer "peer"
-                :symKeyID       "id"
-                :from           0
-                :to             86400}}
-             (into #{} (inbox/request-inbox-messages-params mailserver 0 86400 ["a" "b"])))))
-    (testing "to is greather than the step"
-      (is (= #{{:topic          "a"
-                :mailServerPeer "peer"
-                :symKeyID       "id"
-                :from           0
-                :to             86400}
-               {:topic          "b"
-                :mailServerPeer "peer"
-                :symKeyID       "id"
-                :from           0
-                :to             86400}
-               {:topic          "a"
-                :mailServerPeer "peer"
-                :symKeyID       "id"
-                :from           86400
-                :to             90000}
-               {:topic          "b"
-                :mailServerPeer "peer"
-                :symKeyID       "id"
-                :from           86400
-                :to             90000}}
-             (into #{} (inbox/request-inbox-messages-params mailserver 0 90000 ["a" "b"])))))))
+        (is (nil? (inbox/request-messages {:db {}} nil)))))))
 
 (deftest initialize-offline-inbox
   (let [db {:mailserver-status :connected
             :account/account {:settings {:fleet :eth.beta}}
             :inbox/current-id "wnodeid"
-            :inbox/wnodes
-            {:eth.beta {"wnodeid" {:address    "wnode-address"
-                                   :sym-key-id "something"
-                                   :password   "wnode-password"}}}}]
+            :inbox/wnodes {:eth.beta {"wnodeid" {:address    "wnode-address"
+                                                 :sym-key-id "something"
+                                                 :password   "wnode-password"}}}}]
     (testing "last-request is not set"
       (testing "it sets it to now in seconds"
         (is (= 10

@@ -70,7 +70,7 @@
  :shh/send-direct-message
  (fn [post-calls]
    (doseq [{:keys [web3 payload src dst success-event error-event]
-            :or   {error-event :protocol/send-status-message-error}} post-calls]
+            :or   {error-event :transport/send-status-message-error}} post-calls]
      (let [direct-message (clj->js {:pubKey dst
                                     :sig src
                                     :payload (-> payload
@@ -86,7 +86,7 @@
  :shh/send-group-message
  (fn [params]
    (let [{:keys [web3 payload src dsts success-event error-event]
-          :or   {error-event :protocol/send-status-message-error}} params
+          :or   {error-event :transport/send-status-message-error}} params
          message (clj->js {:pubKeys dsts
                            :sig src
                            :payload (-> payload
@@ -102,7 +102,7 @@
  :shh/send-public-message
  (fn [post-calls]
    (doseq [{:keys [web3 payload src chat success-event error-event]
-            :or   {error-event :protocol/send-status-message-error}} post-calls]
+            :or   {error-event :transport/send-status-message-error}} post-calls]
      (let [message (clj->js {:chat chat
                              :sig src
                              :payload (-> payload
@@ -118,7 +118,7 @@
  :shh/post
  (fn [post-calls]
    (doseq [{:keys [web3 message success-event error-event]
-            :or   {error-event :protocol/send-status-message-error}} post-calls]
+            :or   {error-event :transport/send-status-message-error}} post-calls]
      (post-message {:web3            web3
                     :whisper-message (update message :payload (comp transport.utils/from-utf8
                                                                     transit/serialize))

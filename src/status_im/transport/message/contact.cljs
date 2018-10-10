@@ -1,17 +1,17 @@
 (ns ^{:doc "Contact request and update API"}
- status-im.transport.message.v1.contact
+ status-im.transport.message.contact
   (:require [re-frame.core :as re-frame]
             [status-im.data-store.transport :as transport-store]
-            [status-im.transport.message.core :as message]
-            [status-im.transport.message.v1.protocol :as protocol]
+            [status-im.transport.message.protocol :as protocol]
             [status-im.transport.utils :as transport.utils]
             [status-im.utils.fx :as fx]
             [cljs.spec.alpha :as spec]
             [taoensso.timbre :as log]
-            [status-im.constants :as constants]))
+            [status-im.constants :as constants]
+            [status-im.transport.db :as transport.db]))
 
 (defrecord ContactRequest [name profile-image address fcm-token]
-  message/StatusMessage
+  protocol/StatusMessage
   (send [this chat-id {:keys [db random-id-generator] :as cofx}]
     (fx/merge cofx
               (protocol/init-chat {:chat-id chat-id
@@ -24,15 +24,16 @@
       this)))
 
 (defrecord ContactRequestConfirmed [name profile-image address fcm-token]
-  message/StatusMessage
+  protocol/StatusMessage
   (send [this chat-id {:keys [db] :as cofx}]
     (let [success-event [:transport/set-contact-message-envelope-hash chat-id]
           chat         (get-in db [:transport/chats chat-id])
-          updated-chat (assoc chat :resend? "contact-request-confirmation")]
+          updated-chat (if chat
+                         (assoc chat :resend? "contact-request-confirmation")
+                         (transport.db/create-chat {:resend? "contact-request-confirmation"}))]
       (fx/merge cofx
                 {:db            (assoc-in db
-                                          [:transport/chats chat-id :resend?]
-                                          "contact-request-confirmation")
+                                          [:transport/chats chat-id] updated-chat)
                  :data-store/tx [(transport-store/save-transport-tx {:chat-id chat-id
                                                                      :chat    updated-chat})]}
                 (protocol/send-with-pubkey {:chat-id chat-id
@@ -59,7 +60,7 @@
                                             :success-event success-event})))))
 
 (defrecord ContactUpdate [name profile-image address fcm-token]
-  message/StatusMessage
+  protocol/StatusMessage
   (send [this _ {:keys [db] :as cofx}]
     ;;TODO: here we look for contact which have a :public-key to differentiate
     ;;actual contacts from dapps
@@ -86,14 +87,14 @@
     {:shh/remove-filter filter}))
 
 (defrecord NewContactKey [sym-key topic message]
-  message/StatusMessage
+  protocol/StatusMessage
   (send
     ;; no-op, we don't send NewContactKey anymore
     [this chat-id cofx])
   (receive
     ;;for compatibility with old clients, we only care about the message within
     [this chat-id _ timestamp {:keys [db] :as cofx}]
-    (message/receive message chat-id chat-id timestamp cofx))
+    (protocol/receive message chat-id chat-id timestamp cofx))
   (validate [this]
     (when (spec/valid? :message/new-contact-key this)
       this)))
