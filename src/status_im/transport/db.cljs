@@ -35,9 +35,11 @@
 (spec/def :transport.inbox.topic/chat-ids (spec/coll-of :transport.inbox.topic/chat-id
                                                         :kind set?
                                                         :min-count 1))
+(spec/def :transport.inbox.topic/request-pending? boolean?)
 
 (spec/def :transport.inbox/topic (allowed-keys :req-un [:transport.inbox.topic/last-request
-                                                        :transport.inbox.topic/chat-ids]))
+                                                        :transport.inbox.topic/chat-ids]
+                                               :opt-un [:transport.inbox.topic/request-pending?]))
 (spec/def :transport/chat (allowed-keys :req-un [::ack ::seen ::pending-ack ::pending-send ::topic]
                                         :opt-un [::sym-key-id ::sym-key ::resend?]))
 
