@@ -33,10 +33,12 @@
                   :font           :medium
                   :number-of-lines 1}
       name])
-   (when-not (= name (gfy/generate-gfy public-key))
-     [react/text {:style           styles/profile-three-words
-                  :number-of-lines 1}
-      (gfy/generate-gfy public-key)])])
+   (let [gfy-name (gfy/generate-gfy public-key)]
+     (when (and (not= gfy-name gfy/unknown-gfy)
+                (not= gfy-name name))
+       [react/text {:style           styles/profile-three-words
+                    :number-of-lines 1}
+        gfy-name]))])
 
 (views/defview copied-tooltip [opacity]
   (views/letsubs []
