@@ -4,9 +4,9 @@
             [status-im.transport.core :as transport]
             [status-im.transport.inbox :as transport.inbox]
             [status-im.utils.ethereum.core :as ethereum]
+            [status-im.utils.fx :as fx]
             [status-im.utils.semaphores :as semaphores]
-            [status-im.utils.utils :as utils]
-            [status-im.utils.fx :as fx]))
+            [status-im.utils.utils :as utils]))
 
 (fx/defn update-sync-state
   [{{:keys [sync-state sync-data] :as db} :db} error sync]
