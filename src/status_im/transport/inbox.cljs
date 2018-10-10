@@ -84,13 +84,15 @@
    (mark-trusted-peer! web3 wnode)))
 
 (fx/defn generate-mailserver-symkey
-  [{:keys [db] :as cofx} wnode]
-  {:shh/generate-sym-key-from-password
-   [{:password   (:password wnode)
-     :web3       (:web3 db)
-     :on-success (fn [_ sym-key-id]
-                   (re-frame/dispatch [:inbox.callback/generate-mailserver-symkey-success wnode sym-key-id]))
-     :on-error   #(log/error "offline inbox: get-sym-key error" %)}]})
+  [{:keys [db] :as cofx} {:keys [password id] :as wnode}]
+  (let [current-fleet (fleet/current-fleet db)]
+    {:db (assoc-in db [:inbox/wnodes current-fleet id :generating-sym-key?] true)
+     :shh/generate-sym-key-from-password
+     [{:password    password
+       :web3       (:web3 db)
+       :on-success (fn [_ sym-key-id]
+                     (re-frame/dispatch [:inbox.callback/generate-mailserver-symkey-success wnode sym-key-id]))
+       :on-error   #(log/error "offline inbox: get-sym-key error" %)}]}))
 
 (defn registered-peer?
   "truthy if the enode is a registered peer"
@@ -104,23 +106,23 @@
 
 (fx/defn mark-trusted-peer
   [{:keys [db] :as cofx}]
-  (let [{:keys [address sym-key-id] :as wnode} (mailserver/fetch-current cofx)]
+  (let [{:keys [address sym-key-id generating-sym-key?] :as wnode} (mailserver/fetch-current cofx)]
     (fx/merge cofx
               {:db (update-mailserver-status db :added)
                :transport.inbox/mark-trusted-peer {:web3  (:web3 db)
                                                    :wnode address}}
-              (when-not sym-key-id
+              (when-not (or sym-key-id generating-sym-key?)
                 (generate-mailserver-symkey wnode)))))
 
 (fx/defn add-peer
   [{:keys [db] :as cofx}]
-  (let [{:keys [address sym-key-id] :as wnode} (mailserver/fetch-current cofx)]
+  (let [{:keys [address sym-key-id generating-sym-key?] :as wnode} (mailserver/fetch-current cofx)]
     (fx/merge cofx
               {:db (update-mailserver-status db :connecting)
                :transport.inbox/add-peer address
                :utils/dispatch-later [{:ms connection-timeout
                                        :dispatch [:inbox/check-connection-timeout]}]}
-              (when-not sym-key-id
+              (when-not (or sym-key-id generating-sym-key?)
                 (generate-mailserver-symkey wnode)))))
 
 (fx/defn connect-to-mailserver
@@ -186,11 +188,17 @@
    (doseq [request requests]
      (request-messages! web3 wnode request))))
 
-(defn prepare-request [now-in-s [topic {:keys [last-request]}]]
-  {:from  (max last-request
-               (- now-in-s one-day))
-   :to    now-in-s
-   :topic topic})
+(defn prepare-request [now-in-s topic {:keys [last-request request-pending?]}]
+  (when-not request-pending?
+    {:from  (max last-request
+                 (- now-in-s one-day))
+     :to    now-in-s
+     :topic topic}))
+
+(defn prepare-requests [now-in-s topics]
+  (remove nil? (map (fn [[topic inbox-topic]]
+                      (prepare-request now-in-s topic inbox-topic))
+                    topics)))
 
 (defn get-wnode-when-ready
   "return the wnode if the inbox is ready"
@@ -207,10 +215,9 @@
   (when-let [wnode (get-wnode-when-ready cofx)]
     (let [web3     (:web3 db)
           now-in-s (quot now 1000)
-          requests (map (partial prepare-request now-in-s)
-                        (if topic
-                          [[topic (get-in db [:transport.inbox/topics topic])]]
-                          (:transport.inbox/topics db)))]
+          requests (if topic
+                     [(prepare-request now-in-s topic (get-in db [:transport.inbox/topics topic]))]
+                     (prepare-requests now-in-s (:transport.inbox/topics db)))]
       {:transport.inbox/request-messages {:web3     web3
                                           :wnode    wnode
                                           :requests requests}})))
@@ -231,7 +238,9 @@
   [{:keys [db] :as cofx} {:keys [id]} sym-key-id]
   (let [current-fleet (fleet/current-fleet db)]
     (fx/merge cofx
-              {:db (assoc-in db [:inbox/wnodes current-fleet id :sym-key-id] sym-key-id)}
+              {:db (-> db
+                       (assoc-in [:inbox/wnodes current-fleet id :sym-key-id] sym-key-id)
+                       (update-in [:inbox/wnodes current-fleet id] dissoc :generating-sym-key?))}
               (request-messages nil))))
 
 (fx/defn check-connection
@@ -267,8 +276,9 @@
   if there is a cursor, do not update `request-to` and `request-from`"
   [{:keys [db now] :as cofx} {:keys [request-id cursor]}]
   (let [{:keys [from to topic]} (get-in db [:transport.inbox/requests request-id])
-        inbox-topic (assoc (get-in db [:transport.inbox/topics topic])
-                           :last-request to)]
+        inbox-topic (-> (get-in db [:transport.inbox/topics topic])
+                        (assoc :last-request to)
+                        (dissoc :request-pending?))]
     (fx/merge cofx
               {:db (-> db
                        (update :transport.inbox/requests dissoc request-id)
@@ -302,17 +312,19 @@
   (let [{:keys [from to topic]} (get-in db [:transport.inbox/requests request-id])]
     (log/info "offline inbox: message request expired for inbox topic"  topic "from" from "to" to)
     (fx/merge cofx
-              {:db (update db :transport.inbox/requests dissoc request-id)}
+              {:db (-> db
+                       (update :transport.inbox/requests dissoc request-id)
+                       (update-in [:transport.inbox/topics topic] dissoc :request-pending?))}
               (request-messages topic))))
 
 (fx/defn add-request
   [{:keys [db] :as cofx} {:keys [topic request-id from to]}]
   (log/info "offline inbox: message request sent for inbox topic" topic "from" from "to" to)
-  {:db (assoc-in db
-                 [:transport.inbox/requests request-id]
-                 {:from from
-                  :to to
-                  :topic topic})})
+  {:db (-> db
+           (assoc-in [:transport.inbox/requests request-id] {:from from
+                                                             :to to
+                                                             :topic topic})
+           (assoc-in [:transport.inbox/topics topic :request-pending?] true))})
 
 (fx/defn initialize-offline-inbox
   [cofx custom-mailservers]
