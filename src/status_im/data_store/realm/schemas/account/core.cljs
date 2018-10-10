@@ -146,19 +146,20 @@
 
 (def v14 v13)
 
-(def v15 [chat/v6
-          transport/v7
-          transport-inbox-topic/v1
+(def v15 [chat/v7
+          transport/v6
           contact/v1
           message/v7
           mailserver/v11
           user-status/v1
+          membership-update/v1
           local-storage/v1
           browser/v8
           dapp-permissions/v9])
 
-(def v15 [chat/v7
-          transport/v6
+(def v16 [chat/v7
+          transport/v7
+          transport-inbox-topic/v1
           contact/v1
           message/v7
           mailserver/v11
@@ -213,4 +214,7 @@
                :migration     migrations/v14}
               {:schema        v15
                :schemaVersion 15
-               :migration     migrations/v15}])
+               :migration     migrations/v15}
+              {:schema        v16
+               :schemaVersion 16
+               :migration     migrations/v16}])

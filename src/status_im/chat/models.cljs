@@ -4,11 +4,9 @@
             [status-im.data-store.chats :as chats-store]
             [status-im.data-store.messages :as messages-store]
             [status-im.data-store.user-statuses :as user-statuses-store]
-            [status-im.transport.message.core :as transport.message]
-            [status-im.transport.message.v1.protocol :as protocol]
-            [status-im.transport.message.v1.core :as transport]
-            [status-im.transport.message.v1.public-chat :as public-chat]
-            [status-im.transport.core :as transport.core]
+            [status-im.transport.message.protocol :as protocol]
+            [status-im.transport.message.public-chat :as public-chat]
+            [status-im.transport.chat.core :as transport.chat]
             [status-im.ui.components.styles :as styles]
             [status-im.ui.screens.navigation :as navigation]
             [status-im.i18n :as i18n]
@@ -123,7 +121,7 @@
   [{:keys [db now] :as cofx} chat-id]
   (fx/merge cofx
             #(when (public-chat? % chat-id)
-               (transport.core/unsubscribe-from-chat % chat-id))
+               (transport.chat/unsubscribe-from-chat % chat-id))
             (deactivate-chat chat-id)
             (clear-history chat-id)
             (navigation/navigate-to-cofx :home {})))
@@ -131,7 +129,7 @@
 (fx/defn send-messages-seen
   [{:keys [db] :as cofx} chat-id message-ids]
   (when (not (get-in db [:chats chat-id :group-chat]))
-    (transport.message/send (protocol/map->MessagesSeen {:message-ids message-ids}) chat-id cofx)))
+    (protocol/send (protocol/map->MessagesSeen {:message-ids message-ids}) chat-id cofx)))
 
 ;; TODO (janherich) - ressurect `constants/system` messages for group chats in the future
 (fx/defn mark-messages-seen
