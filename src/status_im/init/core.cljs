@@ -11,6 +11,7 @@
             [status-im.models.contacts :as models.contacts]
             [status-im.models.dev-server :as models.dev-server]
             [status-im.protocol.core :as protocol]
+            [status-im.pairing.core :as pairing]
             [status-im.models.transactions :as transactions]
             [status-im.models.wallet :as models.wallet]
             [status-im.native-module.core :as status]
@@ -143,7 +144,8 @@
   (let [{:universal-links/keys [url]
          :keys [accounts/accounts accounts/create contacts/contacts networks/networks
                 network network-status peers-count peers-summary view-id navigation-stack
-                status-module-initialized? status-node-started? device-UUID semaphores]
+                status-module-initialized? status-node-started? device-UUID semaphores
+                pairing/installations]
          :or   {network (get app-db :network)}} db
         current-account (get accounts address)
         account-network-id (get current-account :network network)
@@ -199,6 +201,7 @@
             (initialize-account-db address)
             (protocol/initialize-protocol address)
             (models.contacts/load-contacts)
+            (pairing/load-installations)
             #(when (dev-mode? %)
                (models.dev-server/start))
             (chat-loading/initialize-chats)
