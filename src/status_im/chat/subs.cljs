@@ -81,10 +81,9 @@
   (reduce (fn [acc [chat-id {:keys [group-chat public? is-active] :as chat}]]
             (if (and is-active
                    ;; not a group chat
-                   (or (not (and group-chat (not public?)))
+                     (or (not (and group-chat (not public?)))
                        ;; if it's a group chat
-                       (utils.config/group-chats-enabled? dev-mode?)))
-              is-active
+                         (utils.config/group-chats-enabled? dev-mode?)))
               (assoc acc chat-id (if-let [contact (get contacts chat-id)]
                                    (update chat :tags clojure.set/union (:tags contact))
                                    chat))
