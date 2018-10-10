@@ -11,23 +11,24 @@
 
 (fx/defn status-node-started
   [{db :db :as cofx}]
-  (fx/merge cofx
-            (merge
-             {:db (assoc db
-                         :status-node-state    :started
-                         :dispatch-after-start nil)}
-             (when (:dispatch-after-start db)
-               {:dispatch-n (:dispatch-after-start db)}))
-            #(when (and (nil? (:dispatch-after-start db)) ;; node is not going 
-                                                          ;; to be restarted
-                        (:password (accounts.db/credentials cofx)))
-               (accounts.login/login %))))
+  (merge
+   {:db (-> db
+            (assoc  :node/node-state    :started)
+            (dissoc :node/restart? :node/address))}
+
+   (let [{:node/keys [restart? address]} db
+         can-login? (and (not restart?)
+                         (:password (accounts.db/credentials cofx)))]
+     (when restart?
+       (node/initialize address))
+     (when can-login?
+       (accounts.login/login %)))))
 
 (fx/defn status-node-stopped
   [{db :db :as cofx}]
   (let [{:keys [address]} (accounts.db/credentials cofx)]
     (fx/merge cofx
-              {:db (assoc db :status-node-state :stopped)}
+              {:db (assoc db :node/node-state :stopped)}
               (node/start address))))
 
 (fx/defn status-module-initialized [{:keys [db]}]
