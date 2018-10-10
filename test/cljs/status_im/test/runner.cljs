@@ -11,6 +11,7 @@
             [status-im.test.wallet.transactions.views]
             [status-im.test.mailserver.core]
             [status-im.test.group-chats.core]
+            [status-im.test.pairing.core]
             [status-im.test.node.core]
             [status-im.test.models.bootnode]
             [status-im.test.models.account]
@@ -77,6 +78,7 @@
  'status-im.test.extensions.core
  'status-im.test.mailserver.core
  'status-im.test.group-chats.core
+ 'status-im.test.pairing.core
  'status-im.test.node.core
  'status-im.test.models.bootnode
  'status-im.test.models.account
