@@ -17,13 +17,15 @@
    {:mainnet {:name     "Ether"
               :symbol   :ETH
               :decimals 18
-              :icon     {:style  (asset-border "#628fe333")}}
-    :testnet {:name     "Ropsten Ether"
-              :symbol   :ETHro
-              :decimals 18}
-    :rinkeby {:name     "Rinkeby Ether"
-              :symbol   :ETHri
-              :decimals 18}}))
+              :icon     {:style (asset-border "#628fe333")}}
+    :testnet {:name           "Ropsten Ether"
+              :symbol         :ETH
+              :symbol-display :ETHro
+              :decimals       18}
+    :rinkeby {:name           "Rinkeby Ether"
+              :symbol         :ETH
+              :symbol-display :ETHri
+              :decimals       18}}))
 
 (def native-currency-symbols
   (set (map #(-> % val :symbol) all-native-currencies)))

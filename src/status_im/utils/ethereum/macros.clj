@@ -7,7 +7,7 @@
   (let [s (str "./resources/images/tokens/" (name network) "/" (name symbol) ".png")]
     (if (.exists (io/file s))
       `(js/require ~s)
-      `(js/require "./resources/images/tokens/defaul-token.png"))))
+      `(js/require "./resources/images/tokens/default-token.png"))))
 
 (defn- token->icon [network {:keys [icon symbol]}]
   ;; Tokens can define their own icons.
