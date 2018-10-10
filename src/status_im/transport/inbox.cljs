@@ -114,7 +114,6 @@
 (fx/defn mark-trusted-peer
   [{:keys [db] :as cofx}]
   (let [{:keys [address sym-key-id] :as wnode} (mailserver/fetch-current cofx)]
-    (println "makring peer")
     (fx/merge cofx
               {:db (update-mailserver-status db :added)
                :inbox/mark-trusted-peer {:web3  (:web3 db)
@@ -125,7 +124,6 @@
 (fx/defn add-peer
   [{:keys [db] :as cofx}]
   (let [{:keys [address sym-key-id] :as wnode} (mailserver/fetch-current cofx)]
-    (println "adding peer")
     (fx/merge cofx
               {:db (update-mailserver-status db :connecting)
                :inbox/add-peer address
@@ -334,35 +332,3 @@
               (when-not (get-in cofx [:db :transport.inbox/topics discovery-topic])
                 (upsert-inbox-topic {:topic discovery-topic
                                      :chat-id :discovery-topic})))))
-
-;; HANDLERS
-(handlers/register-handler-fx
- :inbox.ui/reconnect-mailserver-pressed
- (fn [cofx [_ args]]
-   (connect-to-mailserver cofx)))
-
-(handlers/register-handler-fx
- :inbox/check-connection-timeout
- (fn [cofx _]
-   (check-connection cofx)))
-
-(handlers/register-handler-fx
- :inbox.callback/generate-mailserver-symkey-success
- (fn [cofx [_ wnode sym-key-id]]
-   (add-mailserver-sym-key cofx wnode sym-key-id)))
-
-(handlers/register-handler-fx
- :inbox.callback/mark-trusted-peer-success
- (fn [cofx _]
-   (add-mailserver-trusted cofx)))
-
-(handlers/register-handler-fx
- :inbox.callback/mark-trusted-peer-error
- (fn [cofx [_ error]]
-   (log/error "Error on mark-trusted-peer: " error)
-   (check-connection cofx)))
-
-(handlers/register-handler-fx
- :inbox.callback/request-messages-success
- (fn [cofx [_ request]]
-   (add-request cofx request)))
