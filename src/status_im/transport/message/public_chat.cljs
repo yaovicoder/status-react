@@ -1,8 +1,8 @@
 (ns ^{:doc "Public chat API"}
- status-im.transport.message.v1.public-chat
+ status-im.transport.message.public-chat
   (:require [re-frame.core :as re-frame]
             [status-im.data-store.transport :as transport-store]
-            [status-im.transport.message.v1.protocol :as protocol]
+            [status-im.transport.message.protocol :as protocol]
             [status-im.transport.utils :as transport.utils]
             [status-im.utils.fx :as fx]
             [status-im.utils.handlers :as handlers]))
