@@ -88,7 +88,7 @@
     :action              #(re-frame/dispatch [:navigate-to :transactions-history])}])
 
 (defn- render-asset [currency]
-  (fn [{:keys [symbol icon decimals amount]}]
+  (fn [{:keys [symbol symbol-display icon decimals amount] :as token}]
     (let [asset-value (re-frame/subscribe [:asset-value symbol decimals (-> currency :code keyword)])]
       [react/view {:style styles/asset-item-container}
        [list/item
@@ -102,7 +102,7 @@
          [react/text {:style           styles/asset-item-currency
                       :uppercase?      true
                       :number-of-lines 1}
-          (clojure.core/name symbol)]]
+          (wallet.utils/display-symbol token)]]
         [react/text {:style           styles/asset-item-price
                      :uppercase?      true
                      :number-of-lines 1}
