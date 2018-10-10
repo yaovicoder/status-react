@@ -108,30 +108,21 @@
                   :number-of-lines 5}
       text]]))
 
-(def regx-url #"(?i)(?:[a-z][\w-]+:(?:/{1,3}|[a-z0-9%])|www\d{0,3}[.]|[a-z0-9\-]+[.][a-z]{1,4}/?)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:\'\".,<>?«»“”‘’]){0,}")
+(def regx-url #"((?i)(?:[a-z][\w-]+:(?:/{1,3}|[a-z0-9%])|www\d{0,3}[.]|[a-z0-9\-]+[.][a-z]{1,4}/?)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:\'\".,<>?«»“”‘’]){0,})|#([a-z0-9\-]+)")
 
-(def regx-tag #"#[a-z0-9\-]+")
+(defn link-elem [outgoing [link url _ _ _ _ channel]]
+  [react/text {:style    (styles/message-link outgoing)
+               :on-press #(cond url
+                                (.openURL react/linking (http/normalize-url link))
+                                channel (re-frame/dispatch [:chat.ui/start-public-chat channel]))}
+   link])
 
-(defn put-links-in-vector [text]
-  (map #(map (fn [token]
-               (cond
-                 (re-matches regx-tag token) [:tag token]
-                 (re-matches regx-url token)  [:link token]
-                 :default (str token " ")))
-             (string/split % #" "))
-       (string/split text #"\n")))
-
-(defn link-button [[link-tag link] outgoing]
-  [react/touchable-highlight {:style {}
-                              :on-press #(case link-tag
-                                           :link (.openURL react/linking (http/normalize-url link))
-                                           :tag (re-frame/dispatch [:chat.ui/start-public-chat (subs link 1)]))}
-   [react/text {:style {:font-size 14
-                        :text-decoration-line :underline
-                        :color (if outgoing colors/white colors/blue)
-                        :padding-bottom 1
-                        :margin-right 5}}
-    link]])
+(defn process-message-links [text outgoing]
+  (let [matches (re-seq regx-url text)
+        non-matches (string/split text regx-url)
+        r (interleave non-matches (map (partial link-elem outgoing) matches))]
+    (log/error "### process:" r)
+    r))
 
 (views/defview message-with-timestamp
   [text {:keys [message-id timestamp outgoing content current-public-key]} style]
@@ -144,20 +135,10 @@
     [react/view {:style styles/message-container}
      (when (:response-to content)
        [quoted-message (:response-to content) outgoing current-public-key])
-     [react/view {:flex-direction  :column}
-      (doall
-       (for [[index-sentence sentence] (map-indexed vector (put-links-in-vector text))]
-         ^{:key (str message-id index-sentence)}
-         [react/view {:flex-direction :row
-                      :flex-wrap :wrap}
-          (doall
-           (for [[index word] (map-indexed vector sentence)]
-             (if (vector? word)
-               ^{:key (str message-id index-sentence index)}
-               [link-button word outgoing]
-               ^{:key (str message-id index-sentence index)}
-               [react/text {:style (styles/message-text outgoing)}
-                word])))]))]
+     (into [react/text {:style           (styles/message-text outgoing)
+                        :selectable      true
+                        :selection-color (if outgoing colors/gray colors/blue-light)}]
+           (process-message-links text outgoing))
      [react/text {:style (styles/message-timestamp-placeholder)}
       (time/timestamp->time timestamp)]
      [react/text {:style (styles/message-timestamp outgoing)}
