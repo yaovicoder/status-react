@@ -1,7 +1,7 @@
 (ns status-im.test.transport.core
   (:require [cljs.test :refer-macros [deftest is testing]]
             [status-im.protocol.core :as protocol]
-            [status-im.transport.core :as transport]))
+            [status-im.transport.message.core :as message]))
 
 (deftest init-whisper
   (let [cofx {:db {:account/account {:public-key "1"}
@@ -58,10 +58,10 @@
 
 (deftest receive-whisper-messages-test
   (testing "an error is reported"
-    (is (nil? (:chat-received-message/add-fx (transport/receive-whisper-messages {:db {}} "error" #js [] nil)))))
+    (is (nil? (:chat-received-message/add-fx (message/receive-whisper-messages {:db {}} "error" #js [] nil)))))
   (testing "messages is undefined"
-    (is (nil? (:chat-received-message/add-fx (transport/receive-whisper-messages {:db {}} nil js/undefined nil)))))
+    (is (nil? (:chat-received-message/add-fx (message/receive-whisper-messages {:db {}} nil js/undefined nil)))))
   (testing "happy path"
-    (let [actual (transport/receive-whisper-messages {:db {}} nil messages sig)]
+    (let [actual (message/receive-whisper-messages {:db {}} nil messages sig)]
       (testing "it add an fx for the message"
         (is (:chat-received-message/add-fx actual))))))

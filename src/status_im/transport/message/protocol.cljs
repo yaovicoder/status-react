@@ -82,7 +82,7 @@
   (send [this chat-id cofx]
     (let [params     {:chat-id       chat-id
                       :payload       this
-                      :success-event [:transport/set-message-envelope-hash
+                      :success-event [:transport/message-sent
                                       chat-id
                                       (transport.utils/message-id this)
                                       message-type]}]

@@ -1,9 +1,9 @@
 (ns ^{:doc "Whisper API and events for managing keys and posting messages"}
  status-im.transport.shh
-  (:require [taoensso.timbre :as log]
-            [re-frame.core :as re-frame]
+  (:require [re-frame.core :as re-frame]
+            [status-im.transport.message.transit :as transit]
             [status-im.transport.utils :as transport.utils]
-            [status-im.transport.message.transit :as transit]))
+            [taoensso.timbre :as log]))
 
 (defn get-new-key-pair [{:keys [web3 on-success on-error]}]
   (if web3
