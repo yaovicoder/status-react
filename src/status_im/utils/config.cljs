@@ -25,6 +25,8 @@
 (defn group-chats-enabled? [dev-mode?]
   (and (enabled? (get-config :GROUP_CHATS_ENABLED "0"))
        (or dev-mode? platform/desktop?)))
+;(def pairing-enabled? (enabled? (get-config :PAIRING_ENABLED "0")))
+(def pairing-enabled? true)
 (def mainnet-warning-enabled? (enabled? (get-config :MAINNET_WARNING_ENABLED 0)))
 (def pfs-encryption-enabled? (enabled? (get-config :PFS_ENCRYPTION_ENABLED "0")))
 (def in-app-notifications-enabled? (enabled? (get-config :IN_APP_NOTIFICATIONS_ENABLED 0)))
