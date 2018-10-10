@@ -1,6 +1,7 @@
 (ns status-im.utils.async
   "Utility namespace containing `core.async` helper constructs"
   (:require [cljs.core.async :as async]
+            [taoensso.timbre :as log]
             [status-im.utils.utils :as utils]))
 
 (defn timeout [ms]
@@ -37,6 +38,9 @@
   [& args]
   (let [task-queue (apply async/chan args)]
     (async/go-loop [task-fn (async/<! task-queue)]
-      (task-fn)
+      (try
+        (task-fn)
+        (catch :default ex
+          (log/error "failed job with:" ex)))
       (recur (async/<! task-queue)))
     task-queue))
