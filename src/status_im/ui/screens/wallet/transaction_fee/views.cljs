@@ -14,7 +14,8 @@
             [status-im.ui.screens.wallet.styles :as wallet.styles]
             [status-im.utils.money :as money]
             [status-im.utils.ethereum.tokens :as tokens]
-            [status-im.utils.ethereum.core :as ethereum]))
+            [status-im.utils.ethereum.core :as ethereum]
+            [status-im.ui.screens.wallet.utils :as wallet.utils]))
 
 (defn return-to-transaction [modal?]
   (if modal?
@@ -36,9 +37,11 @@
              gas-price-edit :gas-price} [:wallet/edit]]
     (let [modal?         (:id send-transaction)
           {:keys [amount symbol]} send-transaction
-          gas            (:value gas-edit)
-          gas-price      (:value gas-price-edit)
-          {:keys [decimals]} (tokens/asset-for (ethereum/network->chain-keyword network) symbol)]
+          gas                (:value gas-edit)
+          gas-price          (:value gas-price-edit)
+          chain              (ethereum/network->chain-keyword network)
+          native-currency    (tokens/native-currency chain)
+          {:keys [decimals]} (tokens/asset-for chain symbol)]
       [components/simple-screen {:status-bar-type :modal-wallet}
        [toolbar modal? (i18n/label :t/wallet-transaction-fee)]
        [react/view components.styles/flex
@@ -90,7 +93,7 @@
           (i18n/label :t/wallet-transaction-total-fee)
           [react/view {:accessibility-label :total-fee-input}
            [components/cartouche-text-content
-            (str max-fee " " (i18n/label :t/eth))]]]]
+            (str max-fee " " (wallet.utils/display-symbol native-currency))]]]]
 
         [bottom-buttons/bottom-buttons styles/fee-buttons
          [button/button {:on-press            #(re-frame/dispatch [:wallet.send/reset-gas-default])
