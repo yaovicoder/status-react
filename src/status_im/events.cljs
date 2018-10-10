@@ -24,6 +24,7 @@
             [status-im.mailserver.core :as mailserver]
             [status-im.network.core :as network]
             [status-im.notifications.core :as notifications]
+            [status-im.pairing.core :as pairing]
             [status-im.privacy-policy.core :as privacy-policy]
             [status-im.protocol.core :as protocol]
             [status-im.qr-scanner.core :as qr-scanner]
@@ -89,6 +90,7 @@
   (re-frame/inject-cofx :data-store/message-ids)
   (re-frame/inject-cofx :data-store/get-local-storage-data)
   (re-frame/inject-cofx :data-store/get-all-contacts)
+  (re-frame/inject-cofx :data-store/get-all-installations)
   (re-frame/inject-cofx :data-store/get-all-mailservers)
   (re-frame/inject-cofx :data-store/transport)
   (re-frame/inject-cofx :data-store/transport-inbox-topics)
@@ -1003,3 +1005,17 @@
  :transport/contact-message-sent
  (fn [cofx [_ chat-id envelope-hash]]
    (transport.message/set-contact-message-envelope-hash cofx chat-id envelope-hash)))
+
+;; pairing module
+
+(handlers/register-handler-fx
+ :pairing.ui/pair-devices-pressed
+ []
+ (fn [cofx _]
+   (pairing/start cofx)))
+
+(handlers/register-handler-fx
+ :pairing.ui/synchronize-installation-pressed
+ []
+ (fn [cofx _]
+   (pairing/send-installation-message cofx)))

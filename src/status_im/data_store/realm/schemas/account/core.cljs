@@ -11,6 +11,7 @@
             [status-im.data-store.realm.schemas.account.dapp-permissions :as dapp-permissions]
             [status-im.data-store.realm.schemas.account.request :as request]
             [status-im.data-store.realm.schemas.account.membership-update :as membership-update]
+            [status-im.data-store.realm.schemas.account.installation :as installation]
             [status-im.data-store.realm.schemas.account.migrations :as migrations]
             [taoensso.timbre :as log]))
 
@@ -169,6 +170,19 @@
           browser/v8
           dapp-permissions/v9])
 
+(def v17 [chat/v7
+          transport/v7
+          transport-inbox-topic/v1
+          contact/v1
+          message/v7
+          mailserver/v11
+          user-status/v1
+          membership-update/v1
+          local-storage/v1
+          browser/v8
+          installation/v1
+          dapp-permissions/v9])
+
 ;; put schemas ordered by version
 (def schemas [{:schema        v1
                :schemaVersion 1
@@ -217,4 +231,7 @@
                :migration     migrations/v15}
               {:schema        v16
                :schemaVersion 16
-               :migration     migrations/v16}])
+               :migration     migrations/v16}
+              {:schema        v17
+               :schemaVersion 17
+               :migration     migrations/v17}])
