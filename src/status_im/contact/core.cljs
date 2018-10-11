@@ -1,9 +1,15 @@
-(ns status-im.models.contact
+(ns status-im.contact.core
   (:require [status-im.data-store.contacts :as contacts-store]
             [status-im.transport.message.protocol :as protocol]
             [status-im.transport.message.contact :as message.contact]
             [status-im.utils.contacts :as utils.contacts]
             [status-im.utils.fx :as fx]))
+
+(fx/defn load-contacts
+  [{:keys [db all-contacts]}]
+  (let [contacts-list (map #(vector (:whisper-identity %) %) all-contacts)
+        contacts (into {} contacts-list)]
+    {:db (update db :contacts/contacts #(merge contacts %))}))
 
 (defn can-add-to-contacts? [{:keys [pending? dapp?]}]
   (and (not dapp?)
@@ -47,6 +53,16 @@
     (fx/merge cofx
               (add-new-contact contact)
               (send-contact-request contact))))
+
+(fx/defn add-contact-tag [{:keys [db] :as cofx} whisper-id tag]
+  (let [tags (conj (get-in db [:contacts/contacts whisper-id :tags] #{}) tag)]
+    {:db (assoc-in db [:contacts/contacts whisper-id :tags] tags)
+     :data-store/tx [(contacts-store/add-contact-tag-tx whisper-id tag)]}))
+
+(fx/defn remove-contact-tag [{:keys [db] :as cofx} whisper-id tag]
+  (let [tags (disj (get-in db [:contacts/contacts whisper-id :tags] #{}) tag)]
+    {:db (assoc-in db [:contacts/contacts whisper-id :tags] tags)
+     :data-store/tx [(contacts-store/remove-contact-tag-tx whisper-id tag)]}))
 
 (defn handle-contact-update
   [public-key

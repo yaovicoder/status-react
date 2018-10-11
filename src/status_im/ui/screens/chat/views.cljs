@@ -3,7 +3,7 @@
   (:require [clojure.string :as string]
             [re-frame.core :as re-frame]
             [status-im.i18n :as i18n]
-            [status-im.models.contact :as models.contact]
+            [status-im.contact.core :as models.contact]
             [status-im.ui.screens.chat.styles.main :as style]
             [status-im.utils.platform :as platform]
             [status-im.ui.screens.chat.input.input :as input]

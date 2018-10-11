@@ -2,7 +2,7 @@
   (:require [re-frame.core :as re-frame]
             [status-im.chat.models :as chat.models]
             [status-im.i18n :as i18n]
-            [status-im.models.contact :as models.contact]
+            [status-im.contact.core :as models.contact]
             [status-im.ui.screens.add-new.new-chat.db :as new-chat.db]
             [status-im.ui.screens.browser.default-dapps :as default-dapps]
             [status-im.ui.screens.navigation :as navigation]
