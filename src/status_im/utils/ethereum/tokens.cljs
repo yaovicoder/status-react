@@ -474,6 +474,10 @@
 (defn tokens-for [chain]
   (get all chain))
 
+(defn all-assets-for [chain]
+  (concat [(native-currency chain)]
+          (tokens-for chain)))
+
 (defn nfts-for [chain]
   (filter :nft? (tokens-for chain)))
 
@@ -492,6 +496,7 @@
 
 (defn asset-for [chain symbol]
   (let [native-coin (native-currency chain)]
-    (if (= (:symbol native-coin) symbol)
+    (if (or (= (:symbol-display native-coin) symbol)
+            (= (:symbol native-coin) symbol))
       native-coin
       (symbol->token chain symbol))))
