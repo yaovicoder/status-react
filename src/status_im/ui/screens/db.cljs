@@ -81,7 +81,7 @@
 ;;object?
 (spec/def ::webview-bridge (spec/nilable any?))
 (spec/def ::status-module-initialized? (spec/nilable boolean?))
-(spec/def :node/node-state (spec/nilable #{:stopped :starting :started :stopping}))
+(spec/def :node/status (spec/nilable #{:stopped :starting :started :stopping}))
 (spec/def :node/node-restart? (spec/nilable boolean?))
 (spec/def :node/address (spec/nilable string?))
 
@@ -220,6 +220,9 @@
                  :inbox/wnodes
                  :inbox/current-id
                  :inbox/fetching?
+                 :node/status
+                 :node/restart?
+                 :node/address
                  :universal-links/url
                  :push-notifications/stored
                  :browser/browsers
@@ -248,9 +251,6 @@
                  ::web3-node-version
                  ::webview-bridge
                  ::status-module-initialized?
-                 :node/node-state
-                 :node/restart?
-                 :node/address
                  ::keyboard-height
                  ::keyboard-max-height
                  ::tab-bar-visible?

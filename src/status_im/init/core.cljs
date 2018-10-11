@@ -63,7 +63,7 @@
   "Initialize db to initial state"
   [{{:keys [status-module-initialized? view-id
             network-status network peers-count peers-summary device-UUID]
-     :node/keys [node-state]
+     :node/keys [status]
      :or   {network (get app-db :network)}} :db}]
   {:db (assoc app-db
               :contacts/contacts {}
@@ -71,7 +71,7 @@
               :peers-count (or peers-count 0)
               :peers-summary (or peers-summary [])
               :status-module-initialized? (or platform/ios? js/goog.DEBUG status-module-initialized?)
-              :node/node-state node-state
+              :node/status status
               :network network
               :device-UUID device-UUID
               :view-id view-id)})
@@ -144,7 +144,7 @@
          :keys [accounts/accounts accounts/create contacts/contacts networks/networks
                 network network-status peers-count peers-summary view-id navigation-stack
                 status-module-initialized? device-UUID semaphores]
-         :node/keys [node-state]
+         :node/keys [status]
          :or   {network (get app-db :network)}} db
         current-account (get accounts address)
         account-network-id (get current-account :network network)
@@ -154,7 +154,7 @@
                         :view-id view-id
                         :navigation-stack navigation-stack
                         :status-module-initialized? (or platform/ios? js/goog.DEBUG status-module-initialized?)
-                        :node/node-state node-state
+                        :node/status status
                         :accounts/create create
                         :networks/networks networks
                         :account/account current-account
