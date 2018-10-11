@@ -16,7 +16,7 @@
                         (:password (accounts.db/credentials cofx)))]
     (fx/merge cofx
               {:db (-> db
-                       (assoc  :node/node-state    :started)
+                       (assoc  :node/status   :started)
                        (dissoc :node/restart? :node/address))}
 
               #(when restart?
@@ -28,7 +28,7 @@
   [{db :db :as cofx}]
   (let [{:keys [address]} (accounts.db/credentials cofx)]
     (fx/merge cofx
-              {:db (assoc db :node/node-state :stopped)}
+              {:db (assoc db :node/status :stopped)}
               (node/start address))))
 
 (fx/defn status-module-initialized [{:keys [db]}]

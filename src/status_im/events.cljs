@@ -224,15 +224,6 @@
  (fn [cofx [_ password]]
    (accounts.login/open-login-callback cofx password)))
 
-;; node module
-
-;; this event usually means that node has started too late
-;; and we need to restart it with the new config
-(handlers/register-handler-fx
- :node.needs-reinit
- (fn [cofx [_ address]]
-   (node/initialize cofx address)))
-
 ;; accounts logout module
 
 (handlers/register-handler-fx
