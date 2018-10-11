@@ -43,13 +43,24 @@
                     (re-frame/dispatch [:transport/messages-received js-error js-message]))]
      (add-filter! web3 params callback :discovery-topic))))
 
+(defn all-filters-added?
+  [{:keys [db]}]
+  (let [filters (set (keys (get db :transport/filters)))
+        chats (into #{:discovery-topic}
+                    (keys (filter #(:topic (val %)) (get db :transport/chats))))]
+    (= chats filters)))
+
 (handlers/register-handler-fx
  :shh.callback/filter-added
- (fn [{:keys [db] :as cofx} [_ topic chat-id filter]]
-   (fx/merge cofx
-             {:db (assoc-in db [:transport/filters chat-id] filter)}
-             (inbox/upsert-inbox-topic {:topic topic
-                                        :chat-id chat-id}))))
+ (fn [{:keys [db now] :as cofx} [_ topic chat-id filter]]
+   (let [now-in-s (quot now 1000)]
+     (fx/merge cofx
+               {:db (assoc-in db [:transport/filters chat-id] filter)}
+               (inbox/upsert-inbox-topic {:topic topic
+                                          :chat-id chat-id
+                                          :started-at now-in-s})
+               #(when (all-filters-added? %)
+                  (inbox/prepare-messages-requests %))))))
 
 (re-frame/reg-fx
  :shh/remove-filter
