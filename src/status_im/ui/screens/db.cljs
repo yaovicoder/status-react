@@ -52,7 +52,7 @@
              :transport/filters                  {}
              :transport/message-envelopes        {}
              :transport.inbox/topics             {}
-             :transport.inbox/requests           {}
+             :transport.inbox/pending-requests   []
              :chat/cooldowns                     0
              :chat/cooldown-enabled?             false
              :chat/last-outgoing-message-sent-at 0
@@ -152,7 +152,6 @@
 (spec/def ::chain (spec/nilable string?))
 (spec/def ::peers-count (spec/nilable integer?))
 (spec/def ::peers-summary (spec/nilable vector?))
-(spec/def :inbox/fetching? (spec/nilable boolean?))
 (spec/def :inbox/current-id (spec/nilable keyword?))
 
 (spec/def ::collectible (spec/nilable map?))
@@ -216,7 +215,6 @@
                  :bootnodes/manage
                  :inbox/wnodes
                  :inbox/current-id
-                 :inbox/fetching?
                  :universal-links/url
                  :push-notifications/stored
                  :browser/browsers
@@ -231,7 +229,8 @@
                  :transport/chats
                  :transport/filters
                  :transport.inbox/topics
-                 :transport.inbox/requests
+                 :transport.inbox/pending-requests
+                 :transport.inbox/current-request
                  :desktop/desktop
                  :dimensions/window
                  :dapps/permissions]
