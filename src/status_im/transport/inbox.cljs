@@ -25,7 +25,7 @@
 ;; as soon as the mailserver becomes available
 
 
-(def one-day (* 24 3600))
+(def one-day (dec (* 24 3600)))
 (def seven-days (* 7 one-day))
 
 (def connection-timeout
@@ -310,7 +310,7 @@
 (fx/defn resend-request
   [{:keys [db] :as cofx} {:keys [request-id]}]
   (let [{:keys [from to topic]} (get-in db [:transport.inbox/requests request-id])]
-    (log/info "offline inbox: message request expired for inbox topic"  topic "from" from "to" to)
+    (log/info "offline inbox: message request" request-id " expired for inbox topic"  topic "from" from "to" to)
     (fx/merge cofx
               {:db (-> db
                        (update :transport.inbox/requests dissoc request-id)
@@ -319,7 +319,7 @@
 
 (fx/defn add-request
   [{:keys [db] :as cofx} {:keys [topic request-id from to]}]
-  (log/info "offline inbox: message request sent for inbox topic" topic "from" from "to" to)
+  (log/info "offline inbox: message request " request-id "sent for inbox topic" topic "from" from "to" to)
   {:db (-> db
            (assoc-in [:transport.inbox/requests request-id] {:from from
                                                              :to to
