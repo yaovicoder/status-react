@@ -27,6 +27,7 @@
 
 (def one-day (* 24 3600))
 (def seven-days (* 7 one-day))
+(def maximum-number-of-attemps 3)
 
 (def connection-timeout
   "Time after which mailserver connection is considered to have failed"
@@ -177,29 +178,13 @@
                               :to             to})
                     (fn [err request-id]
                       (if-not err
-                        (re-frame/dispatch [:inbox.callback/request-messages-success {:topic      topic
-                                                                                      :request-id request-id
-                                                                                      :from       from
-                                                                                      :to         to}])
+                        (log/info "offline inbox: messages request success for topic " topic "from" from "to" to)
                         (log/error "offline inbox: messages request error for topic " topic ": " err)))))
 
 (re-frame/reg-fx
  :transport.inbox/request-messages
- (fn [{:keys [web3 wnode requests]}]
-   (doseq [request requests]
-     (request-messages! web3 wnode request))))
-
-(defn prepare-request [now-in-s topic {:keys [last-request request-pending?]}]
-  (when-not request-pending?
-    {:from  (max last-request
-                 (- now-in-s one-day))
-     :to    now-in-s
-     :topic topic}))
-
-(defn prepare-requests [now-in-s topics]
-  (remove nil? (map (fn [[topic inbox-topic]]
-                      (prepare-request now-in-s topic inbox-topic))
-                    topics)))
+ (fn [{:keys [web3 wnode request]}]
+   (request-messages! web3 wnode request)))
 
 (defn get-wnode-when-ready
   "return the wnode if the inbox is ready"
@@ -210,18 +195,47 @@
                sym-key-id)
       wnode)))
 
-(fx/defn request-messages
-  "request messages if the inbox is ready"
-  [{:keys [db now] :as cofx} topic]
+(fx/defn process-next-messages-request
+  [{:keys [db] :as cofx}]
   (when-let [wnode (get-wnode-when-ready cofx)]
-    (let [web3     (:web3 db)
-          now-in-s (quot now 1000)
-          requests (if topic
-                     [(prepare-request now-in-s topic (get-in db [:transport.inbox/topics topic]))]
-                     (prepare-requests now-in-s (:transport.inbox/topics db)))]
-      {:transport.inbox/request-messages {:web3     web3
-                                          :wnode    wnode
-                                          :requests requests}})))
+    (let [[request & pending-requests] (get db :transport.inbox/pending-requests)
+          web3 (:web3 db)]
+      (when (and request
+                 (not (:transport.inbox/current-request db)))
+        {:db (assoc db
+                    :transport.inbox/pending-requests pending-requests
+                    :transport.inbox/current-request request)
+         :transport.inbox/request-messages {:web3     web3
+                                            :wnode    wnode
+                                            :request request}}))))
+
+(defn split-request-per-day
+  "NOTE: currently the mailserver is only accepting requests for a span
+  of 24 hours, so we split requests per 24h spans if the last request was
+  done more than 24h ago"
+  [now-in-s [topic {:keys [last-request]}]]
+  (let [days        (conj
+                     (into [] (range (max last-request
+                                          (- now-in-s seven-days))
+                                     now-in-s
+                                     one-day))
+                     now-in-s)
+        day-ranges  (map vector days (rest days))]
+    (for [[from to] day-ranges]
+      {:topic topic
+       :from  from
+       :to    to})))
+
+(fx/defn prepare-messages-requests
+  [{:keys [db now] :as cofx}]
+  (let [web3     (:web3 db)
+        now-in-s (quot now 1000)
+        requests (remove nil?
+                         (mapcat (partial split-request-per-day now-in-s)
+                                 (:transport.inbox/topics db)))]
+    (fx/merge cofx
+              {:db (assoc db :transport.inbox/pending-requests requests)}
+              (process-next-messages-request))))
 
 (fx/defn add-mailserver-trusted
   "the current mailserver has been trusted
@@ -230,7 +244,9 @@
   [{:keys [db] :as cofx}]
   (fx/merge cofx
             {:db (update-mailserver-status db :connected)}
-            (request-messages nil)))
+            (if (empty? (:transport.inbox/pending-requests db))
+              (prepare-messages-requests)
+              (process-next-messages-request))))
 
 (fx/defn add-mailserver-sym-key
   "the current mailserver sym-key has been generated
@@ -242,7 +258,9 @@
               {:db (-> db
                        (assoc-in [:inbox/wnodes current-fleet id :sym-key-id] sym-key-id)
                        (update-in [:inbox/wnodes current-fleet id] dissoc :generating-sym-key?))}
-              (request-messages nil))))
+              (if (empty? (:transport.inbox/pending-requests db))
+                (prepare-messages-requests)
+                (process-next-messages-request)))))
 
 (fx/defn check-connection
   "check if mailserver is connected
@@ -258,6 +276,7 @@
 
 (fx/defn remove-chat-from-inbox-topic
   "if the chat is the only chat of the inbox topic delete the inbox topic
+   and prepare-messages-requests again to remove pending request for that topic
    otherwise remove the chat-id of the chat from the inbox topic and save"
   [{:keys [db now] :as cofx} chat-id]
   (let [topic (get-in db [:transport/chats chat-id :topic])
@@ -265,8 +284,10 @@
                                                    :chat-ids
                                                    disj chat-id)]
     (if (empty? chat-ids)
-      {:db (update db :transport.inbox/topics dissoc topic)
-       :data-store/tx [(transport-store/delete-transport-inbox-topic-tx topic)]}
+      (fx/merge cofx
+                {:db (update db :transport.inbox/topics dissoc topic)
+                 :data-store/tx [(transport-store/delete-transport-inbox-topic-tx topic)]}
+                (prepare-messages-requests))
       {:db (assoc-in db [:transport.inbox/topics topic] inbox-topic)
        :data-store/tx [(transport-store/save-transport-inbox-topic-tx
                         {:topic topic
@@ -274,26 +295,28 @@
 
 (fx/defn update-inbox-topic
   "TODO: add support for cursors
-  if there is a cursor, do not update `request-to` and `request-from`"
+  if there is a cursor, do not update `last-request`"
   [{:keys [db now] :as cofx} {:keys [request-id cursor]}]
-  (let [{:keys [from to topic]} (get-in db [:transport.inbox/requests request-id])
+  (let [{:keys [from to topic]} (get-in db [:transport.inbox/current-request])
         inbox-topic (-> (get-in db [:transport.inbox/topics topic])
-                        (assoc :last-request to)
-                        (dissoc :request-pending?))]
+                        (assoc :last-request to))]
+    (log/info "offline inbox: message request " request-id "completed for inbox topic" topic "from" from "to" to)
     (fx/merge cofx
               {:db (-> db
-                       (update :transport.inbox/requests dissoc request-id)
+                       (dissoc :transport.inbox/current-request)
                        (assoc-in [:transport.inbox/topics topic] inbox-topic))
                :data-store/tx [(transport-store/save-transport-inbox-topic-tx
                                 {:topic topic
-                                 :inbox-topic inbox-topic})]})))
+                                 :inbox-topic inbox-topic})]}
+              (process-next-messages-request))))
 
 (fx/defn upsert-inbox-topic
-  "if the chat-id is already in the topic we do nothing, otherwise we update
-     the topic
-     if the topic already existed we add the chat-id andreset last-request
-     because there was no filter for the chat and messages were ignored
-     if the topic didn't exist we created"
+  "if the topic didn't exist
+      create the topic
+   else if chat-id is not in the topic
+      add the chat-id to the topic and reset last-request
+      there was no filter for the chat and messages for that
+      so the whole history for that topic needs to be re-fetched"
   [{:keys [db] :as cofx} {:keys [topic chat-id]}]
   (let [{:keys [chat-ids last-request] :as current-inbox-topic}
         (get-in db [:transport.inbox/topics topic] {:chat-ids #{}})]
@@ -305,34 +328,24 @@
                 {:db (assoc-in db [:transport.inbox/topics topic] inbox-topic)
                  :data-store/tx [(transport-store/save-transport-inbox-topic-tx
                                   {:topic topic
-                                   :inbox-topic inbox-topic})]}
-                (request-messages topic)))))
+                                   :inbox-topic inbox-topic})]}))))
 
 (fx/defn resend-request
   [{:keys [db] :as cofx} {:keys [request-id]}]
-  (let [{:keys [from to topic]} (get-in db [:transport.inbox/requests request-id])]
-    (log/info "offline inbox: message request" request-id " expired for inbox topic"  topic "from" from "to" to)
-    (fx/merge cofx
-              {:db (-> db
-                       (update :transport.inbox/requests dissoc request-id)
-                       (update-in [:transport.inbox/topics topic] dissoc :request-pending?))}
-              (request-messages topic))))
-
-(fx/defn add-request
-  [{:keys [db] :as cofx} {:keys [topic request-id from to]}]
-  (log/info "offline inbox: message request " request-id "sent for inbox topic" topic "from" from "to" to)
-  {:db (-> db
-           (assoc-in [:transport.inbox/requests request-id] {:from from
-                                                             :to to
-                                                             :topic topic})
-           (assoc-in [:transport.inbox/topics topic :request-pending?] true))})
+  (if (= maximum-number-of-attemps
+         (get-in [:transport.inbox/current-request :attemps] db))
+    (check-connection cofx)
+    (when-let [wnode (get-wnode-when-ready cofx)]
+      (let [{:keys [topic from to] :as request} (get db :transport.inbox/current-request)
+            web3 (:web3 db)]
+        (log/info "offline inbox: message request " request-id "expired for inbox topic" topic "from" from "to" to)
+        {:db (update-in db [:transport.inbox/current-request :attemps] inc)
+         :transport.inbox/request-messages {:web3    web3
+                                            :wnode   wnode
+                                            :request request}}))))
 
 (fx/defn initialize-offline-inbox
   [cofx custom-mailservers]
-  (let [discovery-topic (transport.utils/get-topic constants/contact-discovery)]
-    (fx/merge cofx
-              (mailserver/add-custom-mailservers custom-mailservers)
-              (mailserver/set-current-mailserver)
-              (when-not (get-in cofx [:db :transport.inbox/topics discovery-topic])
-                (upsert-inbox-topic {:topic discovery-topic
-                                     :chat-id :discovery-topic})))))
+  (fx/merge cofx
+            (mailserver/add-custom-mailservers custom-mailservers)
+            (mailserver/set-current-mailserver)))
