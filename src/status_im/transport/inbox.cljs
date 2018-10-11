@@ -172,6 +172,7 @@
                     (clj->js {:topic          topic
                               :mailServerPeer address
                               :symKeyID       sym-key-id
+                              :timeout        20
                               :from           from
                               :to             to})
                     (fn [err request-id]
@@ -310,7 +311,7 @@
 (fx/defn resend-request
   [{:keys [db] :as cofx} {:keys [request-id]}]
   (let [{:keys [from to topic]} (get-in db [:transport.inbox/requests request-id])]
-    (log/info "offline inbox: message request expired for inbox topic"  topic "from" from "to" to)
+    (log/info "offline inbox: message request" request-id " expired for inbox topic"  topic "from" from "to" to)
     (fx/merge cofx
               {:db (-> db
                        (update :transport.inbox/requests dissoc request-id)
@@ -319,7 +320,7 @@
 
 (fx/defn add-request
   [{:keys [db] :as cofx} {:keys [topic request-id from to]}]
-  (log/info "offline inbox: message request sent for inbox topic" topic "from" from "to" to)
+  (log/info "offline inbox: message request " request-id "sent for inbox topic" topic "from" from "to" to)
   {:db (-> db
            (assoc-in [:transport.inbox/requests request-id] {:from from
                                                              :to to
