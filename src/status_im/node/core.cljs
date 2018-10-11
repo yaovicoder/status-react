@@ -129,21 +129,21 @@
     (log/info "Node config: " node-config-json)
     {:db        (assoc db
                        :network network
-                       :node/node-state :starting)
+                       :node/status :starting)
      :node/start node-config-json}))
 
-(defn restart
+(defn stop
   [{:keys [db]}]
-  {:db        (assoc db :node/node-state :stopping)
+  {:db        (assoc db :node/status :stopping)
    :node/stop nil})
 
 (fx/defn initialize
-  [{{:node/keys [node-state] :as db} :db :as cofx} address]
-  (let [reinit {:db (assoc db :node/restart? true :node/address address)}]
-    (cond
-      (= node-state :started) (restart cofx)
-      (= node-state :starting) reinit
-      (= node-state :stopping) reinit
+  [{{:node/keys [status] :as db} :db :as cofx} address]
+  (let [restart {:db (assoc db :node/restart? true :node/address address)}]
+    (case status
+      :started (stop cofx)
+      :starting restart
+      :stopping restart
       :else (start cofx address))))
 
 (re-frame/reg-fx
