@@ -77,6 +77,11 @@
 (def dimensions (.-Dimensions js-dependencies/react-native))
 (def keyboard (.-Keyboard js-dependencies/react-native))
 (def linking (.-Linking js-dependencies/react-native))
+(def desktop-linking (.-DesktopLinking (.-NativeModules js-dependencies/react-native)))
+
+(.onUrlOpened desktop-linking #(do
+                                 (prn "DesktopLinking " %)
+                                 (js/alert %)))
 
 (def slider (get-class "Slider"))
 ;; Accessor methods for React Components
