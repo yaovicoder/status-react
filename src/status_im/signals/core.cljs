@@ -16,13 +16,13 @@
                         (:password (accounts.db/credentials cofx)))]
     (fx/merge cofx
               {:db (-> db
-                       (assoc  :node/status   :started)
+                       (assoc :node/status :started)
                        (dissoc :node/restart? :node/address))}
 
-              #(when restart?
-                 (node/initialize address))
-              #(when can-login?
-                 (accounts.login/login %)))))
+              (when restart?
+                (node/initialize address))
+              (when can-login?
+                (accounts.login/login)))))
 
 (fx/defn status-node-stopped
   [{db :db :as cofx}]
