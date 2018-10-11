@@ -144,7 +144,7 @@
       :started (stop cofx)
       :starting restart
       :stopping restart
-      :else (start cofx address))))
+      (start cofx address))))
 
 (re-frame/reg-fx
  :node/start
