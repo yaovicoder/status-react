@@ -49,3 +49,6 @@
    :border-radius    styles/border-radius
    :padding          16
    :background-color colors/white-transparent})
+
+(def qr-code
+  {:margin-right 14})

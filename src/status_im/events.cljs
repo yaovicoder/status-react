@@ -15,6 +15,7 @@
             [status-im.chat.models.input :as chat.input]
             [status-im.chat.commands.input :as commands.input]
             [status-im.data-store.core :as data-store]
+            [status-im.extensions.core :as extensions]
             [status-im.fleet.core :as fleet]
             [status-im.group-chats.core :as group-chats]
             [status-im.hardwallet.core :as hardwallet]
@@ -401,6 +402,13 @@
  :bootnodes.ui/delete-confirmed
  (fn [cofx [_ bootnode-id]]
    (bootnodes/delete-bootnode cofx bootnode-id)))
+
+;; extensions module
+
+(handlers/register-handler-fx
+ :extensions.callback/qr-code-scanned
+ (fn [cofx [_ _ url]]
+   (extensions/set-extension-url-from-qr cofx url)))
 
 ;; log-level module
 
