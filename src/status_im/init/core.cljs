@@ -89,7 +89,7 @@
              :hardwallet/check-nfc-support                   nil
              :hardwallet/check-nfc-enabled                   nil}
             (initialize-app-db)
-            (node/start nil)))
+            (node/initialize nil)))
 
 (fx/defn set-device-uuid
   [{:keys [db]} device-uuid]
