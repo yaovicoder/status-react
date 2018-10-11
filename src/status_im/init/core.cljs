@@ -16,7 +16,6 @@
             [status-im.native-module.core :as status]
             [status-im.node.core :as node]
             [status-im.notifications.core :as notifications]
-            [status-im.ui.screens.contacts.events :as contacts]
             [status-im.ui.screens.db :refer [app-db]]
             [status-im.ui.screens.navigation :as navigation]
             [status-im.utils.config :as config]

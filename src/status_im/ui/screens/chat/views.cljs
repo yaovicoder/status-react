@@ -32,13 +32,13 @@
       [react/view style/add-contact
        [react/view style/add-contact-left]
        [react/touchable-highlight
-        {:on-press            #(re-frame/dispatch [:add-contact contact-identity])
+        {:on-press            #(re-frame/dispatch [:contact.ui/add-to-contact-pressed contact-identity])
          :accessibility-label :add-to-contacts-button}
         [react/view style/add-contact-center
          [vector-icons/icon :icons/add {:color colors/blue}]
          [react/i18n-text {:style style/add-contact-text :key :add-to-contacts}]]]
        [react/touchable-highlight
-        {:on-press            #(re-frame/dispatch [:hide-contact contact-identity])
+        {:on-press            #(re-frame/dispatch [:contacts.ui/close-contact-pressed contact-identity])
          :accessibility-label :add-to-contacts-close-button}
         [vector-icons/icon :icons/close {:color           colors/black
                                          :container-style style/add-contact-close-icon}]]])))
