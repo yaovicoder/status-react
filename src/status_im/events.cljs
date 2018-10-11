@@ -1003,4 +1003,3 @@
  :transport/contact-message-sent
  (fn [cofx [_ chat-id envelope-hash]]
    (transport.message/set-contact-message-envelope-hash cofx chat-id envelope-hash)))
->>>>>>> fix circular deps
