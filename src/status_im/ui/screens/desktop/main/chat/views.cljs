@@ -108,21 +108,22 @@
                   :number-of-lines 5}
       text]]))
 
-(def regx-url #"((?i)(?:[a-z][\w-]+:(?:/{1,3}|[a-z0-9%])|www\d{0,3}[.]|[a-z0-9\-]+[.][a-z]{1,4}/?)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:\'\".,<>?«»“”‘’]){0,})|#([a-z0-9\-]+)")
+(def regx-url #"(?i)((?:[a-z][\w-]+:(?:/{1,3}|[a-z0-9%])|www\d{0,3}[.]|[a-z0-9\-]+[.][a-z]{1,4}/?)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:\'\".,<>?«»“”‘’]){0,}|#[a-z0-9\-]+)")
 
-(defn link-elem [outgoing [link url _ _ _ _ channel]]
+(defn link-elem [outgoing link]
+  (log/debug "### link-elem:" link)
   [react/text {:style    (styles/message-link outgoing)
-               :on-press #(cond url
-                                (.openURL react/linking (http/normalize-url link))
-                                channel (re-frame/dispatch [:chat.ui/start-public-chat channel]))}
+               :on-press #(if (string/starts-with? link "#")
+                            (re-frame/dispatch [:chat.ui/start-public-chat (subs link 1)])
+                            (.openURL react/linking (http/normalize-url link)))}
    link])
 
 (defn process-message-links [text outgoing]
-  (let [matches (re-seq regx-url text)
-        non-matches (string/split text regx-url)
-        r (interleave non-matches (map (partial link-elem outgoing) matches))]
-    (log/error "### process:" r)
-    r))
+  (->> (string/split text regx-url)
+       (remove nil?)
+       (map #(if (re-matches regx-url %1)
+               (link-elem outgoing %1)
+               %1))))
 
 (views/defview message-with-timestamp
   [text {:keys [message-id timestamp outgoing content current-public-key]} style]
