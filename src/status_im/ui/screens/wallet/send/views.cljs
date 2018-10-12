@@ -28,7 +28,8 @@
             [status-im.transport.utils :as transport.utils]
             [taoensso.timbre :as log]
             [reagent.core :as reagent]
-            [status-im.ui.components.colors :as colors]))
+            [status-im.ui.components.colors :as colors]
+            [status-im.utils.platform :as platform]))
 
 (defn- toolbar [modal? title]
   (let [action (if modal? actions/close-white actions/back-white)]
@@ -141,7 +142,8 @@
   (let [{:keys [amount amount-text amount-error asset-error show-password-input? to to-name sufficient-funds?
                 sufficient-gas? in-progress? from-chat? symbol]} transaction
         {:keys [decimals] :as token} (tokens/asset-for (ethereum/network->chain-keyword network) symbol)
-        online? (= :online network-status)]
+        ;; TODO(goranjovic): offline status detection doesn't work on desktop yet
+        online? (or platform/desktop? (= :online network-status))]
     [wallet.components/simple-screen {:avoid-keyboard? (not modal?)
                                       :status-bar-type (if modal? :modal-wallet :wallet)}
      [toolbar modal? (i18n/label :t/send-transaction)]

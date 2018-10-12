@@ -20,7 +20,8 @@
             [status-im.utils.ethereum.core :as ethereum]
             [status-im.utils.ethereum.eip681 :as eip681]
             [status-im.utils.utils :as utils]
-            [status-im.utils.ethereum.tokens :as tokens]))
+            [status-im.utils.ethereum.tokens :as tokens]
+            [status-im.utils.platform :as platform]))
 
 ;; Request screen
 
@@ -65,10 +66,12 @@
 ;; Main screen
 
 (defn send-transaction-request-button [value]
-  [button/primary-button {:on-press            #(re-frame/dispatch [:navigate-to :wallet-send-transaction-request])
-                          :style               styles/send-request
-                          :accessibility-label :sent-transaction-request-button}
-   (i18n/label :t/send-transaction-request)])
+  (if platform/desktop?
+    [react/view]
+    [button/primary-button {:on-press            #(re-frame/dispatch [:navigate-to :wallet-send-transaction-request])
+                            :style               styles/send-request
+                            :accessibility-label :sent-transaction-request-button}
+     (i18n/label :t/send-transaction-request)]))
 
 (views/defview request-transaction []
   (views/letsubs [address-hex [:get-current-account-hex]
