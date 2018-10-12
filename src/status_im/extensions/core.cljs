@@ -3,9 +3,11 @@
             [pluto.reader :as reader]
             [pluto.registry :as registry]
             [pluto.storages :as storages]
+            [status-im.accounts.update.core :as accounts.update]
             [status-im.chat.commands.core :as commands]
             [status-im.chat.commands.impl.transactions :as transactions]
-            [status-im.ui.components.react :as react]))
+            [status-im.ui.components.react :as react]
+            [status-im.utils.fx :as fx]))
 
 (def components
   {'view           {:value react/view}
@@ -43,3 +45,35 @@
 (defn load-from [url f]
   (when-let [uri (url->uri url)]
     (storages/fetch uri f)))
+
+(defn- build [id url]
+  {:url url
+   :id  (string/replace id "-" "")})
+
+(fx/defn set-input
+  [{:keys [db]} input-key value]
+  {:db (update db :extensions/manage assoc input-key {:value value})})
+
+(fx/defn fetch [cofx id]
+  (get-in cofx [:db :account/account :extensions id]))
+
+(fx/defn edit
+  [{:keys [db] :as cofx} id]
+  (let [{:keys [url]} (fetch cofx id)]
+    (-> (set-input cofx :url (str url))
+        (assoc :dispatch [:navigate-to :edit-extension]))))
+
+(fx/defn upsert
+  [{{:extensions/keys [manage] :account/keys [account] :as db} :db
+    random-id-generator :random-id-generator :as cofx}]
+  (let [{:keys [url id]} manage
+        extension      (build
+                        (or (:value id) (random-id-generator))
+                        (:value url))
+        new-extensions (assoc (:extensions account) (:id extension) extension)]
+    (fx/merge cofx
+              {:db       (dissoc db :extensions/manage)
+               :dispatch [:navigate-back]}
+              (accounts.update/account-update
+               {:extensions new-extensions}
+               {:success-event nil}))))
