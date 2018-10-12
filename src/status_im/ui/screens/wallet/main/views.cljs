@@ -139,7 +139,7 @@
 
 (defn- asset-section [assets currency address-hex modal?]
   (let [{:keys [tokens nfts]} (group-assets assets)]
-    [react/view styles/asset-section
+    [react/view {:style styles/asset-section}
      [list/section-list
       {:default-separator? true
        :scroll-enabled     false
@@ -166,12 +166,12 @@
                   {:keys [seed-backed-up?]} [:get-current-account]
                   error-message   [:wallet/error-message]
                   address-hex     [:get-current-account-hex]]
-    [react/view styles/main-section
+    [react/view {:style styles/main-section}
      (if modal?
        [toolbar-modal modal-history?]
        [toolbar-view])
      (if (and modal? modal-history?)
-       [react/view styles/modal-history
+       [react/view {:style styles/modal-history}
         [transactions.views/history-list true]]
        [react/scroll-view {:refresh-control
                            (reagent/as-element
@@ -188,7 +188,7 @@
                          assets))
           [backup-seed-phrase])
         (if modal?
-          [react/view styles/address-section
+          [react/view {:style styles/address-section}
            [react/text {:style               styles/wallet-address
                         :accessibility-label :address-text
                         :selectable          true}
