@@ -9,7 +9,8 @@
             [status-im.ui.components.status-bar.view :as status-bar]
             [status-im.ui.screens.wallet.styles :as wallet.styles]
             [status-im.utils.ethereum.core :as ethereum]
-            [status-im.utils.ethereum.tokens :as tokens]))
+            [status-im.utils.ethereum.tokens :as tokens]
+            [status-im.ui.components.colors :as colors]))
 
 (defn- render-token [{:keys [symbol name icon]} visible-tokens]
   [list/list-item-with-checkbox
@@ -24,15 +25,15 @@
 (defview manage-assets []
   (letsubs [network        [:network]
             visible-tokens [:wallet/visible-tokens-symbols]]
-    [react/view (merge components.styles/flex {:background-color :white})
+    [react/view {:style {:flex 1 :background-color colors/white}}
      [status-bar/status-bar {:type :modal-wallet}]
      [toolbar/toolbar {:style wallet.styles/toolbar}
       [toolbar/nav-text {:handler             #(do (re-frame/dispatch [:update-wallet])
                                                    (re-frame/dispatch [:navigate-back]))
-                         :style               {:color :white}
+                         :style               {:color colors/white}
                          :accessibility-label :done-button}
        (i18n/label :t/done)]
-      [toolbar/content-title {:color :white}
+      [toolbar/content-title {:color colors/white}
        (i18n/label :t/wallet-assets)]]
      [react/view {:style components.styles/flex}
       [list/flat-list {:data      (tokens/sorted-tokens-for (ethereum/network->chain-keyword network))
