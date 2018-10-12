@@ -15,7 +15,10 @@
 (re-frame/reg-fx
  :keychain/get-encryption-key
  (fn [event]
-   (when false (keychain/set-username))))
+   (when platform/desktop? (keychain/set-username))
+   (.. (keychain/get-encryption-key)
+       (then #(re-frame/dispatch (conj event %)))
+       (catch (partial handle-key-error event)))))
 
 (handlers/register-handler-fx
  :keychain.callback/can-save-user-password?-success

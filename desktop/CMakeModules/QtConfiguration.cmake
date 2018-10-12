@@ -9,12 +9,14 @@ include(${CMAKE_BINARY_DIR}/conan.cmake)
 
 conan_check()
 
-conan_cmake_run(REQUIRES qt5/5.11.2@status-im/experimental
-                PROFILE /home/pedro/src/github.com/status-im/status-conan/profiles/status-mingw32-x86_64-gcc63-libstdcxx # TODO Remove hardcoded path
+conan_cmake_run(REQUIRES qt5-mxe/5.11.2@status-im/experimental
+                PROFILE $ENV{STATUS_REACT_HOME}/../status-conan/profiles/status-mxe-mingw32-x86_64-gcc55-libstdcxx # TODO Remove hardcoded path
                 BASIC_SETUP
-                BUILD missing)
+                SETTINGS "qt5-mxe:os=Windows qt5-mxe:arch=x86_64"
+                OPTIONS "qt5-mxe:webkit=True"
+                BUILD missing outdated)
 
-set(QTROOT "${CONAN_QT5_ROOT}/gcc_64")
+set(QTROOT "${CONAN_QT5-MXE_ROOT}/gcc_64")
 
 if(NOT EXISTS ${QTROOT}/bin/qt.conf)
   message(FATAL_ERROR "Could not find qt.conf in ${QTROOT}/bin. Is QTROOT correctly defined?")

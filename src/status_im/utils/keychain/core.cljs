@@ -23,7 +23,7 @@
 
 
 (defn enum-val [enum-name value-name]
-  [])
+  (get-in (js->clj rn/keychain) [enum-name value-name]))
 
 ;; We need a more strict access mode for keychain entries that save user password.
 ;; iOS
@@ -47,7 +47,11 @@
 
 ;; Stores the password for the address to the Keychain
 (defn save-user-password [address password callback]
-  (callback true))
+  (if-not platform/ios?
+    (callback true) ;; no-op on Androids (for now)
+    (-> (.setInternetCredentials rn/keychain address address password
+                                 (clj->js keychain-restricted-availability))
+        (.then callback))))
 
 (defn handle-callback [callback result]
   (if result
@@ -56,16 +60,29 @@
 
 ;; Gets the password for a specified address from the Keychain
 (defn get-user-password [address callback]
-  (callback))
+  (if-not platform/ios?
+    (callback) ;; no-op on Androids (for now)
+    (-> (.getInternetCredentials rn/keychain address)
+        (.then (partial handle-callback callback)))))
 
 ;; Clears the password for a specified address from the Keychain
 ;; (example of usage is logout or signing in w/o "save-password")
 (defn clear-user-password [address callback]
-  (callback true))
+  (if-not platform/ios?
+    (callback true)
+    (-> (.resetInternetCredentials rn/keychain address)
+        (.then callback))))
 
 ;; Resolves to `false` if the device doesn't have neither a passcode nor a biometry auth.
 (defn can-save-user-password? [callback]
-  (callback false))
+  (if-not platform/ios?
+    (callback false)
+    (-> (.canImplyAuthentication
+         rn/keychain
+         (clj->js
+          {:authenticationType
+           (enum-val "ACCESS_CONTROL" "BIOMETRY_ANY_OR_DEVICE_PASSCODE")}))
+        (.then callback))))
 
 ;; ********************************************************************************
 ;; Storing / Retrieving the realm encryption key to/from the Keychain
@@ -91,7 +108,12 @@
     :else encryption-key))
 
 (defn store [encryption-key]
-  (log/debug "storing encryption key"))
+  (log/debug "storing encryption key")
+  (-> (.setGenericPassword
+       rn/keychain
+       username
+       (.stringify js/JSON encryption-key))
+      (.then (constantly encryption-key))))
 
 (defn create []
   (log/debug "no key exists, creating...")
@@ -108,7 +130,13 @@
         string->js-array))
 
 (defn get-encryption-key []
-  (log/debug "initializing realm encryption key..."))
+  (log/debug "initializing realm encryption key...")
+  (.. (.getGenericPassword rn/keychain)
+      (then
+       (fn [res]
+         (if res
+           (handle-found res)
+           (handle-not-found))))))
 
 (defn safe-get-encryption-key
   "Return encryption key or empty string in case invalid/empty"
@@ -120,10 +148,11 @@
                (or key "")))))
 
 (defn reset []
-  (log/debug "resetting key (disabled)..."))
+  (log/debug "resetting key...")
+  (.resetGenericPassword rn/keychain))
 
 (defn set-username []
-  (log/debug "setting keychain username (disabled)..."))
+  (when platform/desktop? (.setUsername rn/keychain username)))
 
 ;;;; Effects
 

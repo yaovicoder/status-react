@@ -7,7 +7,14 @@
 message(STATUS "Cross-compiling for Windows")
 
 set(CMAKE_SYSTEM_NAME Windows)
+if(NOT "${CMAKE_HOST_SYSTEM_NAME}" STREQUAL "Linux")
+  message(FATAL_ERROR "Can only cross-compile to Windows from Linux")
+endif()
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wl,--subsystem,windows")
+
+set(USE_QTWEBKIT TRUE)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/toolchain/")
 include(conanbuildinfo)
+#conan_basic_setup()
+conan_global_flags()

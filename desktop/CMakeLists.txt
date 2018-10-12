@@ -16,11 +16,6 @@ set(REACT_BUILD_STATIC_LIB ON)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUNICODE -std=c++11")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DUNICODE -std=c11")
 
-if("${CMAKE_SYSTEM_NAME}" MATCHES "Windows")
-  if(NOT "${CMAKE_HOST_SYSTEM_NAME}" STREQUAL "Linux")
-    message(FATAL_ERROR "Can only cross-compile to Windows from Linux")
-  endif()
-endif()
 set(CMAKE_OSX_DEPLOYMENT_TARGET "10.9")
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/CMakeModules/")

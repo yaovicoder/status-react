@@ -8,9 +8,17 @@ set(TARGET_DIR $<TARGET_FILE_DIR:${APP_NAME}>)
 #message("CONAN_BIN_DIRS_QT5=@CONAN_BIN_DIRS_QT5@")
 #message("CONAN_BIN_DIRS_STATUSTOOLCHAIN-X86_64-W64-MINGW32=@CONAN_BIN_DIRS_STATUSTOOLCHAIN-X86_64-W64-MINGW32@")
 
-set(qtmodules Core Gui Widgets Qml Quick WebSockets Svg Network Concurrent)
+set(qtmodules Core Gui Widgets Qml Quick QuickControls2 QuickTemplates2 WebSockets OpenGL Svg Network Concurrent Positioning SerialPort)
+if(USE_QTWEBKIT)
+  set(qtmodules ${qtmodules} Multimedia WebKit WebKitWidgets WebChannel Sensors Sql)
+
+  add_custom_command(TARGET @APP_NAME@ POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different
+          "@CONAN_BIN_DIRS_QT5@/QtWebProcess.exe"
+          ${TARGET_DIR})
+endif()
 foreach(qtmodule ${qtmodules})
-  message("Copying ${qtmodule}")
+  message("Copying ${qtmodule} module")
   add_custom_command(TARGET @APP_NAME@ POST_BUILD
       COMMAND ${CMAKE_COMMAND} -E copy_if_different
           "@CONAN_BIN_DIRS_QT5@/Qt5${qtmodule}.dll"
@@ -19,28 +27,30 @@ endforeach(qtmodule ${qtmodules})
 
 set(qtplugindirs "platforms" "styles" "iconengines" "imageformats" "translations")
 foreach(qtplugindir ${qtplugindirs})
-  message("Copying ${qtplugindir}")
+  message("Copying plugin ${qtplugindir}")
   add_custom_command(TARGET @APP_NAME@ POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
         "@CONAN_BIN_DIRS_QT5@/../plugins/${qtplugindir}/"
         "${TARGET_DIR}/${qtplugindir}")
 endforeach()
 
-set(qtqmldirs "QtQuick" "QtQuick.2" "QtGraphicalEffects" "QtWebView")
+set(qtqmldirs "QtQuick" "QtQuick.2" "QtGraphicalEffects" "QtPositioning" "QtWebSockets")
+if(USE_QTWEBKIT)
+  set(qtqmldirs ${qtqmldirs} "QtWebKit" "QtWebChannel")
+endif()
 foreach(qtqmldir ${qtqmldirs})
-  message("Copying ${qtqmldir}")
+  message("Copying QML dir for ${qtqmldir}")
   add_custom_command(TARGET @APP_NAME@ POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
         "@CONAN_BIN_DIRS_QT5@/../qml/${qtqmldir}/"
         "${TARGET_DIR}/${qtqmldir}")
 endforeach()
 
-foreach(libdir @CONAN_BIN_DIRS_STATUSTOOLCHAIN-X86_64-W64-MINGW32@)
-  if(EXISTS "${libdir}/libwinpthread-1.dll")
-    add_custom_command(TARGET @APP_NAME@ POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            "${libdir}/libwinpthread-1.dll"
-            ${TARGET_DIR})
-    break()
-  endif()
-endforeach(libdir @CONAN_BIN_DIRS_STATUSTOOLCHAIN-X86_64-W64-MINGW32@)
+set(deps_qt5 "libpng16-16" "libharfbuzz-0" "zlib1" "libpcre2-16-0" "libpcre-1" "libcrypto-1_1-x64" "libssl-1_1-x64" "libfreetype-6" "libglib-2.0-0" "libstdc++-6" "libbz2" "libintl-8" "libiconv-2" "icuin56" "icuuc56" "icudt56" "libjpeg-9" "libsqlite3-0" "libwebp-5" "libgcc_s_seh-1")
+foreach(lib ${deps_qt5})
+  # TODO: Replace with toolchain variables
+  add_custom_command(TARGET @APP_NAME@ POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different
+      "/home/pedro/src/github.com/mxe/mxe/usr/x86_64-w64-mingw32.shared/bin/${lib}.dll"
+          ${TARGET_DIR})
+endforeach(lib ${deps_qt5})
