@@ -2,6 +2,7 @@
   (:require status-im.utils.db
             status-im.ui.screens.network-settings.db
             status-im.ui.screens.bootnodes-settings.db
+            status-im.ui.screens.extensions.db
             [cljs.spec.alpha :as spec]
             [status-im.constants :as const])
   (:require-macros [status-im.utils.db :refer [allowed-keys]]))
@@ -33,6 +34,7 @@
 (spec/def :account/network (spec/nilable string?))
 (spec/def :account/networks (spec/nilable :networks/networks))
 (spec/def :account/bootnodes (spec/nilable :bootnodes/bootnodes))
+(spec/def :account/extensions (spec/nilable :extensions/extensions))
 (spec/def :account/wnode (spec/nilable string?))
 (spec/def :account/settings (spec/nilable (spec/map-of keyword? any?)))
 (spec/def :account/signing-phrase :global/not-empty-string)
@@ -54,7 +56,8 @@
                                       :account/last-sign-in :account/sharing-usage-data? :account/dev-mode?
                                       :account/seed-backed-up? :account/mnemonic
                                       :account/wallet-set-up-passed? :account/last-request
-                                      :account/bootnodes :account/mainnet-warning-shown?]))
+                                      :account/bootnodes :account/extensions
+                                      :account/mainnet-warning-shown?]))
 
 (spec/def :accounts/accounts (spec/nilable (spec/map-of :account/address :accounts/account)))
 
