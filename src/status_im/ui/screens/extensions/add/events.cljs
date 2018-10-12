@@ -25,11 +25,6 @@
                #(registry/activate extension-key %)))))
 
 (handlers/register-handler-fx
- :extension/edit-address
- (fn [{:keys [db]} [_ address]]
-   {:db (assoc db :extension-url address)}))
-
-(handlers/register-handler-fx
  :extension/stage
  (fn [{:keys [db] :as cofx} [_ extension-data]]
    (fx/merge cofx

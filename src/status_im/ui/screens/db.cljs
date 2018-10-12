@@ -214,6 +214,7 @@
                  :networks/manage
                  :mailservers/manage
                  :bootnodes/manage
+                 :extensions/manage
                  :inbox/wnodes
                  :inbox/current-id
                  :inbox/fetching?
@@ -306,6 +307,5 @@
                  ::device-UUID
                  ::collectible
                  ::collectibles
-                 ::extension-url
                  ::staged-extension
                  :registry/registry]))
