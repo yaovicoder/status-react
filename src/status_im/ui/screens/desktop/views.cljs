@@ -34,6 +34,12 @@
                        :chat-profile
                        :backup-recovery-phrase
                        :wallet-onboarding-setup
+                       :wallet-send-transaction
+                       :wallet-send-assets
+                       :wallet-request-transaction
+                       :wallet-send-transaction-request
+                       :wallet-request-assets
+                       :transactions-history
                        :wallet) main.views/main-views
                       :login login.views/login
                       react/view)]

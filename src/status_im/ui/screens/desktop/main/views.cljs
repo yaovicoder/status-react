@@ -10,6 +10,10 @@
             [status-im.ui.components.react :as react]
             [re-frame.core :as re-frame]
             [status-im.ui.screens.wallet.onboarding.setup.views :as wallet.onboarding.setup]
+            [status-im.ui.screens.wallet.send.views :as wallet.send]
+            [status-im.ui.screens.wallet.request.views :as wallet.request]
+            [status-im.ui.screens.wallet.transactions.views :as wallet.transactions]
+            [status-im.ui.screens.wallet.components.views :as wallet.components]
             [status-im.ui.components.colors :as colors]))
 
 (views/defview status-view []
@@ -44,6 +48,12 @@
                       :backup-recovery-phrase profile.views/backup-recovery-phrase
                       :wallet wallet.main/wallet
                       :wallet-onboarding-setup wallet.onboarding.setup/screen
+                      :wallet-send-transaction wallet.send/send-transaction
+                      :wallet-send-assets wallet.components/send-assets
+                      :wallet-request-transaction wallet.request/request-transaction
+                      :wallet-request-assets wallet.components/request-assets
+                      :wallet-send-transaction-request wallet.request/send-transaction-request
+                      :transactions-history wallet.transactions/transactions
                       status-view)]
       [react/view {:style {:flex 1 :background-color colors/blue}}
        [component]])))
