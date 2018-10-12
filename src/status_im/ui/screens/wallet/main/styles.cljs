@@ -15,6 +15,7 @@
    :position         :absolute
    :left             0
    :right            0
+   :desktop          {}
    :android          {:height 0}
    :ios              {:height 9999}})
 
@@ -120,7 +121,8 @@
    :color     colors/black})
 
 (def asset-item-currency
-  {:font-size   16
+  {:flex 1
+   :font-size   16
    :color       colors/gray
    :margin-left 6})
 
