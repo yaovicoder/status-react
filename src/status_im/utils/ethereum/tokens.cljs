@@ -452,7 +452,11 @@
                   [{:name     "Moksha Coin"
                     :symbol   :MOKSHA
                     :decimals 18
-                    :address  "0x6ba7dc8dd10880ab83041e60c4ede52bb607864b"}])
+                    :address  "0x6ba7dc8dd10880ab83041e60c4ede52bb607864b"}
+                   {:symbol  :KUDOS
+                    :nft?    true
+                    :name    "KudosToken"
+                    :address "0x3c147acf80b01d08dcb05038a7d9537adc12b39d"}])
 
    :custom []})
 

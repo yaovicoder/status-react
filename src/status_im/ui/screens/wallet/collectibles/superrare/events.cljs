@@ -6,7 +6,7 @@
 
 (def superrare :SUPR)
 
-(defmethod collectibles/load-collectible-fx superrare [_ ids]
+(defmethod collectibles/load-collectible-fx superrare [_ _ ids]
   {:http-get-n (mapv (fn [id]
                        {:url id
                         :success-event-creator (fn [o]

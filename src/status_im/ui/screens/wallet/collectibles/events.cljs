@@ -6,9 +6,9 @@
             [status-im.utils.money :as money]
             [status-im.browser.core :as browser]))
 
-(defmulti load-collectible-fx (fn [symbol _] symbol))
+(defmulti load-collectible-fx (fn [_ symbol _] symbol))
 
-(defmethod load-collectible-fx :default [_ _] nil)
+(defmethod load-collectible-fx :default [_ _ _] nil)
 
 (defmulti load-collectibles-fx (fn [_ symbol _ _] symbol))
 
@@ -39,8 +39,8 @@
 
 (handlers/register-handler-fx
  :load-collectible
- (fn [_ [_ symbol token-id]]
-   (load-collectible-fx symbol token-id)))
+ (fn [cofx [_ symbol token-id]]
+   (load-collectible-fx cofx symbol token-id)))
 
 (handlers/register-handler-fx
  :store-collectibles
