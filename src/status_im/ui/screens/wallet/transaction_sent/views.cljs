@@ -14,23 +14,23 @@
 
 (defview transaction-sent [& [modal?]]
   (letsubs [chat-id [:get-current-chat-id]]
-    [react/view wallet.styles/wallet-modal-container
+    [react/view {:style wallet.styles/wallet-modal-container}
      [status-bar/status-bar {:type (if modal? :modal-wallet :transparent)}]
-     [react/view styles/transaction-sent-container
-      [react/view styles/ok-icon-container
+     [react/view {:style styles/transaction-sent-container}
+      [react/view {:style styles/ok-icon-container}
        [vi/icon :icons/ok {:color colors/blue}]]
       [react/text {:style               styles/transaction-sent
                    :font                (if platform/android? :medium :default)
                    :accessibility-label :transaction-sent-text}
        (i18n/label :t/transaction-sent)]
-      [react/view styles/gap]
+      [react/view {:style styles/gap}]
       [react/i18n-text {:style styles/transaction-sent-description
                         :key   :transaction-description}]]
-     [react/view components.styles/flex]
+     [react/view {:style components.styles/flex}]
      [components/separator]
      [react/touchable-highlight {:on-press            #(re-frame/dispatch [:close-transaction-sent-screen chat-id])
                                  :accessibility-label :got-it-button}
-      [react/view styles/got-it-container
+      [react/view {:style styles/got-it-container}
        [react/text {:style      styles/got-it
                     :font       (if platform/android? :medium :default)
                     :uppercase? true}
