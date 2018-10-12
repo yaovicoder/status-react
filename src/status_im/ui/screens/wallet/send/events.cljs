@@ -18,7 +18,8 @@
             [status-im.utils.money :as money]
             [status-im.utils.security :as security]
             [status-im.utils.types :as types]
-            [status-im.utils.utils :as utils]))
+            [status-im.utils.utils :as utils]
+            [status-im.utils.platform :as platform]))
 
 ;;;; FX
 
@@ -264,7 +265,9 @@
 (fx/defn navigate-after-transaction [{:keys [db] :as cofx} chat-id]
   (if (= :wallet-send-transaction-modal (second (:navigation-stack db)))
     (chat.models/navigate-to-chat cofx chat-id {})
-    (navigation/navigate-back cofx)))
+    (if platform/desktop?
+      (navigation/navigate-to-cofx cofx :wallet {})
+      (navigation/navigate-back cofx))))
 
 (handlers/register-handler-fx
  :close-transaction-sent-screen
