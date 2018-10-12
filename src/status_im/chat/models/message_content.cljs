@@ -46,8 +46,10 @@
       (right-to-left-text? text) (assoc :rtl? true))))
 
 (defn- can-embedd? [outer-type inner-type]
-  ;; for now, we can only embedd actions inside stylings and not vice versa
-  (or (and (contains? stylings outer-type)
+  ;; anything can be embedded inside text
+  (or (= :text outer-type)
+      ;; for now, we can only embedd actions inside stylings and not vice versa
+      (and (contains? stylings outer-type)
            (contains? actions inner-type))
       ;; Styling inside styling (eq bold inside italic and vice versa) is supported
       (and (contains? stylings outer-type)
@@ -57,15 +59,14 @@
   [(mapv #(- % offset) indexes) node])
 
 (defn build-render-tree
-  "Builds render tree from message metadata, can be used by render code
+  "Builds render tree from message text and metadata, can be used by render code
   by simply walking the tree and calling `subs` on provided ranges/message text."
-  [metadata]
-  (when-let [sorted-ranges (->> metadata
-                                (reduce-kv (fn [acc type ranges]
-                                             (reduce #(assoc %1 %2 {:type type}) acc ranges))
-                                           {})
-                                (sort-by ffirst)
-                                seq)]
+  [{:keys [text metadata]}]
+  (let [sorted-ranges (->> metadata
+                           (reduce-kv (fn [acc type ranges]
+                                        (reduce #(assoc %1 %2 {:type type}) acc ranges))
+                                      {})
+                           (sort-by ffirst))]
     (reduce (fn [acc [[start-idx end-idx] node :as record]]
               (let [[[last-start-idx last-end-idx] last-node] (last acc)]
                 (cond
@@ -78,8 +79,8 @@
 
                   :else ;; any other case (can't be embedded, overlapping indexes), just drop the record
                   acc)))
-            [(first sorted-ranges)]
-            (rest sorted-ranges))))
+            [[[0 (count text)] {:type :text}]]
+            sorted-ranges)))
 
 (defn emoji-only-content?
   "Determines if text is just an emoji"
