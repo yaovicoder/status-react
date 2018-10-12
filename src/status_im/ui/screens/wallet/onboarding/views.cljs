@@ -8,7 +8,7 @@
             [status-im.react-native.resources :as resources]))
 
 (defn onboarding []
-  [react/view styles/root
+  [react/view {:style styles/root}
    [react/view {:style styles/onboarding-image-container}
     [react/image {:source (:wallet-welcome resources/ui)
                   :style  styles/onboarding-image}]]
