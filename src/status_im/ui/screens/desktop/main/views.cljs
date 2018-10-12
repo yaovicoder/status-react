@@ -14,6 +14,7 @@
             [status-im.ui.screens.wallet.request.views :as wallet.request]
             [status-im.ui.screens.wallet.transactions.views :as wallet.transactions]
             [status-im.ui.screens.wallet.components.views :as wallet.components]
+            [status-im.ui.screens.wallet.transaction-fee.views :as wallet.transaction-fee]
             [status-im.ui.components.colors :as colors]))
 
 (views/defview status-view []
@@ -50,6 +51,7 @@
                       :wallet-onboarding-setup wallet.onboarding.setup/screen
                       :wallet-send-transaction wallet.send/send-transaction
                       :wallet-send-assets wallet.components/send-assets
+                      :wallet-transaction-fee wallet.transaction-fee/transaction-fee
                       :wallet-request-transaction wallet.request/request-transaction
                       :wallet-request-assets wallet.components/request-assets
                       :wallet-send-transaction-request wallet.request/send-transaction-request

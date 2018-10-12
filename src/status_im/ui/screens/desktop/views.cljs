@@ -36,6 +36,7 @@
                        :wallet-onboarding-setup
                        :wallet-send-transaction
                        :wallet-send-assets
+                       :wallet-transaction-fee
                        :wallet-request-transaction
                        :wallet-send-transaction-request
                        :wallet-request-assets
