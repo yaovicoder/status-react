@@ -15,6 +15,7 @@
             [status-im.chat.models.loading :as chat.loading]
             [status-im.chat.models.message :as chat.message]
             [status-im.data-store.core :as data-store]
+            [status-im.extensions.core :as extensions]
             [status-im.fleet.core :as fleet]
             [status-im.group-chats.core :as group-chats]
             [status-im.hardwallet.core :as hardwallet]
@@ -405,6 +406,34 @@
  :bootnodes.ui/delete-confirmed
  (fn [cofx [_ bootnode-id]]
    (bootnodes/delete-bootnode cofx bootnode-id)))
+
+;; extensions module
+
+(handlers/register-handler-fx
+ :extensions.ui/add-extension-pressed
+ (fn [cofx [_ extension-id]]
+   (extensions/edit cofx extension-id)))
+
+(handlers/register-handler-fx
+ :extensions.ui/input-changed
+ (fn [cofx [_ input-key value]]
+   (extensions/set-input cofx input-key value)))
+
+(handlers/register-handler-fx
+ :extensions.ui/activation-checkbox-pressed
+ (fn [cofx [_ id state]]
+   (extensions/toggle-activation cofx id state)))
+
+(handlers/register-handler-fx
+ :extensions.ui/show-button-pressed
+ (fn [_ [_ uri]]
+   {:extension/load [uri :extension/stage]}))
+
+(handlers/register-handler-fx
+ :extensions.ui/find-button-pressed
+ [(re-frame/inject-cofx :random-id-generator)]
+ (fn [cofx [_ data]]
+   (extensions/find cofx data)))
 
 ;; log-level module
 
