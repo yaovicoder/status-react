@@ -11,20 +11,21 @@
 ;;TODO copy-pate with minimum modifications of status-react tabs
 
 (def tabs-list-data
-  [{:view-id :home
-    :content {:title         "Home"
-              :icon-inactive :icons/home
-              :icon-active   :icons/home-active}
-    :count-subscription  :get-chats-unread-messages-number}
-   #_{:view-id :wallet
-      :content {:title         "Wallet"
-                :icon-inactive :icons/wallet
-                :icon-active   :icons/wallet-active}}
-   {:view-id :profile
-    :content {:title         "Profile"
-              :icon-inactive :icons/profile
-              :icon-active   :icons/profile-active}
-    :count-subscription  :get-profile-unread-messages-number}])
+  [{:view-id            :home
+    :content            {:title         "Home"
+                         :icon-inactive :icons/home
+                         :icon-active   :icons/home-active}
+    :count-subscription :get-chats-unread-messages-number}
+   {:view-id            :wallet
+    :content            {:title         "Wallet"
+                         :icon-inactive :icons/wallet
+                         :icon-active   :icons/wallet-active}
+    :count-subscription :get-wallet-unread-messages-number}
+   {:view-id            :profile
+    :content            {:title         "Profile"
+                         :icon-inactive :icons/profile
+                         :icon-active   :icons/profile-active}
+    :count-subscription :get-profile-unread-messages-number}])
 
 (defn- counter [cnt]
   (let [[unviewed-messages-label large?] (if (< 9 cnt)
