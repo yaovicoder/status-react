@@ -83,3 +83,11 @@
 (spec/def :contacts/click-action (spec/nilable #{:send :request}))
 ;;used in modal list (for example for wallet)
 (spec/def :contacts/click-params (spec/nilable map?))
+
+(spec/def :status/tag (spec/and :global/not-empty-string
+                                (partial re-matches #"[a-z0-9\-]+")))
+(spec/def :status/tags (spec/coll-of :buidl/tags :kind set?))
+(spec/def :status/tag-filter :status/tag)
+(spec/def :contact/new-tag string?)
+
+(spec/def :ui/contact (spec/keys :opt [:contact/new-tag]))

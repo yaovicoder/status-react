@@ -3,7 +3,7 @@
   (:require [re-frame.core :as re-frame]
             [status-im.utils.gfycat.core :as gfycat]
             [status-im.i18n :as i18n]
-
+            [status-im.ui.components.colors :as colors]
             [status-im.ui.screens.desktop.main.tabs.home.styles :as styles]
             [clojure.string :as string]
             [status-im.ui.screens.home.views.inner-item :as chat-item]
@@ -65,17 +65,64 @@
   [react/touchable-highlight {:on-press #(re-frame/dispatch [:chat.ui/navigate-to-chat chat-id])}
    [chat-list-item-inner-view (assoc chat :chat-id chat-id)]])
 
+(defn tag-view [tag {:keys [on-press]}]
+  [react/touchable-highlight {:style {:border-radius 5
+                                      :margin 2
+                                      :padding 4
+                                      :height 23
+                                      :background-color (if (= tag "clear filter")
+                                                          colors/red
+                                                          colors/blue)
+                                      :justify-content :center
+                                      :align-items :center
+                                      :align-content :center}
+                              :on-press on-press}
+   [react/text {:style {:font-size 9
+                        :color colors/white}
+                :font :medium} tag]])
+
+(defn tag-search-input [tag-filter tag-filter-ref]
+  [react/text-input {:placeholder "Type here to filter tags..."
+                     :auto-focus             true
+                     :blur-on-submit         true
+                     :style {:color :black
+                             :height            30
+                             :margin-left       20
+                             :margin-right      22}
+                     :ref #(reset! tag-filter-ref %)
+                     :default-value tag-filter
+                     :on-change (fn [e]
+                                  (let [native-event (.-nativeEvent e)
+                                        text         (.-text native-event)]
+                                    (re-frame/dispatch [:search/tag-filter-changed text])))}])
+
 (views/defview chat-list-view []
-  (views/letsubs [home-items [:home-items]]
+  (views/letsubs [home-items [:home-items]
+                  tag-filter   [:search/get-tag-filter]
+                  tag-filter-ref (atom nil)
+                  tags   [:search/get-filtered-tags]
+                  filtered-home-items [:search/get-filtered-home-items]]
     [react/view {:style styles/chat-list-view}
      [react/view {:style styles/chat-list-header}
       [react/view {:style {:flex 1}}]
       [react/touchable-highlight {:on-press #(re-frame/dispatch [:navigate-to :new-contact])}
        [react/view {:style styles/add-new}
         [icons/icon :icons/add {:style {:tint-color :white}}]]]]
+     [tag-search-input tag-filter tag-filter-ref]
+     [react/view {:style {:background-color colors/gray-lighter
+                          :flex-direction :row
+                          :flex-wrap :wrap}}
+      (when (not-empty tag-filter)
+        [tag-view "clear filter" {:on-press #(do #_(.clear @tag-filter-ref)
+                                                 #_(.focus @tag-filter-ref)
+                                                 (re-frame/dispatch [:search/tag-filter-changed ""]))}])
+      (doall
+       (for [tag  tags]
+         ^{:key tag} [tag-view tag {:on-press #(do #_(.setNativeProps @tag-filter-ref #js {:text tag})
+                                                   (re-frame/dispatch [:search/tag-filter-changed tag]))}]))]
      [react/view {:style styles/chat-list-separator}]
      [react/scroll-view {:enableArrayScrollingOptimization true}
       [react/view
-       (for [[index chat] (map-indexed vector home-items)]
+       (for [[index chat] (map-indexed vector filtered-home-items)]
          ^{:key (first chat)}
          [chat-list-item chat])]]]))

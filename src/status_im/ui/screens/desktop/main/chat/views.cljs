@@ -352,11 +352,65 @@
      [reply-message-view]
      [chat-text-input chat-id input-text]]))
 
+(defn tag-view [tag {:keys [on-press]}]
+  [react/touchable-highlight {:style {:border-radius 5
+                                      :margin 2
+                                      :padding 4
+                                      :height 23
+                                      :background-color (if (= tag "clear filter")
+                                                          colors/red
+                                                          colors/blue)
+                                      :justify-content :center
+                                      :align-items :center
+                                      :align-content :center}
+                              :on-press on-press}
+   [react/text {:style {:font-size 9
+                        :color colors/white}
+                :font :medium} tag]])
+
+#_(views/defview new-tag-view []
+    (views/letsubs [tags [:.new-issue.ui/tags]
+                    available-tags [:buidl.new-issue.ui/available-tags]]
+      [react/view {:style {:flex-direction :column
+                           :margin 5
+                           :border-radius 5
+                           :background-color colors/white}}
+       [buidl-text-input :tag]
+       [react/view {:style {:background-color colors/gray-lighter
+                            :flex-direction :row
+                            :flex-wrap :wrap}}
+        (doall
+         (for [tag (concat available-tags)]
+           ^{:key tag} [tag-view tag {:on-press #(re-frame/dispatch [:buidl/add-tag tag])}]))]]))
+
+(views/defview tag-text-input [whisper-identity]
+  [react/view {:stlye {:flex 1
+                       :flex-direction    :row}}
+   [react/text-input {:placeholder "Type here..."
+                      :auto-focus             true
+                      :multiline              true
+                      :blur-on-submit         true
+                      :style {:color :black
+                              :height            200
+                              :margin-left       20
+                              :margin-right      22}
+                      :on-key-press           (fn [e]
+                                                (let [native-event (.-nativeEvent e)
+                                                      key          (.-key native-event)
+                                                      modifiers    (js->clj (.-modifiers native-event))
+                                                      should-send  (and (= key "Enter") (not (contains? (set modifiers) "shift")))]
+                                                  (when should-send
+                                                    (re-frame/dispatch [:contact.ui/add-tag]))))
+                      :on-change              (fn [e]
+                                                (let [native-event (.-nativeEvent e)
+                                                      text         (.-text native-event)]
+                                                  (re-frame/dispatch [:contact.ui/set-tag-input-field text])))}]])
+
 (views/defview chat-profile []
   (views/letsubs [identity        [:get-current-contact-identity]
                   maybe-contact   [:get-current-contact]]
     (let [contact (or maybe-contact (utils.contacts/whisper-id->new-contact identity))
-          {:keys [pending? whisper-identity]} contact]
+          {:keys [pending? whisper-identity public-key tags]} contact]
       [react/view {:style styles/chat-profile-body}
        [profile.views/profile-badge contact]
        ;; for private chat, public key will be chat-id
@@ -385,4 +439,10 @@
         [react/text {:style styles/chat-profile-contact-code} (i18n/label :t/contact-code)]
         [react/text {:style           {:font-size 14}
                      :selectable      true
-                     :selection-color colors/blue} whisper-identity]]])))
+                     :selection-color colors/blue} whisper-identity]
+        [react/view {:style {:flex-direction :row
+                             :flex-wrap :wrap}}
+         (doall
+          (for [tag tags]
+            ^{:key tag} [tag-view tag {:on-press #(re-frame/dispatch [:chat.ui/start-public-chat (str "status-buidl-test-tag-" tag)])}]))]
+        [tag-text-input whisper-identity]]])))
