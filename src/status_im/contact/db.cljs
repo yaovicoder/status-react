@@ -36,32 +36,30 @@
 (spec/def :contact/debug? boolean?)
 (spec/def :contact/tags (spec/coll-of string? :kind set?))
 
-(spec/def :contact/contact
-  (allowed-keys
-   :req-un [:contact/name]
-   :opt-un [:contact/whisper-identity
-            :contact/address
-            :contact/public-key
-            :contact/photo-path
-            :contact/status
-            :contact/last-updated
-            :contact/last-online
-            :contact/pending?
-            :contact/hide-contact?
-            :contact/unremovable?
-            :contact/dapp?
-            :contact/dapp-url
-            :contact/dapp-hash
-            :contact/bot-url
-            :contact/jail-loaded?
-            :contact/jail-loaded-events
-            :contact/command
-            :contact/response
-            :contact/debug?
-            :contact/subscriptions
-            :contact/fcm-token
-            :contact/description
-            :contact/tags]))
+(spec/def :contact/contact (spec/keys  :req-un [:contact/name]
+                                       :opt-un [:contact/whisper-identity
+                                                :contact/address
+                                                :contact/public-key
+                                                :contact/photo-path
+                                                :contact/status
+                                                :contact/last-updated
+                                                :contact/last-online
+                                                :contact/pending?
+                                                :contact/hide-contact?
+                                                :contact/unremovable?
+                                                :contact/dapp?
+                                                :contact/dapp-url
+                                                :contact/dapp-hash
+                                                :contact/bot-url
+                                                :contact/jail-loaded?
+                                                :contact/jail-loaded-events
+                                                :contact/command
+                                                :contact/response
+                                                :contact/debug?
+                                                :contact/subscriptions
+                                                :contact/fcm-token
+                                                :contact/description
+                                                :contact/tags]))
 
 ;;Contact list ui props
 (spec/def :contact-list-ui/edit? boolean?)
@@ -83,3 +81,11 @@
 (spec/def :contacts/click-action (spec/nilable #{:send :request}))
 ;;used in modal list (for example for wallet)
 (spec/def :contacts/click-params (spec/nilable map?))
+
+(spec/def :status/tag (spec/and :global/not-empty-string
+                                (partial re-matches #"[a-z0-9\-]+")))
+(spec/def :status/tags (spec/coll-of :buidl/tags :kind set?))
+(spec/def :status/tag-filter :status/tag)
+(spec/def :contact/new-tag string?)
+
+(spec/def :ui/contact (spec/keys :opt [:contact/new-tag]))
