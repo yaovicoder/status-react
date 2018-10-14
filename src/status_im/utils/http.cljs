@@ -60,12 +60,14 @@
                 (->
                  (.text response)
                  (.then (fn [response-body]
+                          (println "RES1" response)
                           (let [ok?  (.-ok response)
                                 ok?' (if valid-response?
                                        (and ok? (valid-response? response))
                                        ok?)]
                             [response-body ok?']))))))
        (.then (fn [[response ok?]]
+                (println "RES2" ok? on-success response)
                 (cond
                   (and on-success ok?)
                   (on-success response)
