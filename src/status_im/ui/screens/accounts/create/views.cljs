@@ -27,7 +27,7 @@
                       :input-placeholder (i18n/label :t/name-placeholder)
                       :input-description (i18n/label :t/name-description)}})
 
-(defview input [{:keys [step error password password-confirm]}]
+(defview input [{:keys [step error password password-confirm return-key-type] :or {return-key-type :default}}]
   [text-input/text-input-with-label
    {:label             (get-in steps [step :input-label])
     :placeholder       (get-in steps [step :input-placeholder])
@@ -35,7 +35,8 @@
     :secure-text-entry (boolean (#{:enter-password :confirm-password} step))
     :auto-focus        true
     :on-submit-editing #(re-frame/dispatch [:accounts.create.ui/next-step-pressed step password password-confirm])
-    :error             error}])
+    :error             error
+    :return-key-type   return-key-type}])
 
 (defview create-account []
   (letsubs [step [:get-in [:accounts/create :step]]
@@ -63,10 +64,11 @@
         [react/view components.styles/flex
          [react/view {:style                       styles/input-container
                       :important-for-accessibility :no-hide-descendants}
-          [input {:step             step
-                  :error            error
-                  :password         password
-                  :password-confirm password-confirm}]
+          [input (merge {:step             step
+                         :error            error
+                         :password         password
+                         :password-confirm password-confirm}
+                        (when (= step :enter-name) {:return-key-type :done}))]
           [react/text {:style styles/input-description}
            (get-in steps [step :input-description])]]
          [react/view {:style components.styles/flex}]
