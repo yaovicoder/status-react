@@ -34,6 +34,8 @@
              :as
              currency-settings.models]
             [status-im.ui.screens.navigation :as navigation]
+            [status-im.desktop.deep-links :as desktop.deep-links]
+            [status-im.utils.universal-links.core :as universal-links]
             [status-im.utils.fx :as fx]
             [status-im.utils.handlers :as handlers]
             [taoensso.timbre :as log]))
@@ -1003,3 +1005,9 @@
  :transport/contact-message-sent
  (fn [cofx [_ chat-id envelope-hash]]
    (transport.message/set-contact-message-envelope-hash cofx chat-id envelope-hash)))
+
+(handlers/register-handler-fx
+ :desktop/handle-universal-link
+ (fn [cofx [_ url]]
+   (universal-links/handle-url cofx url)
+   (desktop.deep-links/on-url-opened)))
