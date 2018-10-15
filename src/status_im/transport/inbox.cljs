@@ -28,7 +28,8 @@
 
 (def one-day (* 24 3600))
 (def seven-days (* 7 one-day))
-(def maximum-number-of-attemps 3)
+(def maximum-number-of-attemps 1)
+(def request-timeout 30)
 
 (def connection-timeout
   "Time after which mailserver connection is considered to have failed"
@@ -178,6 +179,7 @@
                     (clj->js {:topic          topic
                               :mailServerPeer address
                               :symKeyID       sym-key-id
+                              :timeout        request-timeout
                               :from           from
                               :to             to})
                     (fn [error request-id]
