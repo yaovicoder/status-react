@@ -186,8 +186,6 @@ int main(int argc, char **argv) {
   QGuiApplication app(argc, argv);
 
   app.setApplicationName("StatusIm");
-  qDebug() << "APP-START" << QCoreApplication::arguments().at(0);
-  qDebug() << "APP-START 1" << QCoreApplication::arguments().last();
 
   QString appPath = QCoreApplication::applicationDirPath();
 #ifndef BUILD_FOR_BUNDLE
