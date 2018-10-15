@@ -1,5 +1,5 @@
 pipeline {
-  agent { label 'macos' }
+  agent { label 'macos-01' }
 
   options {
     buildDiscarder(logRotator(
@@ -15,7 +15,7 @@ pipeline {
     LANGUAGE = 'en_US.UTF-8'
     LC_ALL = 'en_US.UTF-8'
     QT_PATH = '/usr/local/opt/qt'
-    PATH = "/usr/local/opt/qt/bin:${env.PATH}"
+    PATH = "/usr/local/opt/qt/bin:/usr/local/bin:${env.PATH}"
   }
 
   stages {

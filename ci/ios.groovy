@@ -18,7 +18,9 @@ def compile(type = 'nightly') {
     string(credentialsId: 'APPLE_ID', variable: 'APPLE_ID'),
     string(credentialsId: 'fastlane-match-password', variable:'MATCH_PASSWORD')
   ]) {
-    sh "bundle exec fastlane ios ${target}"
+    sshagent(credentials: ['status-im-auto-ssh']) {
+      sh "bundle exec fastlane ios ${target}"
+    }
   }
   def pkg = common.pkgFilename(type, 'ipa')
   sh "cp status-adhoc/StatusIm.ipa ${pkg}"
