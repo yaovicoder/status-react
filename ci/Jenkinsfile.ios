@@ -1,5 +1,5 @@
 pipeline {
-  agent { label 'fastlane' }
+  agent { label 'macos-01' }
 
   options {
     buildDiscarder(logRotator(
@@ -17,6 +17,7 @@ pipeline {
     FASTLANE_DISABLE_COLORS=1
     REALM_DISABLE_ANALYTICS=1
     BUNDLE_PATH = "${HOME}/.bundle"
+    PATH = "/usr/local/bin:${env.PATH}"
   }
 
   stages {
