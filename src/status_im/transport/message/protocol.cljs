@@ -107,11 +107,14 @@
   (receive [this chat-id signature _ cofx]
     {:chat-received-message/add-fx
      [(assoc (into {} this)
-             :message-id (transport.utils/message-id this)
-             :show?      true
-             :chat-id    chat-id
-             :from       signature
-             :js-obj     (:js-obj cofx))]})
+             :message-id            (transport.utils/message-id this)
+             ;; TODO(rasom): remove this condition
+             ;; on 8th day after 0.9.30 release
+             :message-id-old-format (transport.utils/message-id-old-format this)
+             :show?                 true
+             :chat-id               chat-id
+             :from                  signature
+             :js-obj                (:js-obj cofx))]})
   (validate [this]
     (if (spec/valid? :message/message this)
       this
