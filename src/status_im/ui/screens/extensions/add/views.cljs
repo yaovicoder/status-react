@@ -52,8 +52,8 @@
        [components.common/bottom-button
         {:forward?  true
          :label     (i18n/label :t/install)
-         :disabled? (not (empty? errors))
-         :on-press  #(re-frame/dispatch [:extension/install data])}]]]]))
+         :disabled? false
+         :on-press  #(re-frame/dispatch [:extensions.ui/find-button-pressed data])}]]]]))
 
 (views/defview edit-extension []
   (views/letsubs [manage-extension [:get-manage-extension]]
@@ -68,6 +68,7 @@
            {:label          (i18n/label :t/extension-address)
             :style          styles/input
             :container      styles/input-container
+            :default-value  url
             :placeholder    (i18n/label :t/extension-url)
             :on-change-text #(re-frame/dispatch [:extensions.ui/input-changed :url %])}]]]
         [react/view styles/bottom-container
@@ -76,4 +77,4 @@
           {:forward?  true
            :label     (i18n/label :t/find)
            :disabled? (string/blank? url)
-           :on-press  #(re-frame/dispatch [:extensions.ui/save-pressed])}]]]])))
+           :on-press  #(re-frame/dispatch [:extensions.ui/show-button-pressed url])}]]]])))

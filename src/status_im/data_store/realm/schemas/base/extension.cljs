@@ -2,5 +2,10 @@
 
 (def v12 {:name       :extension
           :primaryKey :id
-          :properties {:id  :string
-                       :url {:type :string}}})
+          :properties {:id      :string
+                       :name    {:type :string}
+                       :url     {:type :string}
+                       :active? {:type    :bool
+                                 :default true}
+                       :data    {:type     :string
+                                 :optional true}}})

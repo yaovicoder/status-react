@@ -420,10 +420,20 @@
    (extensions/set-input cofx input-key value)))
 
 (handlers/register-handler-fx
- :extensions.ui/save-pressed
+ :extensions.ui/activation-checkbox-pressed
+ (fn [cofx [_ id state]]
+   (extensions/toggle-activation cofx id state)))
+
+(handlers/register-handler-fx
+ :extensions.ui/find-button-pressed
  [(re-frame/inject-cofx :random-id-generator)]
- (fn [cofx _]
-   (extensions/upsert cofx)))
+ (fn [cofx [_ data]]
+   (extensions/find cofx data)))
+
+(handlers/register-handler-fx
+ :extensions.ui/show-button-pressed
+ (fn [_ [_ uri]]
+   {:extension/load [uri :extension/stage]}))
 
 ;; log-level module
 

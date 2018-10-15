@@ -14,14 +14,14 @@
   [react/view (styles/wnode-icon true)
    [vector-icons/icon :icons/wnode {:color :white}]])
 
-(defn- render-extension [{:keys [id url]}]
+(defn- render-extension [{:keys [id name url active?]}]
   [list/list-item-with-checkbox
-   {:checked?        (= :active id)                         ;;TODO(alwx):
-    :on-value-change #(re-frame/dispatch [:extension/toggle-activation id %])}
+   {:checked?        active?
+    :on-value-change #(re-frame/dispatch [:extensions.ui/activation-checkbox-pressed id %])}
    [list/item
     wnode-icon
     [list/item-content
-     [list/item-primary id]
+     [list/item-primary name]
      [list/item-secondary url]]]])
 
 (views/defview extensions-settings []

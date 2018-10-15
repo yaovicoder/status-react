@@ -6,9 +6,15 @@
 
 (spec/def ::not-blank-string (complement string/blank?))
 
-(spec/def :extension/url ::not-blank-string)
 (spec/def :extension/id ::not-blank-string)
+(spec/def :extension/name ::not-blank-string)
+(spec/def :extension/url ::not-blank-string)
+(spec/def :extension/active? boolean?)
+(spec/def :extension/data (spec/nilable string?))
 (spec/def :extension/extension (allowed-keys :req-un [:extension/id
-                                                      :extension/url]))
+                                                      :extension/name
+                                                      :extension/url
+                                                      :extension/active?
+                                                      :extension/data]))
 
 (spec/def :extensions/extensions (spec/nilable (spec/map-of :extension/id :extension/extension)))
