@@ -32,6 +32,7 @@
   [{{:keys [web3] :as db} :db :as cofx}]
   (if (:account/account db)
     {:web3/get-syncing web3
+     :web3/get-block-number web3
      :dispatch-later    [{:ms 10000 :dispatch [:protocol/state-sync-timed-out]}]}
     (semaphores/free cofx :check-sync-state?)))
 
