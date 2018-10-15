@@ -35,6 +35,8 @@
             [status-im.signals.core :as signals]
             [status-im.transport.inbox :as inbox]
             [status-im.transport.message.core :as transport.message]
+            [status-im.node.core :as node]
+            [status-im.web3.core :as web3]
             [status-im.ui.screens.currency-settings.models
              :as
              currency-settings.models]
@@ -114,6 +116,14 @@
  :init.callback/keychain-reset
  (fn [cofx _]
    (init/initialize-keychain cofx)))
+
+;; home screen
+
+(handlers/register-handler-fx
+ :home.ui/sync-info-pressed
+ (fn [cofx name]
+   (log/debug "igorm -> sync info pressed" name)
+   (node/display-les-debug-info cofx)))
 
 ;; accounts module
 
@@ -668,7 +678,12 @@
 (handlers/register-handler-fx
  :web3.callback/get-syncing-success
  (fn [cofx [_ error sync]]
-   (protocol/update-sync-state cofx error sync)))
+   (web3/update-syncing-progress cofx error sync)))
+
+(handlers/register-handler-fx
+ :web3.callback/get-block-number
+ (fn [cofx [_ error block-number]]
+   (node/update-block-number cofx error block-number)))
 
 ;; notifications module
 
