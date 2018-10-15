@@ -176,8 +176,8 @@
      [profile.components/settings-item-separator])
    (when config/pairing-enabled?
      [profile.components/settings-item
-      {:label-kw            :t/pair-devices
-       :action-fn           #(re-frame/dispatch [:pairing.ui/pair-devices-pressed])
+      {:label-kw            :t/devices
+       :action-fn           #(re-frame/dispatch [:navigate-to :installations])
        :accessibility-label :pairing-settings-button}])
    (when dev-mode?
      [profile.components/settings-switch-item

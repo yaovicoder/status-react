@@ -90,6 +90,7 @@
   (re-frame/inject-cofx :data-store/message-ids)
   (re-frame/inject-cofx :data-store/get-local-storage-data)
   (re-frame/inject-cofx :data-store/get-all-contacts)
+  (re-frame/inject-cofx :data-store/get-all-installations)
   (re-frame/inject-cofx :data-store/get-all-mailservers)
   (re-frame/inject-cofx :data-store/transport)
   (re-frame/inject-cofx :data-store/transport-inbox-topics)
@@ -1012,3 +1013,9 @@
  []
  (fn [cofx _]
    (pairing/start cofx)))
+
+(handlers/register-handler-fx
+ :pairing.ui/synchronize-installation-pressed
+ []
+ (fn [cofx _]
+   (pairing/send-installation-message cofx)))
