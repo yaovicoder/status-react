@@ -164,16 +164,16 @@ function compile() {
             -DEXTERNAL_MODULES_DIR="$EXTERNAL_MODULES_DIR" \
             -DDESKTOP_FONTS="$DESKTOP_FONTS" \
             -DJS_BUNDLE_PATH="$JS_BUNDLE_PATH" \
-            -DCMAKE_CXX_FLAGS:='-DBUILD_FOR_BUNDLE=1'
+            -DCMAKE_CXX_FLAGS:='-DBUILD_FOR_BUNDLE=1' || exit 1
     else
       cmake -Wno-dev \
             -DCMAKE_BUILD_TYPE=Release \
             -DEXTERNAL_MODULES_DIR="$EXTERNAL_MODULES_DIR" \
             -DDESKTOP_FONTS="$DESKTOP_FONTS" \
             -DJS_BUNDLE_PATH="$JS_BUNDLE_PATH" \
-            -DCMAKE_CXX_FLAGS:='-DBUILD_FOR_BUNDLE=1'
+            -DCMAKE_CXX_FLAGS:='-DBUILD_FOR_BUNDLE=1' || exit 1
     fi
-    make -j5
+    make -j5 || exit 1
   popd
 }
 
@@ -204,7 +204,7 @@ function bundleLinux() {
   cp -r ./deployment/linux/usr $WORKFOLDER/AppDir
   cp ./.env $usrBinPath
   cp ./desktop/bin/Status $usrBinPath
-  cp ./desktop/reportApp/reportApp $usrBinPath
+  cp ./desktop/bin/reportApp $usrBinPath
   
   if [ ! -f $DEPLOYQT ]; then
     wget --output-document="$DEPLOYQT" --show-progress -q https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
