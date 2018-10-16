@@ -33,11 +33,13 @@ else()
   set(CONFIGURE_SCRIPT build-status-go.sh)
 endif()
 
+file (STRINGS "../../../STATUS_GO_VERSION" STATUS_GO_VERSION)
+
 ExternalProject_Add(StatusGo_ep
   PREFIX ${StatusGo_PREFIX}
   SOURCE_DIR ${StatusGo_SOURCE_DIR}
   GIT_REPOSITORY https://github.com/status-im/status-go.git
-  GIT_TAG c86f8bf6ca35280e7041674f76a2ef1fe333e482
+  GIT_TAG "v${STATUS_GO_VERSION}"
 
   BUILD_BYPRODUCTS ${StatusGo_STATIC_LIB}
   CONFIGURE_COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/${CONFIGURE_SCRIPT} ${GO_ROOT_PATH} ${StatusGo_ROOT} ${StatusGo_SOURCE_DIR}
