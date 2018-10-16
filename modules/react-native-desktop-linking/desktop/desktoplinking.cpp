@@ -5,6 +5,8 @@
 #include <QCoreApplication>
 #include <QDebug>
 #include <QDesktopServices>
+#include <QUrl>
+#include <QFileOpenEvent>
 
 namespace {
 struct RegisterQMLMetaType {
@@ -15,7 +17,6 @@ struct RegisterQMLMetaType {
 class DesktopLinkingPrivate {
 public:
   Bridge *bridge = nullptr;
-  double callbackId;
 };
 
 DesktopLinking::DesktopLinking(QObject *parent)
@@ -44,11 +45,29 @@ QVariantMap DesktopLinking::constantsToExport() { return QVariantMap(); }
 void DesktopLinking::handleURL(const QString url) {
     Q_D(DesktopLinking);
     qDebug() << "call of DesktopLinking::handleURL with param path: " << url;
-    d->bridge->invokePromiseCallback(d->callbackId, QVariantList{url});
+    d->bridge->eventDispatcher()->sendDeviceEvent("urlOpened", QVariantList{url});
 }
 
-void DesktopLinking::onUrlOpened(double callbackId) {
-    Q_D(DesktopLinking);
-    d->callbackId = callbackId;
-    qDebug() << "call of DesktopLinking::setCallback with param callbackId: " << callbackId;
+
+bool DesktopLinking::eventFilter(QObject* obj, QEvent* event) {
+    if (event->type() == QEvent::FileOpen)
+    {
+        QFileOpenEvent* fileEvent = static_cast<QFileOpenEvent*>(event);
+        if (!fileEvent->url().isEmpty())
+        {
+            auto m_lastUrl = fileEvent->url().toString();
+            emit urlOpened(m_lastUrl);
+        }
+        else if (!fileEvent->file().isEmpty())
+        {
+            emit fileOpened(fileEvent->file());
+        }
+
+        return false;
+    }
+    else
+    {
+        // standard event processing
+        return QObject::eventFilter(obj, event);
+    }
 }

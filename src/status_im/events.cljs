@@ -1050,5 +1050,4 @@
 (handlers/register-handler-fx
  :desktop/handle-universal-link
  (fn [cofx [_ url]]
-   (desktop.deep-links/on-url-opened)
    (universal-links/handle-url cofx url)))

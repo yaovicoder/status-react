@@ -11,7 +11,7 @@
 
 (defn app-root []
   (reagent/create-class
-   {:component-did-mount deep-links/on-url-opened
+   {:component-did-mount deep-links/add-event-listener
     :reagent-render      views/main}))
 
 (defn init []

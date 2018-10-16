@@ -28,4 +28,4 @@
 (def background-timer       (.-default (js/require "react-native-background-timer")))
 (def testfairy              (js/require "react-native-testfairy"))
 (def react-navigation       (js/require "react-navigation"))
-(def desktop-linking        #js {:onUrlOpened (fn [])})
+(def desktop-linking        #js {:addEventListener (fn [])})
