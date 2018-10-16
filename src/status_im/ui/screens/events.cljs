@@ -66,7 +66,8 @@
 
 (defn- http-post [{:keys [url data response-validator success-event-creator failure-event-creator timeout-ms opts]}]
   (let [on-success #(re-frame/dispatch (success-event-creator %))
-        on-error   #(re-frame/dispatch (failure-event-creator %))
+        on-error   (fn [{:keys [response-body]}]
+                     (re-frame/dispatch (failure-event-creator response-body)))
         all-opts   (assoc opts
                           :valid-response? response-validator
                           :timeout-ms      timeout-ms)]
