@@ -12,18 +12,6 @@
 # Fastlane is updated quite frequently with security patches
 update_fastlane
 
-# unlocks keychain if KEYCHAIN_PASSWORD variable is present
-# (to be used on CI machines)
-def unlock_keychain_if_needed
-    if ENV["KEYCHAIN_PASSWORD"]
-        unlock_keychain(
-            path:"login.keychain",
-            password:ENV["KEYCHAIN_PASSWORD"],
-            set_default: true)
-    end
-end
-
-
 # uploads `file` to sauce labs (overwrites if there is anoter file from the
 # same commit)
 def upload_to_saucelabs(file)
