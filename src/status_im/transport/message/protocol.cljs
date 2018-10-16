@@ -105,16 +105,18 @@
            this)
           (send-with-pubkey cofx params)))))
   (receive [this chat-id signature _ cofx]
-    {:chat-received-message/add-fx
-     [(assoc (into {} this)
-             :message-id            (transport.utils/message-id this)
-             ;; TODO(rasom): remove this condition
-             ;; on when 0.9.29 will not be available for users
-             :message-id-old-format (transport.utils/message-id-old-format this)
-             :show?                 true
-             :chat-id               chat-id
-             :from                  signature
-             :js-obj                (:js-obj cofx))]})
+    (let [message-map (into {} this)
+          old-message (map->Message (update message-map :content :text))]
+      {:chat-received-message/add-fx
+       [(assoc message-map
+               :message-id (transport.utils/message-id this)
+               ;; TODO(rasom): remove this condition
+               ;; on when 0.9.29 will not be available for users
+               :message-id-old-format (transport.utils/message-id-old-format old-message)
+               :show? true
+               :chat-id chat-id
+               :from signature
+               :js-obj (:js-obj cofx))]}))
   (validate [this]
     (if (spec/valid? :message/message this)
       this
