@@ -437,10 +437,10 @@
    {:extension/load [uri :extension/stage]}))
 
 (handlers/register-handler-fx
- :extensions.ui/find-button-pressed
+ :extensions.ui/install-button-pressed
  [(re-frame/inject-cofx :random-id-generator)]
  (fn [cofx [_ data]]
-   (extensions/find cofx data)))
+   (extensions/install cofx data)))
 
 ;; log-level module
 

@@ -67,7 +67,7 @@
           {:forward?  true
            :label     (i18n/label :t/install)
            :disabled? (not (empty? errors))
-           :on-press  #(re-frame/dispatch [:extensions.ui/find-button-pressed data])}]]]]
+           :on-press  #(re-frame/dispatch [:extensions.ui/install-button-pressed data])}]]]]
       [react/view styles/screen
        [status-bar/status-bar]
        [react/view {:flex 1}

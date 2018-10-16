@@ -208,7 +208,7 @@
               (when active?
                 #(registry/activate extension-key %)))))
 
-(fx/defn find
+(fx/defn install
   [{{:extensions/keys [manage] :account/keys [account] :as db} :db
     random-id-generator :random-id-generator :as cofx}
    extension-data]
