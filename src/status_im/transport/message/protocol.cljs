@@ -125,7 +125,7 @@
                            chat-id
                            nil
                            this)
-      (send-with-sym-key cofx {:chat-id chat-id
+      (send-with-pubkey cofx {:chat-id chat-id
                                :payload this})))
   (receive [this chat-id signature _ cofx]
     (chat/receive-seen cofx chat-id signature this))
