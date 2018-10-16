@@ -208,10 +208,10 @@ void RCTStatus::signGroupMembership(QString content, double callbackId) {
 
 void RCTStatus::extractGroupMembershipSignatures(QString signatures, double callbackId) {
     Q_D(RCTStatus);
-    qDebug() << "call of RCTStatus::extractGroupMembershipSignatures with param callbackId: " << callbackId;
+    qDebug() << "call of RCTStatus::verifyGroupMembershipSignatures with param callbackId: " << callbackId;
     QtConcurrent::run([&](QString signatures, double callbackId) {
             const char* result = ExtractGroupMembershipSignatures(signatures.toUtf8().data());
-            qDebug() << "RCTStatus::extractGroupMembershipSignatures ExtractGroupMembershipSignatures result: " << statusGoResultError(result);
+            qDebug() << "RCTStatus::extractGroupMembershipSignatures VerifyGroupMembershipSignatures result: " << statusGoResultError(result);
             d->bridge->invokePromiseCallback(callbackId, QVariantList{result});
         }, signatures, callbackId);
 }
