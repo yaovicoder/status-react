@@ -336,8 +336,8 @@
 
 (handlers/register-handler-fx
  :network.ui/connect-network-pressed
- (fn [cofx [_ network]]
-   (network/connect cofx {:network network})))
+ (fn [cofx [_ network-id]]
+   (network/connect cofx {:network-id network-id})))
 
 (handlers/register-handler-fx
  :network.ui/delete-network-pressed
