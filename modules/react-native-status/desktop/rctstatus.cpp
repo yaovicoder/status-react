@@ -198,22 +198,42 @@ void RCTStatus::signMessage(QString rpcParams, double callbackId) {
 
 void RCTStatus::signGroupMembership(QString content, double callbackId) {
     Q_D(RCTStatus);
-    qDebug() << "call of RCTStatus::signGroupMembership with param callbackId: " << callbackId;
+    rnLog(RCTSTATUS) << "call of RCTStatus::signGroupMembership with param callbackId: " << callbackId;
     QtConcurrent::run([&](QString content, double callbackId) {
             const char* result = SignGroupMembership(content.toUtf8().data());
-            qDebug() << "RCTStatus::signGroupMembership SignGroupMembership result: " << statusGoResultError(result);
+            rnLog(RCTSTATUS) << "RCTStatus::signGroupMembership SignGroupMembership result: " << statusGoResultError(result);
             d->bridge->invokePromiseCallback(callbackId, QVariantList{result});
         }, content, callbackId);
 }
 
 void RCTStatus::extractGroupMembershipSignatures(QString signatures, double callbackId) {
     Q_D(RCTStatus);
-    qDebug() << "call of RCTStatus::extractGroupMembershipSignatures with param callbackId: " << callbackId;
+    rnLog(RCTSTATUS) << "call of RCTStatus::extractGroupMembershipSignatures with param callbackId: " << callbackId;
     QtConcurrent::run([&](QString signatures, double callbackId) {
             const char* result = ExtractGroupMembershipSignatures(signatures.toUtf8().data());
-            qDebug() << "RCTStatus::extractGroupMembershipSignatures ExtractGroupMembershipSignatures result: " << statusGoResultError(result);
+            rnLog(RCTSTATUS) << "RCTStatus::extractGroupMembershipSignatures ExtractGroupMembershipSignatures result: " << statusGoResultError(result);
             d->bridge->invokePromiseCallback(callbackId, QVariantList{result});
         }, signatures, callbackId);
+}
+
+void RCTStatus::enableInstallation(QString installationId, double callbackId) {
+    Q_D(RCTStatus);
+    rnLog(RCTSTATUS) << "call of RCTStatus::enableInstallation with param callbackId: " << callbackId;
+    QtConcurrent::run([&](QString installationId, double callbackId) {
+            const char* result = EnableInstallation(installationId.toUtf8().data());
+            rnLog(RCTSTATUS) << "RCTStatus::enableInstallation EnableInstallation result: " << statusGoResultError(result);
+            d->bridge->invokePromiseCallback(callbackId, QVariantList{result});
+        }, installationId, callbackId);
+}
+
+void RCTStatus::disableInstallation(QString installationId, double callbackId) {
+    Q_D(RCTStatus);
+    rnLog(RCTSTATUS) << "call of RCTStatus::disableInstallation with param callbackId: " << callbackId;
+    QtConcurrent::run([&](QString installationId, double callbackId) {
+            const char* result = DisableInstallation(installationId.toUtf8().data());
+            rnLog(RCTSTATUS) << "RCTStatus::disableInstallation DisableInstallation result: " << statusGoResultError(result);
+            d->bridge->invokePromiseCallback(callbackId, QVariantList{result});
+        }, installationId, callbackId);
 }
 
 void RCTStatus::setAdjustResize() {
