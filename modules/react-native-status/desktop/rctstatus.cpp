@@ -216,6 +216,26 @@ void RCTStatus::extractGroupMembershipSignatures(QString signatures, double call
         }, signatures, callbackId);
 }
 
+void RCTStatus::enableInstallation(QString installationId, double callbackId) {
+    Q_D(RCTStatus);
+    qDebug() << "call of RCTStatus::enableInstallation with param callbackId: " << callbackId;
+    QtConcurrent::run([&](QString installationId, double callbackId) {
+            const char* result = EnableInstallation(installationId.toUtf8().data());
+            qDebug() << "RCTStatus::enableInstallation EnableInstallation result: " << statusGoResultError(result);
+            d->bridge->invokePromiseCallback(callbackId, QVariantList{result});
+        }, installationId, callbackId);
+}
+
+void RCTStatus::disableInstallation(QString installationId, double callbackId) {
+    Q_D(RCTStatus);
+    qDebug() << "call of RCTStatus::disableInstallation with param callbackId: " << callbackId;
+    QtConcurrent::run([&](QString installationId, double callbackId) {
+            const char* result = DisableInstallation(installationId.toUtf8().data());
+            qDebug() << "RCTStatus::disableInstallation DisableInstallation result: " << statusGoResultError(result);
+            d->bridge->invokePromiseCallback(callbackId, QVariantList{result});
+        }, installationId, callbackId);
+}
+
 void RCTStatus::setAdjustResize() {
 }
 
