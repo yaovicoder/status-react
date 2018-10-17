@@ -18,7 +18,12 @@
                  installation
                  true)))
 
-(defn confirm
+(defn enable
   [installation-id]
   (save {:installation-id installation-id
          :confirmed? true}))
+
+(defn disable
+  [installation-id]
+  (save {:installation-id installation-id
+         :confirmed? false}))

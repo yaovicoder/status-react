@@ -3,6 +3,7 @@
   (:require [re-frame.core :as re-frame]
             [status-im.i18n :as i18n]
             [status-im.utils.config :as config]
+            [status-im.ui.components.button.view :as buttons]
             [status-im.ui.components.colors :as colors]
             [status-im.ui.components.icons.vector-icons :as vector-icons]
             [status-im.ui.components.list.views :as list]
@@ -19,14 +20,27 @@
 (defn pair! []
   (re-frame/dispatch [:pairing.ui/pair-devices-pressed]))
 
-(defn render-row [{:keys [installation-id]}]
+(defn enable-installation! [installation-id _]
+  (re-frame/dispatch [:pairing.ui/enable-installation-pressed installation-id]))
+
+(defn disable-installation! [installation-id _]
+  (re-frame/dispatch [:pairing.ui/disable-installation-pressed installation-id]))
+
+(defn render-row [{:keys [confirmed? installation-id]}]
   [react/touchable-highlight
    {:on-press            #(synchronize-installation! installation-id)
     :accessibility-label :installation-item}
    [react/view styles/installation-item
     [react/view styles/installation-item-inner
      [react/text {:style styles/installation-item-name-text}
-      installation-id]]]])
+      installation-id]
+     (if confirmed?
+       [buttons/primary-button
+        {:on-press (partial disable-installation! installation-id)}
+        "Enabled"]
+       [buttons/secondary-button
+        {:on-press (partial enable-installation! installation-id)}
+        "Disabled"])]]])
 
 (defn render-rows [installations]
   [react/view styles/wrapper

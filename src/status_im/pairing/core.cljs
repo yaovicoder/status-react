@@ -1,12 +1,19 @@
 (ns status-im.pairing.core
   (:require
+   [re-frame.core :as re-frame]
    [status-im.utils.fx :as fx]
    [status-im.utils.config :as config]
    [status-im.transport.message.protocol :as protocol]
    [status-im.data-store.installations :as data-store.installations]
+   [status-im.native-module.core :as native-module]
    [status-im.utils.identicon :as identicon]
    [status-im.data-store.contacts :as data-store.contacts]
    [status-im.transport.message.pairing :as transport.pairing]))
+
+(defn- parse-response [response-js]
+  (-> response-js
+      js/JSON.parse
+      (js->clj :keywordize-keys true)))
 
 (defn start [cofx]
   (let [{:keys [current-public-key web3]} (:db cofx)]
@@ -48,6 +55,56 @@
     (map
      (fn [[k v]] (transport.pairing/SyncInstallation. {k (dissoc v :photo-path)}))
      contacts)))
+
+(defn enable [{:keys [db]} installation-id]
+  {:db (assoc-in db
+                 [:pairing/installations installation-id :confirmed?]
+                 true)
+   :data-store/tx [(data-store.installations/enable installation-id)]})
+
+(defn disable [{:keys [db]} installation-id]
+  {:db (assoc-in db
+                 [:pairing/installations installation-id :confirmed?]
+                 false)
+   :data-store/tx [(data-store.installations/disable installation-id)]})
+
+(defn handle-enable-installation-response
+  "Callback to dispatch on enable signature response"
+  [installation-id response-js]
+  (let [{:keys [error]} (parse-response response-js)]
+    (if error
+      (re-frame/dispatch [:pairing.callback/enable-installation-failed  error])
+      (re-frame/dispatch [:pairing.callback/enable-installation-success installation-id]))))
+
+(defn handle-disable-installation-response
+  "Callback to dispatch on disable signature response"
+  [installation-id response-js]
+  (let [{:keys [error]} (parse-response response-js)]
+    (if error
+      (re-frame/dispatch [:pairing.callback/disable-installation-failed  error])
+      (re-frame/dispatch [:pairing.callback/disable-installation-success installation-id]))))
+
+(defn enable-installation! [installation-id]
+  (native-module/enable-installation installation-id
+                                     (partial handle-enable-installation-response installation-id)))
+
+(defn disable-installation! [installation-id]
+  (native-module/disable-installation installation-id
+                                      (partial handle-disable-installation-response installation-id)))
+
+(defn enable-fx [_ installation-id]
+  {:pairing/enable-installation installation-id})
+
+(defn disable-fx [_ installation-id]
+  {:pairing/disable-installation installation-id})
+
+(re-frame/reg-fx
+ :pairing/enable-installation
+ enable-installation!)
+
+(re-frame/reg-fx
+ :pairing/disable-installation
+ disable-installation!)
 
 (defn send-installation-message [cofx]
   ;; The message needs to be broken up in chunks as we hit the whisper size limit
