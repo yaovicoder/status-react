@@ -195,11 +195,10 @@
 
 (fx/defn start-public-chat
   "Starts a new public chat"
-  [cofx topic modal?]
+  [cofx topic opts]
   (fx/merge cofx
             (add-public-chat topic)
-            (navigate-to-chat topic {:modal?              modal?
-                                     :navigation-reset? true})
+            (navigate-to-chat topic opts)
             (public-chat/join-public-chat topic)))
 
 (fx/defn disable-chat-cooldown
