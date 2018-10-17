@@ -74,5 +74,6 @@
                                (not= network-id fetched-network-id))
                       (utils/show-popup
                        "Ethereum node started incorrectly"
-                       "Ethereum node was started with incorrect configuration, application will be stopped to recover from that condition."
+                       (str "Ethereum node was started with incorrect configuration, application will be stopped to recover from that condition."
+                            " Configured network id = " network-id ", actual = " fetched-network-id)
                        #(re-frame/dispatch [:protocol.ui/close-app-confirmed]))))))))
