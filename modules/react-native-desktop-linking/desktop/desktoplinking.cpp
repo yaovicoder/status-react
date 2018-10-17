@@ -45,9 +45,8 @@ QVariantMap DesktopLinking::constantsToExport() { return QVariantMap(); }
 void DesktopLinking::handleURL(const QString url) {
     Q_D(DesktopLinking);
     qDebug() << "call of DesktopLinking::handleURL with param path: " << url;
-    d->bridge->eventDispatcher()->sendDeviceEvent("urlOpened", QVariantList{url});
+    d->bridge->eventDispatcher()->sendDeviceEvent("urlOpened", QVariantMap{{"url", url}});
 }
-
 
 bool DesktopLinking::eventFilter(QObject* obj, QEvent* event) {
     if (event->type() == QEvent::FileOpen)
