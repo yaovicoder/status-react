@@ -227,7 +227,10 @@
                         :font  :default}
             (wallet.utils/display-symbol token)]]]]
         (when (and fiat-amount
-                   platform/mobile?)
+                   platform/mobile?
+                   ;;NOTE(goranjovic) - have to hide cross network asset fiat value until we can support
+                   ;; multiple chain prices simultaneously
+                   (not network-mismatch?))
           [react/view transactions-styles/command-send-fiat-amount
            [react/text {:style (transactions-styles/command-send-fiat-amount-text outgoing)}
             (str "~ " fiat-amount " " (or currency (i18n/label :usd-currency)))]])
@@ -412,7 +415,10 @@
                                [react/text {:style (transactions-styles/command-request-currency-text outgoing)
                                             :font  :default}
                                 asset]]]
-                             (when platform/mobile?
+                             (when (and platform/mobile?
+                                        ;;NOTE(goranjovic) - have to hide cross network asset fiat value until we can support
+                                        ;; multiple chain prices simultaneously
+                                        (not network-mismatch?))
                                [react/view transactions-styles/command-request-fiat-amount-row
                                 [react/text {:style (transactions-styles/command-request-fiat-amount-text outgoing)}
                                  (str "~ " fiat-amount " " (or currency (i18n/label :usd-currency)))]])
