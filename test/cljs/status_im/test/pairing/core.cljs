@@ -124,14 +124,14 @@
 
 (deftest handle-bundles-added-test
   (with-redefs [config/pairing-enabled? (constantly true)]
-    (let [installation-1 {:confirmed? true
+    (let [installation-1 {:has-bundle? false
                           :installation-id "installation-1"}
           cofx {:db {:current-public-key "us"
                      :pairing/installations {"installation-1" installation-1}}}]
       (testing "new installations"
         (let [new-installation {:identity "us" :installationID "installation-2"}
               expected {"installation-1" installation-1
-                        "installation-2" {:confirmed? false
+                        "installation-2" {:has-bundle? true
                                           :installation-id "installation-2"}}]
           (is (= expected (get-in (pairing/handle-bundles-added cofx new-installation) [:db :pairing/installations])))))
       (testing "already existing installation"
