@@ -8,6 +8,7 @@
                            js-dependencies/desktop-linking)]
     (.addListener event-emitter
                   "urlOpened"
-                  (fn [url]
-                    (log/debug "urlOpened event with url:" url)
-                    (re-frame/dispatch [:handle-universal-link url])))))
+                  (fn [data]
+                    (log/debug "urlOpened event with data:" data)
+                    (let [url (get (js->clj data) "url")]
+                      (re-frame/dispatch [:handle-universal-link url]))))))
