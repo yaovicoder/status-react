@@ -7,7 +7,8 @@
   (case chain
     (:testnet) "ropsten"
     (:mainnet) nil
-    (:rinkeby) "rinkeby"))
+    (:rinkeby) "rinkeby"
+    nil))
 
 (defn get-transaction-details-url [chain hash]
   (let [network-subdomain (get-network-subdomain chain)]
@@ -19,7 +20,8 @@
   (case chain
     (:testnet) "api-ropsten"
     (:mainnet) "api"
-    (:rinkeby) "api-rinkeby"))
+    (:rinkeby) "api-rinkeby"
+    "api"))
 
 (defn get-transaction-url [chain account]
   (let [network-subdomain (get-api-network-subdomain chain)]
