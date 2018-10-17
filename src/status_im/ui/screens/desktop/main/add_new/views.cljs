@@ -109,7 +109,7 @@
             create-public-chat #(when-not topic-error
                                   (do
                                     (re-frame/dispatch [:set :public-group-topic nil])
-                                    (re-frame/dispatch [:chat.ui/start-public-chat topic])))]
+                                    (re-frame/dispatch [:chat.ui/start-public-chat topic {:navigation-reset? true}])))]
         [react/view {:style styles/add-contact-edit-view}
          [react/view {:flex  1
                       :style (styles/add-pub-chat-input show-error-tooltip?)}
