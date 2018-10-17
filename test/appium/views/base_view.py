@@ -5,7 +5,7 @@ import base64
 import pytest
 import re
 import zbarlight
-from tests import common_password, test_fairy_warning_text
+from tests import common_password
 from eth_keys import datatypes
 from selenium.common.exceptions import NoSuchElementException, TimeoutException, StaleElementReferenceException
 from PIL import Image
@@ -189,13 +189,6 @@ class ConnectionStatusText(BaseText):
             "//*[@content-desc='connection-status-text']/android.widget.TextView")
 
 
-class TestFairyWarning(BaseText):
-    def __init__(self, driver):
-        super(TestFairyWarning, self).__init__(driver)
-        self.locator = self.Locator.text_selector(test_fairy_warning_text)
-        self.is_shown = bool()
-
-
 class OkContinueButton(BaseButton):
 
     def __init__(self, driver):
@@ -281,8 +274,6 @@ class BaseView(object):
 
         self.apps_button = AppsButton(self.driver)
         self.status_app_icon = StatusAppIcon(self.driver)
-
-        self.test_fairy_warning = TestFairyWarning(self.driver)
 
         self.wallet_modal_button = WalletModalButton(self.driver)
 
