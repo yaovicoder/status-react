@@ -51,6 +51,8 @@
           extension/v12
           account/v13])
 
+(def v14 v13)
+
 ;; put schemas ordered by version
 (def schemas [{:schema        v1
                :schemaVersion 1
@@ -90,4 +92,7 @@
                :migration     migrations/v12}
               {:schema        v13
                :schemaVersion 13
-               :migration     migrations/v13}])
+               :migration     migrations/v13}
+              {:schema        v14
+               :schemaVersion 14
+               :migration     migrations/v14}])
