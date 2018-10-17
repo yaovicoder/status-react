@@ -44,6 +44,10 @@ class TestTransactionWalletSingleDevice(SingleDeviceTestCase):
         sender = transaction_senders['P']
         sign_in_view = SignInView(self.driver)
         home_view = sign_in_view.recover_access(sender['passphrase'])
+        if self.switch_to_rinkeby:
+            profile = home_view.profile_button.click()
+            signin_view = profile.switch_network('Rinkeby with upstream RPC')
+            signin_view.sign_in()
         wallet_view = home_view.wallet_button.click()
         wallet_view.set_up_wallet()
         send_transaction = wallet_view.send_transaction_button.click()
