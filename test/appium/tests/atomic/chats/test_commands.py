@@ -70,6 +70,7 @@ class TestCommandsMultipleDevices(MultipleDeviceTestCase):
             self.errors.append('Request funds message was not received')
         self.verify_no_errors()
 
+    @pytest.mark.fixed
     @marks.testrail_id(5306)
     @marks.critical
     def test_send_eth_in_1_1_chat(self):
@@ -79,6 +80,13 @@ class TestCommandsMultipleDevices(MultipleDeviceTestCase):
         device_1, device_2 = SignInView(self.drivers[0]), SignInView(self.drivers[1])
         home_1 = device_1.recover_access(passphrase=sender['passphrase'])
         home_2 = device_2.recover_access(passphrase=recipient['passphrase'])
+        if self.switch_to_rinkeby:
+            profile1 = home_1.profile_button.click()
+            profile2 = home_2.profile_button.click()
+            signin_view_1 = profile1.switch_network('Rinkeby with upstream RPC')
+            signin_view_2 = profile2.switch_network('Rinkeby with upstream RPC')
+            signin_view_1.sign_in()
+            signin_view_2.sign_in()
         wallet_1, wallet_2 = home_1.wallet_button.click(), home_2.wallet_button.click()
         wallet_1.set_up_wallet()
         wallet_1.home_button.click()
@@ -137,6 +145,7 @@ class TestCommandsMultipleDevices(MultipleDeviceTestCase):
             self.errors.append(e.msg)
         self.verify_no_errors()
 
+    @pytest.mark.fixed
     @marks.testrail_id(5318)
     @marks.critical
     def test_request_and_receive_eth_in_1_1_chat(self):
@@ -146,6 +155,13 @@ class TestCommandsMultipleDevices(MultipleDeviceTestCase):
         device_1, device_2 = SignInView(self.drivers[0]), SignInView(self.drivers[1])
         home_1 = device_1.recover_access(passphrase=sender['passphrase'])
         home_2 = device_2.recover_access(passphrase=recipient['passphrase'])
+        if self.switch_to_rinkeby:
+            profile1 = home_1.profile_button.click()
+            profile2 = home_2.profile_button.click()
+            signin_view_1 = profile1.switch_network('Rinkeby with upstream RPC')
+            signin_view_2 = profile2.switch_network('Rinkeby with upstream RPC')
+            signin_view_1.sign_in()
+            signin_view_2.sign_in()
         wallet_1, wallet_2 = home_1.wallet_button.click(), home_2.wallet_button.click()
         wallet_1.set_up_wallet()
         wallet_1.home_button.click()

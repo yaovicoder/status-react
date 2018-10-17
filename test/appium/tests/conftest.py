@@ -190,10 +190,22 @@ def pytest_runtest_protocol(item, nextitem):
 
 
 @pytest.fixture(scope="session", autouse=False)
-def faucet_for_senders():
-    network_api = NetworkApi()
+def faucet_for_senders(request):
+    network = request.config.getoption('network')
+    network_api = NetworkApi(network)
     for user in transaction_senders.values():
         network_api.faucet(address=user['address'])
+
+
+@pytest.fixture(scope='class', autouse=True)
+def set_network_api_class_attribute(request):
+    network = request.config.getoption('network')
+    request.cls.network_api = NetworkApi(network=network)
+
+
+@pytest.fixture(scope='function', autouse=True)
+def force_switching_network_to_rinkeby(request):
+    request.instance.switch_to_rinkeby = True if request.config.getoption('network') == 'rinkeby' else False
 
 
 @pytest.fixture
