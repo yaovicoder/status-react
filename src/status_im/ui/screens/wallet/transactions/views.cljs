@@ -162,7 +162,7 @@
       (-> amount (money/token->unit (:decimals token)) money/to-fixed str))
     "..."))
 
-(defn details-header [{:keys [value date type symbol token]}]
+(defn details-header [{:keys [date symbol symbol-fiat token type value value-fiat]}]
   [react/view {:style styles/details-header}
    [react/view {:style styles/details-header-icon}
     [list/item-icon (transaction-type->icon type)]]
@@ -172,7 +172,14 @@
       (pretty-print-asset symbol value token)]
      " "
      [react/text {:accessibility-label :currency-text}
-      (clojure.string/upper-case (name symbol))]]
+      (clojure.string/upper-case (name symbol))]
+     " ("
+     [react/text {:accessibility-label :amount-text}
+      (str value-fiat)]
+     " "
+     [react/text {:accessibility-label :currency-text}
+      (clojure.string/upper-case (name symbol-fiat))]
+     ")"]
     [react/text {:style styles/details-header-date} date]]])
 
 (defn progress-bar [progress failed?]
@@ -209,10 +216,10 @@
        [react/text (merge {:style styles/details-item-extra-value} extra-props)
         (str extra-value)]]])))
 
-(defn details-list [{:keys [block hash
+(defn details-list [{:keys [block hash symbol
                             from from-wallet from-contact
                             to to-wallet to-contact
-                            gas-limit gas-price-gwei gas-price-eth gas-used cost nonce data]}]
+                            gas-limit gas-price-gwei gas-price-eth gas-used cost cost-fiat nonce data]}]
   [react/view {:style styles/details-block}
    [details-list-row :t/block block]
    [details-list-row :t/hash hash]
@@ -231,7 +238,7 @@
    [details-list-row :t/gas-limit gas-limit]
    [details-list-row :t/gas-price gas-price-gwei gas-price-eth]
    [details-list-row :t/gas-used gas-used]
-   [details-list-row :t/cost-fee cost]
+   [details-list-row :t/cost-fee cost cost-fiat]
    [details-list-row :t/nonce nonce]
    [details-list-row :t/data data]])
 
