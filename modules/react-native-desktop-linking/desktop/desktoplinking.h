@@ -31,7 +31,7 @@ public slots:
 
 private:
     QScopedPointer<DesktopLinkingPrivate> d_ptr;
-    bool eventFilter(QObject* obj, QEvent* event);
+    bool eventFilter(QObject* obj, QEvent* event) override;
 
 };
 
