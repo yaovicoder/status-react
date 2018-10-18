@@ -35,6 +35,7 @@ public:
     Q_INVOKABLE void sendNotification(QString text);
 private:
     QScopedPointer<DesktopNotificationPrivate> d_ptr;
+    bool m_appHasFocus = false;
 };
 
 #endif // DESKTOPNOTIFICATION_H
