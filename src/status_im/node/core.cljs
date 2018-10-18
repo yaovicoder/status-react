@@ -139,10 +139,14 @@
 
 (fx/defn initialize
   [{{:node/keys [status] :as db} :db :as cofx} address]
+  (log/debug "### 1initialize: " status)
   (let [restart {:db (assoc db :node/restart? true :node/address address)}]
     (case status
       :started (stop cofx)
-      :starting restart
+      :starting (do
+                  (when utils.platform/desktop?
+                    (status/stop-node))
+                  restart)
       :stopping restart
       (start cofx address))))
 
