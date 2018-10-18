@@ -89,7 +89,7 @@
       [pairing.views/render-row installation]])])
 
 (views/defview advanced-settings []
-  (views/letsubs [installations    [:pairing/installations]
+  (views/letsubs [installations         [:pairing/installations]
                   current-mailserver-id [:mailserver/current-id]
                   mailservers           [:mailserver/fleet-mailservers]]
     (let [render-fn (offline-messaging.views/render-row current-mailserver-id)]
