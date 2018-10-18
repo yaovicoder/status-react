@@ -260,8 +260,18 @@
               (accounts.update/account-update {:extensions new-extensions} {:success-event nil})
               #(toggle-fn extension-key %))))
 
-(defn load-active-extensions
-  [{:keys [db]}]
-  (let [extensions (vals (get-in db [:account/account :extensions]))]
-    (doseq [{:keys [url active?]} extensions]
-      (load-from url #(re-frame/dispatch [:extension/add (-> % read-extension parse :data) active?])))))
+(fx/defn load
+  [cofx url]
+  (if (->> (get-in cofx [:db :account/account :extensions])
+           vals
+           (filter #(= (:url %) (string/trim url)))
+           first)
+    {:utils/show-popup {:title   (i18n/label :t/error)
+                        :content (i18n/label :t/extension-is-already-added)}}
+    {:extensions/load [(string/trim url) :extensions/stage]}))
+
+(fx/defn activate-extensions
+  [{{:account/keys [account]} :db}]
+  (let [{:keys [extensions dev-mode?]} account]
+    (when dev-mode?
+      {:extensions/activate-all (vals extensions)})))
