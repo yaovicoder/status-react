@@ -183,6 +183,8 @@
 
 (def v18 v17)
 
+(def v19 v18)
+
 ;; put schemas ordered by version
 (def schemas [{:schema        v1
                :schemaVersion 1
@@ -237,4 +239,7 @@
                :migration     migrations/v17}
               {:schema        v18
                :schemaVersion 18
-               :migration     migrations/v18}])
+               :migration     migrations/v18}
+              {:schema        v19
+               :schemaVersion 19
+               :migration     migrations/v19}])
