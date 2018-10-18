@@ -75,9 +75,9 @@
          (i18n/label :copy-qr)]]]]]))
 
 (views/defview advanced-settings []
-  (views/letsubs [current-wnode-id [:settings/current-wnode]
-                  wnodes           [:settings/fleet-wnodes]]
-    (let [render-fn (offline-messaging.views/render-row current-wnode-id)]
+  (views/letsubs [current-mailserver-id [:mailserver/current-id]
+                  mailservers           [:mailserver/fleet-mailservers]]
+    (let [render-fn (offline-messaging.views/render-row current-mailserver-id)]
       [react/view
        [react/text {:style styles/advanced-settings-title
                     :font  :medium}
@@ -85,10 +85,10 @@
        [react/view {:style styles/title-separator}]
        [react/text {:style styles/mailserver-title} (i18n/label :offline-messaging)]
        [react/view
-        (for [node (vals wnodes)]
-          ^{:key (:id node)}
+        (for [mailserver (vals mailservers)]
+          ^{:key (:id mailserver)}
           [react/view {:style {:margin-vertical 8}}
-           [render-fn node]])]])))
+           [render-fn mailserver]])]])))
 
 (views/defview backup-recovery-phrase []
   [profile.recovery/backup-seed])
