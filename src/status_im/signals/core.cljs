@@ -3,7 +3,7 @@
             [status-im.accounts.login.core :as accounts.login]
             [status-im.init.core :as init]
             [status-im.node.core :as node]
-            [status-im.transport.inbox :as inbox]
+            [status-im.mailserver.core :as mailserver]
             [status-im.transport.message.core :as transport.message]
             [status-im.utils.fx :as fx]
             [status-im.utils.types :as types]
@@ -44,7 +44,7 @@
                           :peers-summary peers-summary
                           :peers-count peers-count)}
               (transport.message/resend-contact-messages previous-summary)
-              (inbox/peers-summary-change previous-summary))))
+              (mailserver/peers-summary-change previous-summary))))
 
 (fx/defn process
   [cofx event-str]
@@ -56,9 +56,9 @@
       "envelope.sent"      (transport.message/update-envelope-status cofx (:hash event) :sent)
       "envelope.expired"   (transport.message/update-envelope-status cofx (:hash event) :sent)
       "mailserver.request.completed" (when (accounts.db/logged-in? cofx)
-                                       (inbox/update-inbox-topics cofx {:request-id (:requestID event)
-                                                                        :cursor     (:cursor event)}))
+                                       (mailserver/update-mailserver-topics cofx {:request-id (:requestID event)
+                                                                                  :cursor     (:cursor event)}))
       "mailserver.request.expired"   (when (accounts.db/logged-in? cofx)
-                                       (inbox/resend-request cofx {:request-id (:hash event)}))
+                                       (mailserver/resend-request cofx {:request-id (:hash event)}))
       "discovery.summary"  (summary cofx event)
       (log/debug "Event " type " not handled"))))

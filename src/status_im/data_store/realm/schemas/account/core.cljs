@@ -2,6 +2,7 @@
   (:require [status-im.data-store.realm.schemas.account.chat :as chat]
             [status-im.data-store.realm.schemas.account.transport :as transport]
             [status-im.data-store.realm.schemas.account.transport-inbox-topic :as transport-inbox-topic]
+            [status-im.data-store.realm.schemas.account.mailserver-topic :as mailserver-topic]
             [status-im.data-store.realm.schemas.account.contact :as contact]
             [status-im.data-store.realm.schemas.account.message :as message]
             [status-im.data-store.realm.schemas.account.user-status :as user-status]
@@ -183,6 +184,18 @@
 
 (def v18 v17)
 
+(def v19 [chat/v8
+          transport/v7
+          mailserver-topic/v1
+          contact/v2
+          message/v7
+          mailserver/v11
+          user-status/v1
+          membership-update/v1
+          local-storage/v1
+          browser/v8
+          dapp-permissions/v9])
+
 ;; put schemas ordered by version
 (def schemas [{:schema        v1
                :schemaVersion 1
@@ -237,4 +250,7 @@
                :migration     migrations/v17}
               {:schema        v18
                :schemaVersion 18
-               :migration     migrations/v18}])
+               :migration     migrations/v18}
+              {:schema        v19
+               :schemaVersion 19
+               :migration     migrations/v19}])
