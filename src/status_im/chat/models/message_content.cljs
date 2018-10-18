@@ -13,23 +13,28 @@
 
 (def ^:private type->regex (merge actions stylings))
 
-(defn- right-to-left-text? [text]
-  (and (seq text)
-       (re-matches constants/regx-rtl-characters (first text))))
-
 (defn- query-regex [regex content]
   (loop [input   content
          matches []
          offset  0]
     (if-let [match (.exec regex input)]
       (let [match-value    (aget match 0)
+            match-size     (count match-value)
             relative-index (.-index match)
             start-index    (+ offset relative-index)
-            end-index      (+ start-index (count match-value))]
-        (recur (apply str (drop end-index input))
+            end-index      (+ start-index match-size)]
+        (recur (apply str (drop (+ relative-index match-size) input))
                (conj matches [start-index end-index])
                end-index))
       (seq matches))))
+
+(defn- right-to-left-text? [text]
+  (and (seq text)
+       (re-matches constants/regx-rtl-characters (first text))))
+
+(defn- should-collapse? [text]
+  (or (<= constants/chars-collapse-threshold (count text))
+      (<= constants/lines-collapse-threshold (inc (count (query-regex #"\n" text))))))
 
 (defn enrich-content
   "Enriches message content with `:metadata` and `:rtl?` information.
@@ -46,7 +51,8 @@
                             type->regex)]
     (cond-> content
       (seq metadata) (assoc :metadata metadata)
-      (right-to-left-text? text) (assoc :rtl? true))))
+      (right-to-left-text? text) (assoc :rtl? true)
+      (should-collapse? text) (assoc :should-collapse? true))))
 
 (defn- sorted-ranges [{:keys [metadata text]}]
   (->> metadata
