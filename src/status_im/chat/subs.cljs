@@ -3,6 +3,7 @@
             [re-frame.core :refer [reg-sub subscribe]]
             [status-im.utils.config :as utils.config]
             [status-im.chat.constants :as chat.constants]
+            [status-im.chat.models.message-content :as message-content]
             [status-im.chat.commands.core :as commands]
             [status-im.chat.commands.input :as commands.input]
             [status-im.utils.datetime :as time]
@@ -168,15 +169,18 @@
                          :type  :datemark})
                   (map (fn [{:keys [message-id timestamp-str]}]
                          (let [{:keys [content] :as message} (get messages message-id)
-                               quote (some-> (:response-to content)
-                                             (quoted-message-data messages referenced-messages))]
+                               quote         (some-> (:response-to content)
+                                                     (quoted-message-data messages referenced-messages))
+                               render-recipe (message-content/build-render-recipe content)]
                            (cond-> (-> message
                                        (update :content dissoc :response-to)
                                        (assoc :datemark      datemark
                                               :timestamp-str timestamp-str
                                               :user-statuses (get message-statuses message-id)))
                              quote ;; quoted message reference
-                             (assoc-in [:content :response-to] quote)))))
+                             (assoc-in [:content :response-to] quote)
+                             render-recipe
+                             (assoc-in [:content :render-recipe] render-recipe)))))
                   message-references))
           message-groups))
 
@@ -359,12 +363,17 @@
  (fn [[_ chat-id]]
    (subscribe [:get-chat chat-id]))
  (fn [{:keys [messages message-groups]}]
-   (->> (sort-message-groups message-groups messages)
-        first
-        second
-        last
-        :message-id
-        (get messages))))
+   (let [{:keys [content] :as message}
+         (->> (sort-message-groups message-groups messages)
+              first
+              second
+              last
+              :message-id
+              (get messages))
+         render-recipe (message-content/build-render-recipe
+                        content message-content/styling-keys)]
+     (cond-> message
+       render-recipe (assoc-in [:content :render-recipe] render-recipe)))))
 
 (reg-sub
  :chat-animations
