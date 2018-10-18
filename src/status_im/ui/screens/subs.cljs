@@ -3,6 +3,7 @@
             [status-im.utils.ethereum.core :as ethereum]
             status-im.chat.subs
             status-im.contact.subs
+            status-im.mailserver.subs
             status-im.ui.screens.accounts.subs
             status-im.ui.screens.extensions.subs
             status-im.ui.screens.home.subs
@@ -15,7 +16,6 @@
             status-im.ui.screens.network-settings.subs
             status-im.ui.screens.log-level-settings.subs
             status-im.ui.screens.fleet-settings.subs
-            status-im.ui.screens.offline-messaging-settings.subs
             status-im.ui.screens.bootnodes-settings.subs
             status-im.ui.screens.currency-settings.subs
             status-im.ui.screens.browser.subs
@@ -44,14 +44,6 @@
 (reg-sub :sync-state :sync-state)
 (reg-sub :network-status :network-status)
 (reg-sub :peers-count :peers-count)
-(reg-sub :mailserver-status :mailserver-status)
-
-(reg-sub :fetching?
-         (fn [db]
-           (let [pending-requests (get db :transport.inbox/pending-requests)]
-             (when (and (pos-int? pending-requests)
-                        (:transport.inbox/current-request db))
-               pending-requests))))
 
 (reg-sub :offline?
          :<- [:network-status]
@@ -64,11 +56,6 @@
          :<- [:peers-count]
          (fn [peers-count]
            (zero? peers-count)))
-
-(reg-sub :mailserver-error?
-         :<- [:mailserver-status]
-         (fn [mailserver-status]
-           (#{:error :disconnected} mailserver-status)))
 
 (reg-sub :syncing?
          :<- [:sync-state]
