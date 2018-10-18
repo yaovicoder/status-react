@@ -19,15 +19,9 @@
     (when normalized-key
       (subs (.sha3 js-dependencies/Web3.prototype normalized-key #js {:encoding "hex"}) 26))))
 
-(defn- address= [{:keys [address] :as contact} s]
-  (when (and address (= (ethereum/normalized-address s)
-                        (ethereum/normalized-address address)))
-    contact))
-
-(defn- contact-by-address [[_ contact] s]
-  (when (address= contact s)
+(defn- contact-by-address [[_ contact] address]
+  (when (ethereum/address= (:address contact) address)
     contact))
 
 (defn find-contact-by-address [contacts address]
   (some #(contact-by-address % address) contacts))
-
