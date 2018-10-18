@@ -45,6 +45,9 @@
 (defn add-peer [enode callback]
   (native-module/add-peer enode callback))
 
+(defn remove-peer [enode callback]
+  (native-module/remove-peer enode callback))
+
 (defn close-application []
   (native-module/close-application))
 
