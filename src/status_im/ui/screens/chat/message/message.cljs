@@ -63,10 +63,12 @@
                   :number-of-lines 5}
       text]]))
 
-(def ^:private kind->props-fn
-  {:bold   (constantly {:style {:font-weight :bold}})
-   :italic (constantly {:style {:font-style  :italic}})
-   :link   (fn [text {:keys [outgoing]}]
+(def ^:private styling->style
+  {:bold   {:font-weight :bold}
+   :italic {:font-style  :italic}})
+
+(def ^:private action->prop-fn
+  {:link   (fn [text {:keys [outgoing]}]
              {:style    {:color                (if outgoing colors/white colors/blue)
                          :text-decoration-line :underline}
               :on-press #(re-frame/dispatch [:browser.ui/message-link-pressed text])})
@@ -75,17 +77,16 @@
                          :text-decoration-line :underline}
               :on-press #(re-frame/dispatch [:chat.ui/start-public-chat (subs text 1)])})})
 
-(defn- eval-prop-fn [text-chunk message kind]
-  (when-let [prop-fn (kind->props-fn kind)]
-    (prop-fn text-chunk message)))
+(defn- lookup-props [text-chunk message kind-set]
+  (let [style   (apply merge (keep styling->style kind-set))
+        prop-fn (some action->prop-fn kind-set)]
+    (if prop-fn
+      (update (prop-fn text-chunk message) :style merge style)
+      {:style style})))
 
 (defn- render-chunks [render-recipe message]
   (map-indexed (fn [idx [text-chunk kind-set]]
-                 [react/text
-                  (merge {:key idx}
-                         (apply merge-with merge
-                                (keep (partial eval-prop-fn text-chunk message)
-                                      kind-set)))
+                 [react/text (into {:key idx} (lookup-props text-chunk message kind-set))
                   text-chunk])
                render-recipe))
 
