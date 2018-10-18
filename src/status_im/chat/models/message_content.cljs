@@ -2,20 +2,22 @@
   (:require [clojure.string :as string]
             [status-im.constants :as constants]))
 
-(def ^:private actions {:link    constants/regx-url
-                        :tag     constants/regx-tag
-                        :mention constants/regx-mention})
+(def ^:private actions [[:link    constants/regx-url]
+                        [:tag     constants/regx-tag]
+                        [:mention constants/regx-mention]])
 
 (def ^:private stylings {:bold   constants/regx-bold
                          :italic constants/regx-italic})
 
 (def ^:private styling-characters #"\*|~")
 
-(def ^:private type->regex (merge actions stylings))
+(defn- blank-string [size]
+  (apply str (take size (repeat " "))))
 
-(defn- right-to-left-text? [text]
-  (and (seq text)
-       (re-matches constants/regx-rtl-characters (first text))))
+(defn- clear-ranges [ranges input]
+  (reduce (fn [acc [start end]]
+            (apply str (subs acc 0 start) (blank-string (- end start)) (subs acc end)))
+          input ranges))
 
 (defn- query-regex [regex content]
   (loop [input   content
@@ -23,13 +25,22 @@
          offset  0]
     (if-let [match (.exec regex input)]
       (let [match-value    (aget match 0)
+            match-size     (count match-value)
             relative-index (.-index match)
             start-index    (+ offset relative-index)
-            end-index      (+ start-index (count match-value))]
-        (recur (apply str (drop end-index input))
+            end-index      (+ start-index match-size)]
+        (recur (apply str (drop (+ relative-index match-size) input))
                (conj matches [start-index end-index])
                end-index))
       (seq matches))))
+
+(defn- right-to-left-text? [text]
+  (and (seq text)
+       (re-matches constants/regx-rtl-characters (first text))))
+
+(defn- should-collapse? [text]
+  (or (<= constants/chars-collapse-threshold (count text))
+      (<= constants/lines-collapse-threshold (inc (count (query-regex #"\n" text))))))
 
 (defn enrich-content
   "Enriches message content with `:metadata` and `:rtl?` information.
@@ -38,15 +49,22 @@
   Value for each key is sequence of tuples representing ranges in original
   `:text` content. "
   [{:keys [text] :as content}]
-  (let [metadata (reduce-kv (fn [metadata type regex]
-                              (if-let [matches (query-regex regex text)]
-                                (assoc metadata type matches)
-                                metadata))
-                            {}
-                            type->regex)]
+  (let [[cleared-text actions-metadata] (reduce (fn [[text metadata] [type regex]]
+                                                  (if-let [matches (query-regex regex text)]
+                                                    [(clear-ranges matches text) (assoc metadata type matches)]
+                                                    [text metadata]))
+                                                [text {}]
+                                                actions)
+        metadata                        (reduce-kv (fn [metadata type regex]
+                                                     (if-let [matches (query-regex regex cleared-text)]
+                                                       (assoc metadata type matches)
+                                                       metadata))
+                                                   actions-metadata
+                                                   stylings)]
     (cond-> content
       (seq metadata) (assoc :metadata metadata)
-      (right-to-left-text? text) (assoc :rtl? true))))
+      (right-to-left-text? text) (assoc :rtl? true)
+      (should-collapse? text) (assoc :should-collapse? true))))
 
 (defn- sorted-ranges [{:keys [metadata text]}]
   (->> metadata
