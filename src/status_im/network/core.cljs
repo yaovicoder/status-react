@@ -130,25 +130,23 @@
 
 (fx/defn connect [{:keys [db]} {:keys [network-id on-success on-failure]}]
   (if-let [config (get-in db [:account/account :networks network-id :config])]
-    (do
-      (http/post (get-in config [:UpstreamConfig :URL])
-                 (types/clj->json {:jsonrpc "2.0"
-                                   :method  "web3_clientVersion"
-                                   :id      1})
-                 (fn [payload]
-                   (let [client-version (:result (http/parse-payload payload))]
-                     (re-frame/dispatch [::connect-success {:network-id     network-id
-                                                            :on-success     on-success
-                                                            :client-version client-version}])))
-                 (fn [{:keys [response-body status-code]}]
-                   (let [reason (if status-code
-                                  (str "Got a wrong status code: " status-code)
-                                  (str response-body))]
-                     (re-frame/dispatch [::connect-failure {:network-id network-id
-                                                            :on-failure on-failure
-                                                            :reason     reason}])))
-                 {:headers {"Content-Type" "application/json"}})
-      {:db db})
+    {:http-post {:url                   (get-in config [:UpstreamConfig :URL])
+                 :data                  (types/clj->json {:jsonrpc "2.0"
+                                                          :method  "web3_clientVersion"
+                                                          :id      1})
+                 :opts                  {:headers {"Content-Type" "application/json"}}
+                 :success-event-creator (fn [payload]
+                                          (let [client-version (:result (http/parse-payload payload))]
+                                            [::connect-success {:network-id     network-id
+                                                                :on-success     on-success
+                                                                :client-version client-version}]))
+                 :failure-event-creator (fn [{:keys [response-body status-code]}]
+                                          (let [reason (if status-code
+                                                         (str "Got a wrong status code: " status-code)
+                                                         (str response-body))]
+                                            (re-frame/dispatch [::connect-failure {:network-id network-id
+                                                                                   :on-failure on-failure
+                                                                                   :reason     reason}])))}}
     (connect-failure {:network-id network-id
                       :on-failure on-failure
                       :reason     "A network with the specified id doesn't exist"})))

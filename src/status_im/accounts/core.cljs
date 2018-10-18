@@ -41,12 +41,13 @@
             (wallet.settings.models/wallet-autoconfig-tokens)
             (accounts.update/account-update {:wallet-set-up-passed? true} {})))
 
-(fx/defn switch-dev-mode [cofx dev-mode?]
+(fx/defn switch-dev-mode [{{:account/keys [account]} :db :as cofx} dev-mode?]
   (merge (accounts.update/account-update cofx
                                          {:dev-mode? dev-mode?}
                                          {})
          (if dev-mode?
-           {:dev-server/start nil}
+           {:dev-server/start nil
+            :extensions/load  (vals (:extensions account))}
            {:dev-server/stop nil})))
 
 (fx/defn switch-web3-opt-in-mode [{:keys [db] :as cofx} opt-in]

@@ -200,7 +200,7 @@
             (chat-loading/initialize-pending-messages)
             (browser/initialize-browsers)
             (browser/initialize-dapp-permissions)
-            #(extensions/load-active-extensions %)
+            (extensions/load-active-extensions)
             #(when-not platform/desktop?
                (initialize-wallet %))
             (accounts.update/update-sign-in-time)
