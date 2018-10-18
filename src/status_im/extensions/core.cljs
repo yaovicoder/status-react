@@ -260,8 +260,25 @@
               (accounts.update/account-update {:extensions new-extensions} {:success-event nil})
               #(toggle-fn extension-key %))))
 
-(defn load-active-extensions
-  [{:keys [db]}]
-  (let [extensions (vals (get-in db [:account/account :extensions]))]
-    (doseq [{:keys [url active?]} extensions]
-      (load-from url #(re-frame/dispatch [:extension/add (-> % read-extension parse :data) active?])))))
+(re-frame/reg-fx
+ :extensions/load
+ (fn [extensions]
+   (doseq [{:keys [url active?]} extensions]
+     (load-from url #(re-frame/dispatch [:extension/add (-> % read-extension parse :data) active?])))))
+
+(re-frame/reg-event-fx
+ :extensions/deactivate
+ (fn [cofx [_ name]]
+   (fx/merge cofx #(registry/deactivate name %))))
+
+(re-frame/reg-fx
+ :extensions/deactivate-all
+ (fn [extensions]
+   (doseq [{:keys [name]} extensions]
+     (re-frame/dispatch [:extensions/deactivate name]))))
+
+(fx/defn load-active-extensions
+  [{{:account/keys [account]} :db}]
+  (let [{:keys [extensions dev-mode?]} account]
+    (when dev-mode?
+      {:extensions/load (vals extensions)})))
