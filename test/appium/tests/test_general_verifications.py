@@ -24,6 +24,7 @@ class TestLinksVerifications(SingleDeviceTestCase):
         signin_view = SignInView(self.driver)
         home_view = signin_view.create_user()
         profile = home_view.profile_button.click()
+        profile.about_button.scroll_to_element()
         about_view = profile.about_button.click()
         base_web_view = about_view.privacy_policy_button.click()
 
