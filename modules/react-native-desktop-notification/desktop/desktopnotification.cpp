@@ -19,7 +19,7 @@
 #include "libsnore/snore_static_plugins.h"
 #endif
 
-#include <QCoreApplication>
+#include <QGuiApplication>
 #include <QDebug>
 
 #ifdef Q_OS_LINUX
@@ -59,6 +59,10 @@ public:
 
 DesktopNotification::DesktopNotification(QObject *parent)
     : QObject(parent), d_ptr(new DesktopNotificationPrivate) {
+    connect(qApp, &QGuiApplication::focusWindowChanged, this, [=](QWindow *focusWindow){
+       m_appHasFocus = (focusWindow != nullptr);
+    });
+
   d_ptr->snoreApp = Snore::Application(QCoreApplication::applicationName(),
                                        Snore::Icon::defaultIcon());
   d_ptr->snoreApp.addAlert(
@@ -98,6 +102,11 @@ QVariantMap DesktopNotification::constantsToExport() { return QVariantMap(); }
 void DesktopNotification::sendNotification(QString text) {
   Q_D(DesktopNotification);
   qDebug() << "call of DesktopNotification::sendNotification";
+
+  if (m_appHasFocus) {
+      qDebug() << "Don't send notification since some application window is active";
+      return;
+  }
 
   Snore::Notification notification(
       d_ptr->snoreApp, d_ptr->snoreApp.alerts()[NewMessageAlert], "New message",
