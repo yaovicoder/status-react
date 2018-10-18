@@ -103,6 +103,10 @@
              :dapp-url    "https://beta.cent.co/"
              :photo-path  "contacts://cent"
              :description "Get wisdom, get money"}
+            {:name        "Kickback"
+             :dapp-url    "https://kickback.events/"
+             :photo-path  "contacts://kickback"
+             :description ""}
             {:name        "Peepeth"
              :dapp-url    "https://peepeth.com/"
              :photo-path  "contacts://peepeth"
