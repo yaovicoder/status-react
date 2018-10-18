@@ -9,7 +9,6 @@
 (def content-type-text "text/plain")
 (def content-type-command "command")
 (def content-type-command-request "command-request")
-(def content-type-status "status")
 (def content-type-emoji "emoji")
 
 (def desktop-content-types
@@ -195,6 +194,9 @@
 (def regx-mention #"@[a-z0-9\-]+")
 (def regx-bold #"\*[^*]+\*")
 (def regx-italic #"~[^~]+~")
+
+(def ^:const lines-collapse-threshold 20)
+(def ^:const chars-collapse-threshold 600)
 
 (def ^:const dapp-permission-contact-code "contact-code")
 (def ^:const dapp-permission-web3 "web3")
