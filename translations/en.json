@@ -750,5 +750,6 @@
     "share-link": "Share link",
     "share-profile-link": "Share profile link",
     "share-public-chat-text": "Check out this public chat on the Status app: {{link}}",
-    "share-dapp-text": "Check out this DApp I'm using on Status: {{link}}"
+    "share-dapp-text": "Check out this DApp I'm using on Status: {{link}}",
+    "extension-is-already-added": "The extension is already added"
 }
