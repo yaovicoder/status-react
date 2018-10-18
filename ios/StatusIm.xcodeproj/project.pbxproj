@@ -1874,7 +1874,6 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/Pods/**",
 					"$(PROJECT_DIR)",
-					"../node_modules/instabug-reactnative/ios",
 				);
 				GCC_PRECOMPILE_PREFIX_HEADER = NO;
 				GCC_PREFIX_HEADER = "";
@@ -1941,7 +1940,6 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/Pods/**",
 					"$(PROJECT_DIR)",
-					"../node_modules/instabug-reactnative/ios",
 				);
 				GCC_PRECOMPILE_PREFIX_HEADER = NO;
 				GCC_PREFIX_HEADER = "";
