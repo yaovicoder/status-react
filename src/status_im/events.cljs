@@ -433,8 +433,8 @@
 
 (handlers/register-handler-fx
  :extensions.ui/show-button-pressed
- (fn [_ [_ uri]]
-   {:extension/load [uri :extension/stage]}))
+ (fn [cofx [_ url]]
+   (extensions/load cofx url)))
 
 (handlers/register-handler-fx
  :extensions.ui/install-button-pressed
