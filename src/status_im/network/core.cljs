@@ -114,7 +114,7 @@
                 (accounts.update/account-update
                  {:network      network-id
                   :last-updated now}
-                 {}))
+                 {:success-event [:accounts.update.callback/save-settings-success]}))
       (fx/merge cofx
                 {:ui/show-confirmation {:title               (i18n/label :t/close-app-title)
                                         :content             (i18n/label :t/close-app-content)
