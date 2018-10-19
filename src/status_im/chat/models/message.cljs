@@ -91,20 +91,22 @@
                (get-in db [:account/account :desktop-notifications?])
                (< (time/seconds-ago (time/to-date timestamp)) constants/one-earth-day))
       (.sendNotification react/desktop-notification (:text content)))
-    (let [fx {:db            (cond->
-                              (-> db
-                                  (update-in [:chats chat-id :messages] assoc message-id prepared-message)
-                                     ;; this will increase last-clock-value twice when sending our own messages
-                                  (update-in [:chats chat-id :last-clock-value] (partial utils.clocks/receive clock-value)))
-                               (not current-chat?)
-                               (update-in [:chats chat-id :unviewed-messages] (fnil conj #{}) message-id))
-              :data-store/tx [(messages-store/save-message-tx prepared-message)]}]
-      (if batch?
-        fx
-        (fx/merge cofx
-                  fx
-                  (re-index-message-groups chat-id)
-                  (chat-loading/group-chat-messages chat-id [message]))))))
+    (fx/merge cofx
+              {:db            (cond->
+                               (-> db
+                                   (update-in [:chats chat-id :messages] assoc message-id prepared-message)
+                                   ;; this will increase last-clock-value twice when sending our own messages
+                                   (update-in [:chats chat-id :last-clock-value] (partial utils.clocks/receive clock-value)))
+                                (not current-chat?)
+                                (update-in [:chats chat-id :unviewed-messages] (fnil conj #{}) message-id))
+               :data-store/tx [(messages-store/save-message-tx prepared-message)]}
+              (when (and platform/desktop?
+                         (not batch?))
+                (chat-model/update-dock-badge-label))
+              (when-not batch?
+                (re-index-message-groups chat-id))
+              (when-not batch?
+                (chat-loading/group-chat-messages chat-id [message])))))
 
 (fx/defn send-message-seen
   [cofx chat-id message-id send-seen?]
@@ -207,7 +209,11 @@
                               chat-ids)
         messages-fx-fns (map #(add-received-message true %) deduped-messages)
         groups-fx-fns   (map #(update-group-messages chat->message %) chat-ids)]
-    (apply fx/merge cofx (concat chats-fx-fns messages-fx-fns groups-fx-fns))))
+    (apply fx/merge cofx (concat chats-fx-fns
+                                 messages-fx-fns
+                                 groups-fx-fns
+                                 (when platform/desktop?
+                                   [(chat-model/update-dock-badge-label)])))))
 
 (defn system-message [{:keys [now] :as cofx} {:keys [clock-value chat-id content from]}]
   (let [{:keys [last-clock-value]} (get-in cofx [:db :chats chat-id])
