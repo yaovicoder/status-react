@@ -213,6 +213,7 @@
                                              [(-> (tokens/native-currency chain)
                                                   (wallet.utils/exchange-symbol))])
                             :to            [(:code currency)]
+                            :mainnet?      mainnet?
                             :success-event :update-prices-success
                             :error-event   :update-prices-fail}
        :db                 (-> db
