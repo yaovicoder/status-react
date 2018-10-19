@@ -354,12 +354,17 @@
  (fn [[_ chat-id]]
    (subscribe [:get-chat chat-id]))
  (fn [{:keys [messages message-groups]}]
-   (->> (sort-message-groups message-groups messages)
-        first
-        second
-        last
-        :message-id
-        (get messages))))
+   (let [{:keys [content] :as message}
+         (->> (sort-message-groups message-groups messages)
+              first
+              second
+              last
+              :message-id
+              (get messages))
+         render-recipe (message-content/build-render-recipe
+                        content (keys message-content/stylings))]
+     (cond-> message
+       render-recipe (assoc-in [:content :render-recipe] render-recipe)))))
 
 (reg-sub
  :chat-animations
