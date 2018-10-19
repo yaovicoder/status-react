@@ -2,12 +2,12 @@
   (:require [clojure.string :as string]
             [status-im.constants :as constants]))
 
+(def stylings {:bold   constants/regx-bold
+               :italic constants/regx-italic})
+
 (def ^:private actions [[:link    constants/regx-url]
                         [:tag     constants/regx-tag]
                         [:mention constants/regx-mention]])
-
-(def ^:private stylings {:bold   constants/regx-bold
-                         :italic constants/regx-italic})
 
 (def ^:private styling-characters #"\*|~")
 
@@ -66,8 +66,10 @@
       (right-to-left-text? text) (assoc :rtl? true)
       (should-collapse? text) (assoc :should-collapse? true))))
 
-(defn- sorted-ranges [{:keys [metadata text]}]
-  (->> metadata
+(defn- sorted-ranges [{:keys [metadata text]} metadata-keys]
+  (->> (if metadata-keys
+         (select-keys metadata metadata-keys)
+         metadata)
        (reduce-kv (fn [acc type ranges]
                     (reduce #(assoc %1 %2 type) acc ranges))
                   {})
@@ -90,39 +92,43 @@
 
 (defn build-render-recipe
   "Builds render recipe from message text and metadata, can be used by render code
-  by simply iterating over it and paying attention to `:kind` set for each segment of text."
-  [{:keys [text metadata] :as content}]
-  (letfn [(builder [[top :as stack] [input & rest-inputs :as inputs] result]
-            (if (seq input)
-              (cond
-                ;; input is child of the top
-                (and (<= (start input) (end top))
-                     (<= (end input) (end top)))
-                (recur (conj stack input) rest-inputs
-                       (conj result (result-record (last-index result) (start input) stack)))
-                ;; input overlaps top, it's neither child, nor sibling, discard input
-                (and (>= (start input) (start top))
-                     (<= (start input) (end top)))
-                (recur stack rest-inputs result)
-                ;; the only remaining possibility, input is next sibling to top
-                :else
-                (recur (rest stack) inputs
-                       (conj result (result-record (last-index result) (end top) stack))))
-              ;; inputs consumed, unwind stack
-              (loop [[top & rest-stack :as stack] stack
-                     result                       result]
-                (if top
-                  (recur rest-stack
-                         (conj result (result-record (last-index result) (end top) stack)))
-                  result))))]
-    (when metadata
-      (let [[head & tail] (sorted-ranges content)]
-        (->> (builder (list head) tail [])
-             (keep (fn [{:keys [start end kind]}]
-                     (let [text-content (-> (subs text start end) ;; select text chunk & remove styling chars
-                                            (string/replace styling-characters ""))]
-                       (when (seq text-content) ;; filter out empty text chunks
-                         [text-content kind])))))))))
+  by simply iterating over it and paying attention to `:kind` set for each segment of text.
+  Optional in optional 2 arity version, you can pass collection of keys determining which
+  metadata to include in the render recipe (all of them by default)."
+  ([content]
+   (build-render-recipe content nil))
+  ([{:keys [text metadata] :as content} metadata-keys]
+   (letfn [(builder [[top :as stack] [input & rest-inputs :as inputs] result]
+             (if (seq input)
+               (cond
+                 ;; input is child of the top
+                 (and (<= (start input) (end top))
+                      (<= (end input) (end top)))
+                 (recur (conj stack input) rest-inputs
+                        (conj result (result-record (last-index result) (start input) stack)))
+                 ;; input overlaps top, it's neither child, nor sibling, discard input
+                 (and (>= (start input) (start top))
+                      (<= (start input) (end top)))
+                 (recur stack rest-inputs result)
+                 ;; the only remaining possibility, input is next sibling to top
+                 :else
+                 (recur (rest stack) inputs
+                        (conj result (result-record (last-index result) (end top) stack))))
+               ;; inputs consumed, unwind stack
+               (loop [[top & rest-stack :as stack] stack
+                      result                       result]
+                 (if top
+                   (recur rest-stack
+                          (conj result (result-record (last-index result) (end top) stack)))
+                   result))))]
+     (when metadata
+       (let [[head & tail] (sorted-ranges content metadata-keys)]
+         (->> (builder (list head) tail [])
+              (keep (fn [{:keys [start end kind]}]
+                      (let [text-content (-> (subs text start end) ;; select text chunk & remove styling chars
+                                             (string/replace styling-characters ""))]
+                        (when (seq text-content) ;; filter out empty text chunks
+                          [text-content kind]))))))))))
 
 (defn emoji-only-content?
   "Determines if text is just an emoji"
