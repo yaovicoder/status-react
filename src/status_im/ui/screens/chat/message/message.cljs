@@ -14,7 +14,7 @@
             [status-im.constants :as constants]
             [status-im.ui.components.chat-icon.screen :as chat-icon.screen]
             [status-im.utils.core :as utils]
-            [status-im.ui.screens.chat.utils :as chat-utils]
+            [status-im.ui.screens.chat.utils :as chat.utils]
             [status-im.utils.identicon :as identicon]
             [status-im.utils.gfycat.core :as gfycat]
             [status-im.utils.platform :as platform]
@@ -53,37 +53,10 @@
      [react/view {:style style/quoted-message-author-container}
       [vector-icons/icon :icons/reply {:color (if outgoing colors/wild-blue-yonder colors/gray)}]
       [react/text {:style (style/quoted-message-author outgoing)}
-       (chat-utils/format-reply-author from username current-public-key)]]
+       (chat.utils/format-reply-author from username current-public-key)]]
      [react/text {:style           (style/quoted-message-text outgoing)
                   :number-of-lines 5}
       text]]))
-
-(def ^:private styling->style
-  {:bold   {:font-weight :bold}
-   :italic {:font-style  :italic}})
-
-(def ^:private action->prop-fn
-  {:link   (fn [text {:keys [outgoing]}]
-             {:style    {:color                (if outgoing colors/white colors/blue)
-                         :text-decoration-line :underline}
-              :on-press #(re-frame/dispatch [:browser.ui/message-link-pressed text])})
-   :tag    (fn [text {:keys [outgoing]}]
-             {:style    {:color                (if outgoing colors/white colors/blue)
-                         :text-decoration-line :underline}
-              :on-press #(re-frame/dispatch [:chat.ui/start-public-chat (subs text 1)])})})
-
-(defn- lookup-props [text-chunk message kind-set]
-  (let [style   (apply merge (keep styling->style kind-set))
-        prop-fn (some action->prop-fn kind-set)]
-    (if prop-fn
-      (update (prop-fn text-chunk message) :style merge style)
-      {:style style})))
-
-(defn- render-chunks [render-recipe message]
-  (map-indexed (fn [idx [text-chunk kind-set]]
-                 [react/text (into {:key idx} (lookup-props text-chunk message kind-set))
-                  text-chunk])
-               render-recipe))
 
 (defn- expand-button [expanded? chat-id message-id]
   [react/text {:style    style/message-expand-button
@@ -101,7 +74,7 @@
                     (and collapsible? (not expanded?))
                     (assoc :number-of-lines constants/lines-collapse-threshold))
        (if-let [render-recipe (:render-recipe content)]
-         (render-chunks render-recipe message)
+         (chat.utils/render-chunks render-recipe message)
          (:text content))
        [react/text {:style (style/message-timestamp-placeholder-text outgoing)}
         (timestamp-with-padding timestamp-str)]]
@@ -228,7 +201,7 @@
 (defview message-author-name [from message-username]
   (letsubs [username [:get-contact-name-by-identity from]]
     [react/text {:style style/message-author-name}
-     (chat-utils/format-author from (or username message-username))]))
+     (chat.utils/format-author from (or username message-username))]))
 
 (defn message-body
   [{:keys [last-in-group?
