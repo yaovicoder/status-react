@@ -2,8 +2,8 @@
   (:require [re-frame.core :as re-frame]
             [taoensso.timbre :as log]
             [status-im.react-native.js-dependencies :as rn]
-            [status-im.utils.handlers :as handlers]
-            [status-im.utils.platform :as platform]))
+            [status-im.utils.platform :as platform]
+            [status-im.utils.security :as security]))
 
 (def key-bytes 64)
 (def username "status-im.encryptionkey")
@@ -55,7 +55,7 @@
 
 (defn handle-callback [callback result]
   (if result
-    (callback (.-password result))
+    (callback (security/mask-data (.-password result)))
     (callback nil)))
 
 ;; Gets the password for a specified address from the Keychain
