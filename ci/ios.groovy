@@ -15,7 +15,6 @@ def compile(type = 'nightly') {
       target = 'release'
   }
 
-  def target = (type == 'release' ? 'adhoc' : 'nightly')
   /* configure build metadata */
   plutil('CFBundleShortVersionString', common.version())
   plutil('CFBundleVersion', common.tagBuild())
