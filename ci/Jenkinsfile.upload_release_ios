@@ -20,31 +20,29 @@ pipeline {
         BUNDLE_PATH = "${HOME}/.bundle"
     }
 
-    timeout(90) {
-        stages {
-            stage('Prep') {
-                steps { script {
-                        if (!BRANCH_NAME.startsWith("release/")){
-                            error "Wrong branch name format: " + BRANCH_NAME + ", but it should be `release/<version>`"
-                        }
-                        /* Necessary to load methods */
-                        mobile = load 'ci/mobile.groovy'
-                        cmn    = load 'ci/common.groovy'
-                        mobile.prep('release')
-                    } }
-            }
-            stage('Lint') {
-                steps { script { cmn.runLint() } }
-            }
-            stage('Tests') {
-                steps { script { cmn.runTests() } }
-            }
-            stage('Build') {
-                steps { script { mobile.leinBuild('ios') } }
-            }
-            stage('Compile') {
-                steps { script { api = mobile.ios.compile('testflight') } }
-            }
+    stages {
+        stage('Prep') {
+            steps { script {
+                    if (!BRANCH_NAME.startsWith("release/")){
+                        error "Wrong branch name format: " + BRANCH_NAME + ", but it should be `release/<version>`"
+                    }
+                    /* Necessary to load methods */
+                    mobile = load 'ci/mobile.groovy'
+                    cmn    = load 'ci/common.groovy'
+                    mobile.prep('release')
+                } }
+        }
+        stage('Lint') {
+            steps { script { cmn.runLint() } }
+        }
+        stage('Tests') {
+            steps { script { cmn.runTests() } }
+        }
+        stage('Build') {
+            steps { script { mobile.leinBuild('ios') } }
+        }
+        stage('Compile') {
+            steps { script { api = mobile.ios.compile('testflight') } }
         }
     }
 }
