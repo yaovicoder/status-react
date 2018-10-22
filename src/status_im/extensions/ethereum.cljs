@@ -1,23 +1,25 @@
 (ns status-im.extensions.ethereum
-  (:require [status-im.utils.handlers :as handlers]
-            [re-frame.core :as re-frame]
+  (:require [status-im.extensions.core :as extensions]
             [status-im.models.wallet :as models.wallet]
+            [status-im.ui.screens.navigation :as navigation]
             [status-im.utils.ethereum.abi-spec :as abi-spec]
-            [status-im.utils.fx :as fx]
-            [status-im.ui.screens.navigation :as navigation]))
+            [status-im.utils.handlers :as handlers]
+            [status-im.utils.fx :as fx]))
 
 (handlers/register-handler-fx
  :extensions/transaction-on-result
- (fn [cofx [_ on-result id result method]]
+ (fn [cofx [_ on-result _ result _]]
    (fx/merge cofx
              (when on-result
-               {:dispatch (on-result {:error nil :result result})})
+               {:dispatch (on-result {:result result})})
              (navigation/navigate-to-clean :wallet-transaction-sent nil))))
 
 (handlers/register-handler-fx
  :extensions/transaction-on-error
- (fn [{db :db} [_ on-result message]]
-   (when on-result {:dispatch (on-result {:error message :result nil})})))
+ (fn [_ [_ on-result message]]
+   (when (ifn? on-result)
+     (let [res (on-result {:error message})]
+       {:dispatch res}))))
 
 (handlers/register-handler-fx
  :extensions/ethereum-send-transaction
@@ -34,6 +36,5 @@
      {:browser/call-rpc [{"jsonrpc" "2.0"
                           "method"  "eth_call"
                           "params"  [tx-object "latest"]}
-                         #(when on-result
-                            (re-frame/dispatch (on-result {:error %1 :result (when %2
-                                                                               (get (js->clj %2) "result"))})))]})))
+                         #(extensions/dispatch (on-result {:error %1 :result (when %2
+                                                                               (get (js->clj %2) "result"))}))]})))
