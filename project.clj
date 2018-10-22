@@ -13,6 +13,7 @@
                  [com.cognitect/transit-cljs "0.8.248"]
                  [status-im/pluto "iteration-3"]
                  [mvxcvi/alphabase "1.0.0"]
+                 [http-kit/http-kit "2.3.0"]
                  [rasom/cljs-react-navigation "0.1.4"]]
   :plugins [[lein-cljsbuild "1.1.7"]
             [lein-re-frisk "0.5.8"]
