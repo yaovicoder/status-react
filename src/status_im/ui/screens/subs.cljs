@@ -70,6 +70,11 @@
          (fn [mailserver-status]
            (#{:error :disconnected} mailserver-status)))
 
+(reg-sub :mailserver-connected?
+         :<- [:mailserver-status]
+         (fn [mailserver-status]
+           (= :connected mailserver-status)))
+
 (reg-sub :syncing?
          :<- [:sync-state]
          (fn [sync-state]
