@@ -3,7 +3,8 @@
             [cognitect.transit :as transit]
             [clojure.set :as set]
             [clojure.string :as string]
-            [status-im.utils.random :as random]))
+            [status-im.utils.random :as random]
+            [status-im.utils.types :as types]))
 
 (def reader (transit/reader :json))
 (def writer (transit/writer :json))
@@ -93,3 +94,40 @@
 
 (defn v13 [old-realm new-realm]
   (log/debug "migrating base database v13: " old-realm new-realm))
+
+(defn- deserialize-networks [networks]
+  (reduce-kv
+   (fn [acc network-id props]
+     (assoc acc network-id (update props :config types/json->clj)))
+   {}
+   networks))
+
+(defn- serialize-networks [networks]
+  (map (fn [[_ props]]
+         (update props :config types/clj->json))
+       networks))
+
+(defn v14 [old-realm new-realm]
+  (log/debug "migrating base database v14: " old-realm new-realm)
+  (let [accounts (.objects new-realm "account")]
+    (dotimes [i (.-length accounts)]
+      (let [account      (aget accounts i)
+            old-networks (deserialize-networks (aget account "networks"))
+            ids          (set (map :id old-networks))
+            poa (when (contains? ids "poa_rpc")
+                  [{:id      "poa_rpc",
+                    :name    "POA Network",
+                    :config  {:NetworkId      99,
+                              :DataDir        "/ethereum/poa_rpc",
+                              :UpstreamConfig {:Enabled true, :URL "https://poa.infura.io"}},
+                    :rpc-url nil}])
+            xdai (when (contains? ids "xdai_rpc")
+                   [{:id      "xdai_rpc",
+                     :name    "xDai Chain",
+                     :config  {:NetworkId      100,
+                               :DataDir        "/ethereum/xdai_rpc",
+                               :UpstreamConfig {:Enabled true, :URL "https://dai.poa.network"}},
+                     :rpc-url nil}])
+            new-networks (concat old-networks poa xdai)
+            updated      (serialize-networks new-networks)]
+        (aset account "networks" updated)))))
