@@ -22,7 +22,6 @@ external_modules_dir=( \
   'modules/react-native-status/desktop' \
   'node_modules/google-breakpad' \
   'modules/react-native-desktop-linking/desktop' \
-  'modules/react-native-desktop-notification/desktop' \
 )
 
 external_fonts=( \
@@ -60,10 +59,9 @@ function joinExistingPath() {
   fi
 }
 
-STATUSREACTPATH="$(cd "$SCRIPTPATH" && cd '..' && pwd)"
+STATUSREACTPATH="$(joinExistingPath "$SCRIPTPATH" '..')"
 WORKFOLDER="$(joinExistingPath "$STATUSREACTPATH" 'StatusImPackage')"
 DEPLOYQT="$(joinPath . 'linuxdeployqt-continuous-x86_64.AppImage')"
-APPIMAGETOOL="$(joinPath . 'appimagetool-x86_64.AppImage')"
 
 function init() {
   if [ -z $QT_PATH ]; then
@@ -103,14 +101,14 @@ function buildClojureScript() {
   echo ""
 
   # from index.desktop.js create javascript bundle and resources folder
-  echo "Generating Status.jsbundle and assets folder..."
-  react-native bundle --entry-file index.desktop.js --bundle-output "$WORKFOLDER/Status.jsbundle" \
+  echo "Generating StatusIm.jsbundle and assets folder..."
+  react-native bundle --entry-file index.desktop.js --bundle-output "$WORKFOLDER/StatusIm.jsbundle" \
                       --dev false --platform desktop --assets-dest "$WORKFOLDER/assets"
   echo -e "${GREEN}Generating done.${NC}"
   echo ""
 
   # Add path to javascript bundle to package.json
-  jsBundleLine="\"desktopJSBundlePath\": \"$WORKFOLDER/Status.jsbundle\""
+  jsBundleLine="\"desktopJSBundlePath\": \"$WORKFOLDER/StatusIm.jsbundle\""
   jsPackagePath=$(joinExistingPath "$STATUSREACTPATH" 'desktop_files/package.json')
   if grep -Fq "$jsBundleLine" "$jsPackagePath"; then
     echo -e "${GREEN}Found line in package.json.${NC}"
@@ -129,14 +127,14 @@ function buildClojureScript() {
 
 function compile() {
   pushd desktop
-    rm -rf CMakeFiles CMakeCache.txt cmake_install.cmake Makefile modules
+    rm -rf CMakeFiles CMakeCache.txt cmake_install.cmake Makefile
     cmake -Wno-dev \
           -DCMAKE_BUILD_TYPE=Release \
           -DEXTERNAL_MODULES_DIR="$(joinStrings ${external_modules_dir[@]})" \
           -DDESKTOP_FONTS="$(joinStrings ${external_fonts[@]})" \
-          -DJS_BUNDLE_PATH="$WORKFOLDER/Status.jsbundle" \
+          -DJS_BUNDLE_PATH="$WORKFOLDER/StatusIm.jsbundle" \
           -DCMAKE_CXX_FLAGS:='-DBUILD_FOR_BUNDLE=1 -std=c++11'
-    make -j5
+    make
   popd
 }
 
@@ -147,7 +145,7 @@ function bundleLinux() {
     QTBIN=$(joinExistingPath "$QT_PATH" 'bin')
   fi
 
-  # invoke linuxdeployqt to create Status.AppImage
+  # invoke linuxdeployqt to create StatusIm.AppImage
   echo "Creating AppImage..."
 
   pushd $WORKFOLDER
@@ -166,29 +164,23 @@ function bundleLinux() {
   usrBinPath=$(joinPath "$WORKFOLDER" "AppDir/usr/bin")
   cp -r ./deployment/linux/usr $WORKFOLDER/AppDir
   cp ./.env $usrBinPath
-  cp ./desktop/bin/Status $usrBinPath
+  cp ./desktop/bin/StatusIm $usrBinPath
   cp ./desktop/reportApp/reportApp $usrBinPath
-  
   if [ ! -f $DEPLOYQT ]; then
     wget --output-document="$DEPLOYQT" --show-progress -q https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
     chmod a+x $DEPLOYQT
   fi
 
-  if [ ! -f $APPIMAGETOOL ]; then
-    wget --output-document="$APPIMAGETOOL" --show-progress -q https://github.com/AppImage/AppImageKit/releases/download/10/appimagetool-x86_64.AppImage
-    chmod a+x $APPIMAGETOOL
-  fi
-
   rm -f Application-x86_64.AppImage
-  rm -f Status-x86_64.AppImage
+  rm -f StatusIm-x86_64.AppImage
 
-  [ $VERBOSE_LEVEL -ge 1 ] && ldd $(joinExistingPath "$usrBinPath" 'Status') 
+  [ $VERBOSE_LEVEL -ge 1 ] && ldd $(joinExistingPath "$usrBinPath" 'StatusIm') 
   $DEPLOYQT \
     $(joinExistingPath "$usrBinPath" 'reportApp') \
     -verbose=$VERBOSE_LEVEL -always-overwrite -no-strip -no-translations -qmake="$(joinExistingPath "${QTBIN}" 'qmake')" \
     -qmldir="$STATUSREACTPATH/desktop/reportApp"
 
-  desktopFilePath="$(joinExistingPath "$WORKFOLDER" 'AppDir/usr/share/applications/Status.desktop')"
+  desktopFilePath="$(joinExistingPath "$WORKFOLDER" 'AppDir/usr/share/applications/StatusIm.desktop')"
   $DEPLOYQT \
     $desktopFilePath \
     -verbose=$VERBOSE_LEVEL -always-overwrite -no-strip \
@@ -198,29 +190,30 @@ function bundleLinux() {
     -qmldir="$(joinExistingPath "$STATUSREACTPATH" 'node_modules/react-native')"
 
   pushd $WORKFOLDER
-    [ $VERBOSE_LEVEL -ge 1 ] && ldd AppDir/usr/bin/Status
+    [ $VERBOSE_LEVEL -ge 1 ] && ldd AppDir/usr/bin/StatusIm
     cp -r assets/share/assets AppDir/usr/bin
     cp -rf StatusImAppImage/* AppDir/usr/bin
-    rm -f AppDir/usr/bin/Status.AppImage
+    rm -f AppDir/usr/bin/StatusIm.AppImage
   popd
 
   $DEPLOYQT \
     $desktopFilePath \
     -verbose=$VERBOSE_LEVEL -appimage -qmake="$qmakePath"
   pushd $WORKFOLDER
-    [ $VERBOSE_LEVEL -ge 1 ] && ldd AppDir/usr/bin/Status
+    [ $VERBOSE_LEVEL -ge 1 ] && ldd AppDir/usr/bin/StatusIm
     cp -r assets/share/assets AppDir/usr/bin
     cp -rf StatusImAppImage/* AppDir/usr/bin
-    rm -f AppDir/usr/bin/Status.AppImage
+    rm -f AppDir/usr/bin/StatusIm.AppImage
   popd
-  $APPIMAGETOOL \
-    "$WORKFOLDER/AppDir"
+  $DEPLOYQT \
+    "$desktopFilePath" \
+    -verbose=$VERBOSE_LEVEL -appimage -qmake="$qmakePath"
   pushd $WORKFOLDER
-    [ $VERBOSE_LEVEL -ge 1 ] && ldd AppDir/usr/bin/Status
-    rm -rf Status.AppImage
+    [ $VERBOSE_LEVEL -ge 1 ] && ldd AppDir/usr/bin/StatusIm
+    rm -rf StatusIm.AppImage
   popd
 
-  echo -e "${GREEN}Package ready in ./Status-x86_64.AppImage!${NC}"
+  echo -e "${GREEN}Package ready in ./StatusIm-x86_64.AppImage!${NC}"
   echo ""
 }
 
@@ -238,7 +231,7 @@ function bundleMacOS() {
     cp -r assets/share/assets Status.app/Contents/Resources
     ln -sf ../Resources/assets ../Resources/ubuntu-server ../Resources/node_modules Status.app/Contents/MacOS
     chmod +x Status.app/Contents/Resources/ubuntu-server
-    cp ../desktop/bin/Status Status.app/Contents/MacOS/Status
+    cp ../desktop/bin/StatusIm Status.app/Contents/MacOS/Status
     cp ../desktop/reportApp/reportApp Status.app/Contents/MacOS
     cp ../.env Status.app/Contents/Resources
     ln -sf ../Resources/.env Status.app/Contents/MacOS/.env

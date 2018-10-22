@@ -20,7 +20,6 @@
 (def response-suggesstion-resize-duration 100)
 (def default-number-of-messages 20)
 (def blocks-per-hour 120)
-(def one-earth-day 86400)
 
 (def inbox-password "status-offline-inbox")
 

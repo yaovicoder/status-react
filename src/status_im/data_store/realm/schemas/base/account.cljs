@@ -203,7 +203,3 @@
                    [:properties :extensions]
                    {:type       :list
                     :objectType :extension}))
-
-(def v13 (assoc-in v12
-                   [:properties :desktop-notifications?]
-                   {:type :bool :default false}))
