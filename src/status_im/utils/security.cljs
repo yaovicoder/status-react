@@ -1,4 +1,5 @@
-(ns status-im.utils.security)
+(ns status-im.utils.security
+  (:require [taoensso.timbre :as log]))
 
 (defprotocol Unmaskable
   ;; Retrieve the stored value.
@@ -17,3 +18,8 @@
 ;; Returns a MaskedData instance that stores the piece of data.
 (defn mask-data [data]
   (MaskedData. data))
+
+(defn unmask-data [data]
+  (if (instance? MaskedData data)
+    (unmask data)
+    data))

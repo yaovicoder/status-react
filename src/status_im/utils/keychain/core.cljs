@@ -161,7 +161,7 @@
  (fn [[address password]]
    (save-user-password
     address
-    password
+    (security/unmask password)
     #(when-not %
        (log/error
         (str "Error while saving password."
