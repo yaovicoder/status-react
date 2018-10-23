@@ -107,27 +107,29 @@
          (update props :config types/clj->json))
        networks))
 
+(def a (atom nil))
+
 (defn v14 [old-realm new-realm]
   (log/debug "migrating base database v14: " old-realm new-realm)
   (let [accounts (.objects new-realm "account")]
     (dotimes [i (.-length accounts)]
-      (let [account      (aget accounts i)
-            old-networks (deserialize-networks (realm-obj->clj (aget account "networks")))
-            ids          (set (map :id old-networks))
-            poa (when (not (contains? ids "poa_rpc"))
-                  [{:id      "poa_rpc",
-                    :name    "POA Network",
-                    :config  {:NetworkId      99,
-                              :DataDir        "/ethereum/poa_rpc",
-                              :UpstreamConfig {:Enabled true, :URL "https://poa.infura.io"}},
-                    :rpc-url nil}])
-            xdai (when (not (contains? ids "xdai_rpc"))
-                   [{:id      "xdai_rpc",
-                     :name    "xDai Chain",
-                     :config  {:NetworkId      100,
-                               :DataDir        "/ethereum/xdai_rpc",
-                               :UpstreamConfig {:Enabled true, :URL "https://dai.poa.network"}},
-                     :rpc-url nil}])
-            new-networks (concat old-networks poa xdai)
-            updated      (serialize-networks (clj->js new-networks))]
-        (aset account "networks" updated)))))
+      (let [account (aget accounts i)
+            networks (aget account "networks")]
+        (when (not (aget networks "xdai_rpc"))
+          (aset networks "xdai_rpc"
+                (clj->js
+                 {:id      "xdai_rpc",
+                  :name    "xDai Chain",
+                  :config  (types/clj->json {:NetworkId      100,
+                                             :DataDir        "/ethereum/xdai_rpc",
+                                             :UpstreamConfig {:Enabled true, :URL "https://dai.poa.network"}}),
+                  :rpc-url nil})))
+        (when (not (aget networks "poa_rpc"))
+          (aset networks "poa_rpc"
+                (clj->js
+                 {:id      "poa_rpc",
+                  :name    "POA Network",
+                  :config  (types/clj->json {:NetworkId      99,
+                                             :DataDir        "/ethereum/poa_rpc",
+                                             :UpstreamConfig {:Enabled true, :URL "https://poa.infura.io"}}),
+                  :rpc-url nil})))))))
