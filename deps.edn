@@ -13,6 +13,7 @@
          com.cognitect/transit-cljs  {:mvn/version "0.8.248"}
          status-im/pluto             {:mvn/version "iteration-3"}
          mvxcvi/alphabase            {:mvn/version "1.0.0"}
+         http-kit/http-kit           {:mvn/version "2.3.0"}
          rasom/cljs-react-navigation {:mvn/version "0.1.4"}}
 
  :aliases
