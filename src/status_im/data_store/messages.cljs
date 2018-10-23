@@ -64,21 +64,21 @@
 (re-frame/reg-cofx
  :data-store/deduplication-ids
  (fn [cofx _]
-   (assoc cofx :stored-message-ids (let [chat-id->message-id (volatile! {})]
-                                     (-> @core/account-realm
-                                         (.objects "message")
-                                         (.map (fn [msg _ _]
-                                                 (let [chat-id     (aget msg "chat-id")
-                                                       sender-pk   (aget msg "from")
-                                                       clock-value (aget msg "clock-value")]
-                                                   (vswap! chat-id->message-id
-                                                           #(update %
-                                                                    (aget msg "chat-id")
-                                                                    (fnil conj #{})
-                                                                    (deduplication-id sender-pk
-                                                                                      chat-id
-                                                                                      clock-value)))))))
-                                     @chat-id->message-id))))
+   (assoc cofx :stored-deduplication-ids (let [chat-id->message-id (volatile! {})]
+                                           (-> @core/account-realm
+                                               (.objects "message")
+                                               (.map (fn [msg _ _]
+                                                       (let [chat-id     (aget msg "chat-id")
+                                                             sender-pk   (aget msg "from")
+                                                             clock-value (aget msg "clock-value")]
+                                                         (vswap! chat-id->message-id
+                                                                 #(update %
+                                                                          (aget msg "chat-id")
+                                                                          (fnil conj #{})
+                                                                          (deduplication-id sender-pk
+                                                                                            chat-id
+                                                                                            clock-value)))))))
+                                           @chat-id->message-id))))
 
 (defn- get-unviewed-messages
   [public-key]
