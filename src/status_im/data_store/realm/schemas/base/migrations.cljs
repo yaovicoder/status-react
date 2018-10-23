@@ -112,7 +112,7 @@
   (let [accounts (.objects new-realm "account")]
     (dotimes [i (.-length accounts)]
       (let [account      (aget accounts i)
-            old-networks (deserialize-networks (aget account "networks"))
+            old-networks (deserialize-networks (realm-obj->clj (aget account "networks")))
             ids          (set (map :id old-networks))
             poa (when (not (contains? ids "poa_rpc"))
                   [{:id      "poa_rpc",
@@ -129,5 +129,5 @@
                                :UpstreamConfig {:Enabled true, :URL "https://dai.poa.network"}},
                      :rpc-url nil}])
             new-networks (concat old-networks poa xdai)
-            updated      (serialize-networks new-networks)]
+            updated      (serialize-networks (clj->js new-networks))]
         (aset account "networks" updated)))))
