@@ -120,7 +120,6 @@
 (handlers/register-handler-fx
  :home.ui/sync-info-pressed
  (fn [cofx name]
-   (log/debug "igorm -> sync info pressed" name)
    (node/display-les-debug-info cofx)))
 
 ;; accounts module
