@@ -96,12 +96,13 @@ function init() {
 
     DEPLOYQT="$MACDEPLOYQT"
   elif is_linux; then
-    if ! program_exists 'conan'; then
-      echo "${RED}Conan package manager is not installed. Please install it from https://conan.io/${NC}"
-      exit 1
-    fi
     rm -rf ./desktop/toolchain/
     if is_windows_target; then
+      # TODO: Use Conan for Linux and MacOS builds too
+      if ! program_exists 'conan'; then
+        echo "${RED}Conan package manager is not installed. Please install it from https://conan.io/${NC}"
+        exit 1
+      fi
       conan install -if ./desktop/toolchain/ -g cmake -pr $STATUS_REACT_HOME/../status-conan/profiles/status-mxe-mingw32-x86_64-gcc55-libstdcxx $WINDOWS_CROSSTOOLCHAIN_PKG_NAME/5.5.0-1@status-im/experimental
     fi
   fi

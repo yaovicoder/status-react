@@ -95,7 +95,7 @@ bool ReportPublisher::prepareLogFiles(QString reportDirPath) {
 QString ReportPublisher::resolveDataStoragePath() {
   QFileInfo minidumpFileInfo(m_minidumpFilePath);
   QString dataStoragePath =
-      QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) +
+      QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation) +
       QDir::separator() + minidumpFileInfo.baseName();
   QDir dir(dataStoragePath);
   if (!dir.exists()) {
