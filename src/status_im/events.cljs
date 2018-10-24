@@ -119,7 +119,7 @@
 
 (handlers/register-handler-fx
  :home.ui/sync-info-pressed
- (fn [cofx name]
+ (fn [cofx _]
    (node/display-les-debug-info cofx)))
 
 ;; accounts module
