@@ -394,6 +394,12 @@ class AboutButton(BaseButton):
         return self.navigate()
 
 
+class RemovePictureButton(BaseButton):
+    def __init__(self, driver):
+        super().__init__(driver)
+        self.locator = self.Locator.text_selector('Remove current photo')
+
+
 class ProfileView(BaseView):
 
     def __init__(self, driver):
@@ -427,6 +433,7 @@ class ProfileView(BaseView):
         self.edit_button = EditButton(self.driver)
         self.profile_picture = ProfilePictureElement(self.driver)
         self.edit_picture_button = EditPictureButton(self.driver)
+        self.remove_picture_button = RemovePictureButton(self.driver)
         self.confirm_edit_button = ConfirmEditButton(self.driver)
         self.cross_icon = CrossIcon(self.driver)
         self.share_button = ShareButton(self.driver)
@@ -502,21 +509,24 @@ class ProfileView(BaseView):
         self.ok_got_it_button.click()
         return recovery_phrase
 
-    def edit_profile_picture(self, file_name: str):
+    def edit_profile_picture(self, file_name: str = '', remove: bool = False):
         if not AbstractTestCase().environment == 'sauce':
             raise NotImplementedError('Test case is implemented to run on SauceLabs only')
-        self.profile_picture.template = file_name
         self.edit_button.click()
         self.swipe_down()
         self.edit_picture_button.click()
-        self.select_from_gallery_button.click()
-        if self.allow_button.is_element_displayed(sec=10):
-            self.allow_button.click()
-        picture = self.element_by_text(file_name)
-        if not picture.is_element_displayed(2):
-            for element_text in 'Images', 'DCIM':
-                self.element_by_text(element_text).click()
-        picture.click()
+        if remove and not file_name:
+            self.remove_picture_button.click()
+        else:
+            self.profile_picture.template = file_name
+            self.select_from_gallery_button.click()
+            if self.allow_button.is_element_displayed(sec=10):
+                self.allow_button.click()
+            picture = self.element_by_text(file_name)
+            if not picture.is_element_displayed(2):
+                for element_text in 'Images', 'DCIM':
+                    self.element_by_text(element_text).click()
+            picture.click()
         self.confirm_edit_button.click()
 
     def logout(self):
