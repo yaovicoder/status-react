@@ -25,8 +25,7 @@ external_modules_dir=( \
   'node_modules/react-native-securerandom/desktop' \
   'modules/react-native-status/desktop' \
   'node_modules/google-breakpad' \
-  'modules/react-native-desktop-linking/desktop' \
-  'modules/react-native-desktop-notification/desktop' \
+  'modules/react-native-desktop-linking/desktop'
 )
 
 external_fonts=( \
@@ -77,6 +76,11 @@ function init() {
   if [ -z $QT_PATH ]; then
     echo "${RED}QT_PATH environment variable is not defined!${NC}"
     exit 1
+  fi
+
+  if ! is_windows_target; then
+    # TODO: Add this to Windows build
+    external_modules_dir+=( 'modules/react-native-desktop-notification/desktop' )
   fi
 
   if is_macos; then
