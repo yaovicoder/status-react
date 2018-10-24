@@ -171,7 +171,7 @@ QString getDataStoragePath() {
   QString dataStoragePath;
 #ifdef BUILD_FOR_BUNDLE
   dataStoragePath =
-      QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+      QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation);
   QDir dir(dataStoragePath);
   if (!dir.exists()) {
     dir.mkpath(".");
