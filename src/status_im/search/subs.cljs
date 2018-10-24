@@ -30,5 +30,5 @@
 (re-frame/reg-sub
  :search/filtered-home-items
  :<- [:search/filtered-active-chats]
- (fn [active-chats]
-   active-chats))
+ (fn [[chats browsers]]
+   (sort-by #(-> % second :timestamp) > active-chats)))
