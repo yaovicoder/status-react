@@ -227,7 +227,6 @@
                  :node/status
                  :node/restart?
                  :node/address
-                 :inbox/fetching?
                  :node/chain-sync-state
                  :node/latest-block-number
                  :universal-links/url
