@@ -8,6 +8,7 @@
             [status-im.data-store.user-statuses :as user-statuses-store]
             [status-im.utils.contacts :as utils.contacts]
             [status-im.utils.datetime :as time]
+            [status-im.utils.platform :as platform]
             [status-im.utils.fx :as fx]))
 
 (def index-messages (partial into {} (map (juxt :message-id identity))))
@@ -81,6 +82,7 @@
                           :chats          chats
                           :contacts/dapps default-dapps)}
               (group-messages)
+              (add-default-contacts)
               (commands/load-commands commands/register))))
 
 (fx/defn initialize-pending-messages

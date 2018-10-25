@@ -22,7 +22,7 @@
        :Animated           #js {:View #js {}
                                 :Text #js {}}
        :DeviceEventEmitter #js {:addListener (fn [])}
-       :Dimensions         #js {:get  (fn [])}})
+       :Dimensions         #js {:get (fn [])}})
 (def realm                  #js {:schemaVersion (fn [])
                                  :defaultPath   "/tmp/realm"
                                  :close         (fn [])})

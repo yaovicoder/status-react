@@ -226,7 +226,7 @@
           browser/v8
           dapp-permissions/v9])
 
-(def v23 [chat/v8
+(def v23 [chat/v9
           transport/v7
           contact/v3
           message/v7

@@ -1,6 +1,7 @@
 (ns status-im.chat.core
   (:require [status-im.data-store.user-statuses :as user-statuses-store]
-            [status-im.utils.fx :as fx]))
+            [status-im.utils.fx :as fx]
+            [status-im.data-store.chats :as chats-store]))
 
 ;; Seen messages
 (fx/defn receive-seen
@@ -23,3 +24,11 @@
                                      db
                                      statuses)
               :data-store/tx [(user-statuses-store/save-statuses-tx statuses)]}))))
+
+(fx/defn persist-offset
+  [{{:keys [chats]} :db}]
+  {:data-store/tx (->> chats
+                       vals
+                       (filter #(pos? (:offset %)))
+                       (map chats-store/save-chat-tx)
+                       vec)})

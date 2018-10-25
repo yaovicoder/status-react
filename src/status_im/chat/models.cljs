@@ -11,6 +11,7 @@
             [status-im.ui.components.colors :as colors]
             [status-im.ui.components.desktop.events :as desktop.events]
             [status-im.ui.screens.navigation :as navigation]
+            [status-im.utils.ethereum.core :as ethereum]
             [status-im.utils.clocks :as utils.clocks]
             [status-im.utils.fx :as fx]
             [status-im.utils.gfycat.core :as gfycat]
