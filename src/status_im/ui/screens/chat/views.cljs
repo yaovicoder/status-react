@@ -117,8 +117,10 @@
 (defview messages-view [group-chat modal?]
   (letsubs [messages           [:get-current-chat-messages-stream]
             chat               [:get-current-chat]
-            current-public-key [:get-current-public-key]]
-    {:component-did-mount #(re-frame/dispatch [:chat.ui/set-chat-ui-props {:messages-focused? true
+            current-public-key [:get-current-public-key]
+            offset [:get-current-chat-ui-prop :offset]]
+    {:should-component-update (constantly false)
+     :component-did-mount     #(re-frame/dispatch [:chat.ui/set-chat-ui-props {:messages-focused? true
                                                                            :input-focused? false}])}
     (if (empty? messages)
       [empty-chat-container chat]
@@ -130,6 +132,17 @@
                                                                   :current-public-key current-public-key
                                                                   :row                message}])
                        :inverted                  true
+                       :contentOffset             {:x 0 :y (or offset 0)}
+                       :onScrollEndDrag           (fn [e]
+                                                    (let [offset (.. e -nativeEvent -contentOffset -y)]
+                                                      (re-frame/dispatch [:chat.ui/set-chat-ui-props {:offset (max offset 0)}])
+                                                      (when (zero? offset)
+                                                        (re-frame/dispatch [:chat.ui/scroll-to-end]))))
+                       :onMomentumScrollEnd       (fn [e]
+                                                    (let [offset (.. e -nativeEvent -contentOffset -y)]
+                                                      (re-frame/dispatch [:chat.ui/set-chat-ui-props {:offset (max offset 0)}])
+                                                      (when (zero? offset)
+                                                        (re-frame/dispatch [:chat.ui/scroll-to-end]))))
                        :onEndReached              #(re-frame/dispatch [:chat.ui/load-more-messages])
                        :enableEmptySections       true
                        :keyboardShouldPersistTaps :handled}])))
