@@ -107,16 +107,14 @@
                          (pairing/handle-sync-installation cofx sync-message "us")
                          [:db :contacts/contacts])))))))
 
-(deftest sync-installation-message-test
+(deftest sync-installation-messages-test
   (testing "it creates a sync installation message"
     (let [cofx {:db {:current-public-key "us"
-                     :contacts/contacts {"contact-1" "contact-1"
-                                         "contact-2" "contact-2"
-                                         "contact-3" "contact-3"}}}
-          expected (transport.pairing/SyncInstallation. {"contact-1" "contact-1"
-                                                         "contact-2" "contact-2"
-                                                         "contact-3" "contact-3"})]
-      (is (= expected (pairing/sync-installation-message cofx))))))
+                     :contacts/contacts {"contact-1" {:name "contact-1"}
+                                         "contact-2" {:name "contact-2"}}}}
+          expected [(transport.pairing/SyncInstallation. {"contact-1" {:name "contact-1"}})
+                    (transport.pairing/SyncInstallation. {"contact-2" {:name "contact-2"}})]]
+      (is (= expected (pairing/sync-installation-messages cofx))))))
 
 (deftest handle-bundles-added-test
   (with-redefs [config/pairing-enabled? (constantly true)]
