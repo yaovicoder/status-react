@@ -42,6 +42,7 @@ set(SnoreNotify_CMAKE_ARGS ${SnoreNotify_CMAKE_ARGS}
                            # They, however, will not hurt regardless.
                            "-DCMAKE_SYSTEM_NAME=${CMAKE_SYSTEM_NAME}"
                            "-DCMAKE_SYSTEM_PROCESSOR=${CMAKE_SYSTEM_PROCESSOR}"
+                           "-DCMAKE_CROSSCOMPILING=${CMAKE_CROSSCOMPILING}"
                            "-DCMAKE_AR=${CMAKE_AR}"
                            "-DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}"
                            "-DCMAKE_C_COMPILER_AR=${CMAKE_C_COMPILER_AR}"
