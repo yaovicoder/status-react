@@ -280,7 +280,7 @@ function bundleMacOS() {
     ln -sf ../Resources/assets ../Resources/ubuntu-server ../Resources/node_modules Status.app/Contents/MacOS
     chmod +x Status.app/Contents/Resources/ubuntu-server
     cp ../desktop/bin/Status Status.app/Contents/MacOS/Status
-    cp ../desktop/reportApp/reportApp Status.app/Contents/MacOS
+    cp ../desktop/bin/reportApp Status.app/Contents/MacOS
     cp ../.env Status.app/Contents/Resources
     ln -sf ../Resources/.env Status.app/Contents/MacOS/.env
     cp -f ../deployment/macos/qt-reportApp.conf Status.app/Contents/Resources

@@ -136,7 +136,6 @@ CMakeCache.txt
 /desktop/run-app.sh
 /desktop/CMakeFiles/
 /desktop/reportApp/Makefile
-/desktop/reportApp/reportApp
 *_autogen/
 /linuxdeployqt-*.AppImage
 CompleteBundleWin.cmake
