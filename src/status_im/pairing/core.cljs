@@ -38,18 +38,21 @@
                          new-installation)
            :data-store/tx [(data-store.installations/save new-installation)]})))))
 
-(defn sync-installation-message [{:keys [db]}]
-  (transport.pairing/SyncInstallation. (:contacts/contacts db)))
+(defn sync-installation-messages [{:keys [db]}]
+  (let [contacts (:contacts/contacts db)]
+    (map
+     #(transport.pairing/SyncInstallation. (into {} [%]))
+     contacts)))
 
 (defn send-installation-message [cofx]
-  (protocol/send (sync-installation-message cofx) nil cofx))
-
-(defn send-fx [{:keys [db]} payload]
-  (let [{:keys [current-public-key web3]} db]
-    {:shh/send-direct-message [{:web3    web3
-                                :src     current-public-key
-                                :dst     current-public-key
-                                :payload payload}]}))
+  ;; The message needs to be broken up in chunks as we hit the whisper size limit
+  (let [{:keys [current-public-key web3]} (:db cofx)
+        sync-messages (sync-installation-messages cofx)]
+    {:shh/send-direct-message
+     (map #(hash-map :web3 web3
+                     :src current-public-key
+                     :dst current-public-key
+                     :payload %) sync-messages)}))
 
 (defn handle-sync-installation [{:keys [db] :as cofx} {:keys [contacts]} sender]
   (let [dev-mode? (get-in db [:account/account :dev-mode?])]
