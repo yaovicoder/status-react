@@ -4,6 +4,7 @@
    [status-im.utils.config :as config]
    [status-im.transport.message.protocol :as protocol]
    [status-im.data-store.installations :as data-store.installations]
+   [status-im.utils.identicon :as identicon]
    [status-im.data-store.contacts :as data-store.contacts]
    [status-im.transport.message.pairing :as transport.pairing]))
 
@@ -17,6 +18,10 @@
   (let [[old-contact new-contact] (sort-by :last-updated [local remote])]
     (-> local
         (merge new-contact)
+        (assoc :photo-path
+               (or (:photo-path new-contact)
+                   (:photo-path old-contact)
+                   (identicon/identicon (:whisper-identity local))))
         (assoc :pending? (boolean
                           (and (:pending? local true)
                                (:pending? remote true)))))))
@@ -38,18 +43,21 @@
                          new-installation)
            :data-store/tx [(data-store.installations/save new-installation)]})))))
 
-(defn sync-installation-message [{:keys [db]}]
-  (transport.pairing/SyncInstallation. (:contacts/contacts db)))
+(defn sync-installation-messages [{:keys [db]}]
+  (let [contacts (:contacts/contacts db)]
+    (map
+     (fn [[k v]] (transport.pairing/SyncInstallation. {k (dissoc v :photo-path)}))
+     contacts)))
 
 (defn send-installation-message [cofx]
-  (protocol/send (sync-installation-message cofx) nil cofx))
-
-(defn send-fx [{:keys [db]} payload]
-  (let [{:keys [current-public-key web3]} db]
-    {:shh/send-direct-message [{:web3    web3
-                                :src     current-public-key
-                                :dst     current-public-key
-                                :payload payload}]}))
+  ;; The message needs to be broken up in chunks as we hit the whisper size limit
+  (let [{:keys [current-public-key web3]} (:db cofx)
+        sync-messages (sync-installation-messages cofx)]
+    {:shh/send-direct-message
+     (map #(hash-map :web3 web3
+                     :src current-public-key
+                     :dst current-public-key
+                     :payload %) sync-messages)}))
 
 (defn handle-sync-installation [{:keys [db] :as cofx} {:keys [contacts]} sender]
   (let [dev-mode? (get-in db [:account/account :dev-mode?])]
