@@ -21,17 +21,18 @@ if(WIN32)
                   OPTIONS ${_QT_PACKAGE_OPTIONS}
                   BUILD missing outdated)
 
-  set(QTROOT "${CONAN_QT5-MXE_ROOT}/gcc_64")
-
-  if(NOT EXISTS ${QTROOT}/bin/qt.conf)
-    message(FATAL_ERROR "Could not find qt.conf in ${QTROOT}/bin. Is QTROOT correctly defined?")
-  endif()
+  set(QTROOT "${CONAN_QT5-MXE_ROOT}")
 else(WIN32)
-  set(QTROOT "$ENV{QT_PATH}/gcc_64")
-  if(NOT EXISTS ${QTROOT})
-    message(FATAL_ERROR "Could not find $QT_PATH/gcc_64 directory. Is QT_PATH env variable correctly defined?")
+  set(QTROOT "$ENV{QT_PATH}")
+endif(WIN32)
+
+if(NOT EXISTS ${QTROOT}/bin/qt.conf)
+  if(EXISTS ${QTROOT}/gcc_64/bin/qt.conf)
+    set(QTROOT "${QTROOT}/gcc_64")
+  else()
+    message(FATAL_ERROR "Could not find qt.conf in ${QTROOT}/bin nor in ${QTROOT}/gcc_64/bin. Is QTROOT correctly defined?")
   endif()
-endif(!WIN32)
+endif()
 
 if(WIN32)
   set(WINARCHSTR ARCHSTR windows-x86_64)
