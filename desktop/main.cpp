@@ -15,12 +15,12 @@
 #include <QFile>
 #include <QFontDatabase>
 #include <QGuiApplication>
+#include <QMutexLocker>
 #include <QProcess>
 #include <QQuickView>
 #include <QStandardPaths>
 #include <QTimer>
 #include <QUrl>
-#include <QMutexLocker>
 
 #include "attachedproperties.h"
 #include "reactitem.h"
@@ -169,9 +169,17 @@ void exceptionPostHandledCallback() {
 #endif
 }
 
+bool redirectLogIntoFile() {
+#ifdef BUILD_FOR_BUNDLE
+  return true;
+#else
+  return qEnvironmentVariable("STATUS_LOG_FILE_ENABLED", "") ==
+         QStringLiteral("1");
+#endif
+}
+
 QString getDataStoragePath() {
-  QString dataStoragePath;
-  dataStoragePath =
+  QString dataStoragePath =
       QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
   QDir dir(dataStoragePath);
   if (!dir.exists()) {
@@ -185,7 +193,7 @@ int main(int argc, char **argv) {
   QGuiApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
   QGuiApplication app(argc, argv);
 
-  app.setApplicationName("Status");
+  QCoreApplication::setApplicationName("Status");
 
   QString appPath = QCoreApplication::applicationDirPath();
   QString dataStoragePath = getDataStoragePath();
@@ -202,7 +210,9 @@ int main(int argc, char **argv) {
 
   loadFontsFromResources();
 
-  qInstallMessageHandler(saveMessage);
+  if (redirectLogIntoFile()) {
+    qInstallMessageHandler(saveMessage);
+  }
 
 #ifdef BUILD_FOR_BUNDLE
   runUbuntuServer();
@@ -247,10 +257,13 @@ int main(int argc, char **argv) {
   view.resize(MAIN_WINDOW_WIDTH, MAIN_WINDOW_HEIGHT);
   view.show();
 
-  QTimer t;
-  t.setInterval(500);
-  QObject::connect(&t, &QTimer::timeout, [=]() { writeLogsToFile(); });
-  t.start();
+  QTimer flushLogsToFileTimer;
+  if (redirectLogIntoFile()) {
+    flushLogsToFileTimer.setInterval(500);
+    QObject::connect(&flushLogsToFileTimer, &QTimer::timeout,
+                     [=]() { writeLogsToFile(); });
+    flushLogsToFileTimer.start();
+  }
 
   return app.exec();
 }
@@ -365,6 +378,4 @@ void saveMessage(QtMsgType type, const QMessageLogContext &context,
   }
 }
 
-
 #include "main.moc"
-
