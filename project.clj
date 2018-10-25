@@ -13,7 +13,6 @@
                  [com.cognitect/transit-cljs "0.8.248"]
                  [status-im/pluto "iteration-3"]
                  [mvxcvi/alphabase "1.0.0"]
-                 [http-kit/http-kit "2.3.0"]
                  [rasom/cljs-react-navigation "0.1.4"]]
   :plugins [[lein-cljsbuild "1.1.7"]
             [lein-re-frisk "0.5.8"]
@@ -65,7 +64,7 @@
                         :repl-options {:nrepl-middleware [cider.piggieback/wrap-cljs-repl]
                                        :timeout          240000}}
              :figwheel [:dev
-                        {:dependencies [[figwheel-sidecar "0.5.16-SNAPSHOT"]
+                        {:dependencies [[figwheel-sidecar "0.5.17"]
                                         [re-frisk-remote "0.5.5"]
                                         [re-frisk-sidecar "0.5.7"]
                                         [day8.re-frame/tracing "0.5.0"]
