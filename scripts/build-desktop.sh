@@ -305,8 +305,10 @@ function bundleMacOS() {
 function bundle() {
   if is_macos; then
     bundleMacOS
-  elif ((is_linux && !is_windows_target)); then
-    bundleLinux
+  elif is_linux; then
+    if ! is_windows_target; then
+      bundleLinux
+    fi
   fi
 }
 
