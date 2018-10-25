@@ -24,6 +24,7 @@ set(CMAKE_OSX_DEPLOYMENT_TARGET "10.9")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/CMakeModules/")
 
 set(USED_QT_MODULES Core Qml Quick WebSockets Svg)
+include(QtConfiguration)
 
 message(STATUS "EXTERNAL_MODULES_DIR: ${EXTERNAL_MODULES_DIR}")
 
@@ -47,9 +48,10 @@ foreach(external_module ${EXTERNAL_MODULES_DIR})
   add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../${external_module} ${CMAKE_CURRENT_BINARY_DIR}/${external_module})
 endforeach(external_module)
 
-include(QtConfiguration)
-
 add_subdirectory(reportApp)
+
+# Import any new Qt modules that have been added by external dependencies
+import_qt_modules()
 
 # APPLICATION_MAIN_CPP_PATH contains absolute path to generated template copy of main.cpp for application executable
 get_filename_component(APPLICATION_MAIN_CPP_PATH main.cpp ABSOLUTE)

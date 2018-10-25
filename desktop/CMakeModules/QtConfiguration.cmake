@@ -1,3 +1,25 @@
+macro(import_qt_modules)
+  set(REQUIRED_QT_VERSION "5.9.1")
+
+  set(QTCONFIGROOT ${QTROOT}/lib/cmake/Qt5)
+
+  foreach(COMP ${USED_QT_MODULES})
+    set(mod Qt5${COMP})
+
+    # look for the config files in the QtConfigRoot defined above
+    set(${mod}_DIR ${QTCONFIGROOT}${COMP})
+
+    # look for the actual package
+    find_package(${mod} ${REQUIRED_QT_VERSION} REQUIRED)
+
+    #message("${mod}_INCLUDE_DIRS: include_directories(${${mod}_INCLUDE_DIRS})")
+    include_directories(${${mod}_INCLUDE_DIRS})
+
+    list(APPEND QT5_LIBRARIES ${${mod}_LIBRARIES})
+    list(APPEND QT5_CFLAGS ${${mod}_EXECUTABLE_COMPILE_FLAGS})
+  endforeach(COMP ${USED_QT_MODULES})
+endmacro(import_qt_modules)
+
 if(WIN32)
   # Download automatically, you can also just copy the conan.cmake file
   # TODO: Create packages of qt5 for Linux and MacOS too, so that we can rely strictly on this branch of code 
@@ -44,25 +66,7 @@ list(APPEND CMAKE_FIND_ROOT_PATH ${QTROOT})
 list(APPEND CMAKE_PREFIX_PATH ${QTROOT})
 include_directories(${QTROOT}/include)
 
-set(REQUIRED_QT_VERSION "5.9.1")
-
-set(QTCONFIGROOT ${QTROOT}/lib/cmake/Qt5)
-
-foreach(COMP ${USED_QT_MODULES})
-  set(mod Qt5${COMP})
-
-  # look for the config files in the QtConfigRoot defined above
-  set(${mod}_DIR ${QTCONFIGROOT}${COMP})
-
-  # look for the actual package
-  find_package(${mod} ${REQUIRED_QT_VERSION} REQUIRED)
-
-  #message("${mod}_INCLUDE_DIRS: include_directories(${${mod}_INCLUDE_DIRS})")
-  include_directories(${${mod}_INCLUDE_DIRS})
-
-  list(APPEND QT5_LIBRARIES ${${mod}_LIBRARIES})
-  list(APPEND QT5_CFLAGS ${${mod}_EXECUTABLE_COMPILE_FLAGS})
-endforeach(COMP ${USED_QT_MODULES})
+import_qt_modules()
 
 if(QT5_CFLAGS)
   list(REMOVE_DUPLICATES QT5_CFLAGS)
