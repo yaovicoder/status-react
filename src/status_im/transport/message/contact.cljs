@@ -58,7 +58,7 @@
 (defrecord ContactUpdate [name profile-image address fcm-token]
   protocol/StatusMessage
   (send [this _ {:keys [db] :as cofx}]
-    (let [contact-public-keys (reduce (fn [acc [_ {:keys [dapp? pending?]}]]
+    (let [contact-public-keys (reduce (fn [acc [_ {:keys [public-key dapp? pending?]}]]
                                         (if (and (not dapp?)
                                                  (not pending?))
                                           (conj acc public-key)
