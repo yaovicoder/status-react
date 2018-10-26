@@ -74,10 +74,12 @@
   {:flex-direction (if outgoing :row-reverse :row)})
 
 (defn group-message-view
-  [outgoing]
+  [outgoing message-type]
   (let [align (if outgoing :flex-end :flex-start)]
     {:flex-direction :column
-     :width          230
+     :width          (if (= :system-message message-type)
+                       500
+                       230)
      :padding-left   8
      :padding-right  8
      :align-items    align}))
@@ -152,11 +154,7 @@
    :height 33})
 
 (def status-container
-  {:flex           1
-   :align-self     :center
-   :align-items    :center
-   :width          249
-   :padding-bottom 16})
+  {:padding-horizontal 5})
 
 (def status-image-view
   {:margin-top 20})
@@ -171,7 +169,7 @@
    :font-size   14
    :line-height 20
    :text-align  :center
-   :color       colors/text-gray})
+   :color       colors/black})
 
 (defn message-container [window-width]
   {:position :absolute
