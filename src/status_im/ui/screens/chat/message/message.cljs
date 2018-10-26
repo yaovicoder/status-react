@@ -35,8 +35,7 @@
                     :number-of-lines 1}
         (if (string/blank? name)
           (gfycat/generate-gfy public-key)
-          (or (i18n/get-contact-translated chat-id :name name)
-              (i18n/label :t/chat-name)))]
+          (or name (i18n/label :t/chat-name)))]
        (when status
          [react/text {:style style/status-text
                       :font  :default}
