@@ -1,12 +1,13 @@
 import os
 from support.base_test_report import BaseTestReport
+from support.testrail_report import TestrailReport
 
 
 class GithubHtmlReport(BaseTestReport):
     TEST_REPORT_DIR = "%s/../report" % os.path.dirname(os.path.abspath(__file__))
 
-    def __init__(self, sauce_username, sauce_access_key):
-        super(GithubHtmlReport, self).__init__(sauce_username, sauce_access_key)
+    def __init__(self):
+        super(GithubHtmlReport, self).__init__()
 
     def build_html_report(self):
         tests = self.get_all_tests()
@@ -52,7 +53,8 @@ class GithubHtmlReport(BaseTestReport):
         return html
 
     def build_test_row_html(self, index, test):
-        html = "<tr><td><b>%d. %s</b></td></tr>" % (index + 1, test.name)
+        test_rail_link = TestrailReport().get_test_result_link(test.testrail_case_id)
+        html = "<tr><td><b>%d. <li><a href=\"%s\">%s</a></li></b></td></tr>" % (index + 1, test_rail_link, test.name)
         html += "<tr><td>"
         test_steps_html = list()
         last_testrun = test.testruns[-1]

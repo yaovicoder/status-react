@@ -18,8 +18,8 @@ sauce_access_key = environ.get('SAUCE_ACCESS_KEY')
 github_token = environ.get('GIT_HUB_TOKEN')
 
 sauce = SauceClient(sauce_username, sauce_access_key)
-github_report = GithubHtmlReport(sauce_username, sauce_access_key)
-testrail_report = TestrailReport(sauce_username, sauce_access_key)
+github_report = GithubHtmlReport()
+testrail_report = TestrailReport()
 
 
 def pytest_addoption(parser):
