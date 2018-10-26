@@ -1,6 +1,5 @@
 (ns status-im.browser.db
-  (:require [cljs.spec.alpha :as spec])
-  (:require-macros [status-im.utils.db :refer [allowed-keys]]))
+  (:require [cljs.spec.alpha :as spec]))
 
 (spec/def :browser/browser-id (spec/nilable string?))
 (spec/def :browser/timestamp (spec/nilable int?))
@@ -20,26 +19,24 @@
 
 (spec/def :browser/options
   (spec/nilable
-   (allowed-keys
-    :opt-un [:browser/browser-id
-             :browser/loading?
-             :browser/resolving?
-             :browser/url-editing?
-             :browser/show-tooltip
-             :browser/show-permission
-             :browser/pending-permissions
-             :browser/yielding-control?
-             :browser/error?])))
+   (spec/keys :opt-un [:browser/browser-id
+                       :browser/loading?
+                       :browser/resolving?
+                       :browser/url-editing?
+                       :browser/show-tooltip
+                       :browser/show-permission
+                       :browser/pending-permissions
+                       :browser/yielding-control?
+                       :browser/error?])))
 
 (spec/def :browser/browser
-  (allowed-keys
-   :req-un [:browser/browser-id
-            :browser/timestamp]
-   :opt-un [:browser/name
-            :browser/dapp?
-            :browser/history
-            :browser/history-index
-            :browser/unsafe?]))
+  (spec/keys :req-un [:browser/browser-id
+                      :browser/timestamp]
+             :opt-un [:browser/name
+                      :browser/dapp?
+                      :browser/history
+                      :browser/history-index
+                      :browser/unsafe?]))
 
 (spec/def :browser/browsers (spec/nilable (spec/map-of :global/not-empty-string :browser/browser)))
 
@@ -47,8 +44,7 @@
 (spec/def :dapp/permissions (spec/nilable vector?))
 
 (spec/def :dapp/permission-map
-  (allowed-keys
-   :req-un [:dapp/dapp]
-   :opt-un [:dapp/permissions]))
+  (spec/keys :req-un [:dapp/dapp]
+             :opt-un [:dapp/permissions]))
 
 (spec/def :dapps/permissions (spec/nilable (spec/map-of :global/not-empty-string :dapp/permission-map)))
