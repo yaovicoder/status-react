@@ -211,6 +211,18 @@
           browser/v8
           dapp-permissions/v9])
 
+(def v20 [chat/v8
+          transport/v7
+          mailserver-topic/v1
+          contact/v3
+          message/v7
+          mailserver/v11
+          user-status/v2
+          membership-update/v1
+          local-storage/v1
+          browser/v8
+          dapp-permissions/v9])
+
 ;; put schemas ordered by version
 (def schemas [{:schema        v1
                :schemaVersion 1
