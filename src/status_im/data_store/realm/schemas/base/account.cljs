@@ -207,3 +207,5 @@
 (def v13 (assoc-in v12
                    [:properties :desktop-notifications?]
                    {:type :bool :default false}))
+
+(def v14 (update v13 :properties dissoc :email))
