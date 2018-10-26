@@ -15,7 +15,7 @@
 
 (fx/defn load-contacts
   [{:keys [db all-contacts]}]
-  (let [contacts-list (map #(vector (:whisper-identity %) %) all-contacts)
+  (let [contacts-list (map #(vector (:public-key %) %) all-contacts)
         contacts (into {} contacts-list)]
     {:db (update db :contacts/contacts #(merge contacts %))}))
 
@@ -25,10 +25,10 @@
            ;; it's not in the contact list at all
            (nil? pending?))))
 
-(defn- build-contact [whisper-id {{:keys [chats] :contacts/keys [contacts]} :db}]
-  (assoc (or (get contacts whisper-id)
-             (utils.contacts/whisper-id->new-contact whisper-id))
-         :address (utils.contacts/public-key->address whisper-id)))
+(defn- build-contact [public-key {{:keys [chats] :contacts/keys [contacts]} :db}]
+  (assoc (or (get contacts public-key)
+             (utils.contacts/public-key->new-contact public-key))
+         :address (utils.contacts/public-key->address public-key)))
 
 (defn- own-info [db]
   (let [{:keys [name photo-path address]} (:account/account db)
@@ -38,26 +38,26 @@
      :address       address
      :fcm-token     fcm-token}))
 
-(fx/defn add-new-contact [{:keys [db]} {:keys [whisper-identity] :as contact}]
+(fx/defn add-new-contact [{:keys [db]} {:keys [public-key] :as contact}]
   (let [new-contact (assoc contact
                            :pending? false
                            :hide-contact? false
-                           :public-key whisper-identity)]
+                           :public-key public-key)]
     {:db            (-> db
-                        (update-in [:contacts/contacts whisper-identity]
+                        (update-in [:contacts/contacts public-key]
                                    merge new-contact)
                         (assoc-in [:contacts/new-identity] ""))
      :data-store/tx [(contacts-store/save-contact-tx new-contact)]}))
 
 (fx/defn send-contact-request
-  [{:keys [db] :as cofx} {:keys [whisper-identity pending? dapp?] :as contact}]
+  [{:keys [db] :as cofx} {:keys [public-key pending? dapp?] :as contact}]
   (when-not dapp?
     (if pending?
-      (protocol/send (message.contact/map->ContactRequestConfirmed (own-info db)) whisper-identity cofx)
-      (protocol/send (message.contact/map->ContactRequest (own-info db)) whisper-identity cofx))))
+      (protocol/send (message.contact/map->ContactRequestConfirmed (own-info db)) public-key cofx)
+      (protocol/send (message.contact/map->ContactRequest (own-info db)) public-key cofx))))
 
-(fx/defn add-contact [{:keys [db] :as cofx} whisper-id]
-  (let [contact (build-contact whisper-id cofx)]
+(fx/defn add-contact [{:keys [db] :as cofx} public-key]
+  (let [contact (build-contact public-key cofx)]
     (fx/merge cofx
               (add-new-contact contact)
               (send-contact-request contact))))
@@ -66,17 +66,17 @@
   "add a tag to the contact"
   [{:keys [db] :as cofx}]
   (let [tag (get-in db [:ui/contact :contact/new-tag])
-        whisper-id (get-in db [:current-chat-id])
-        tags (conj (get-in db [:contacts/contacts whisper-id :tags] #{}) tag)]
-    {:db (assoc-in db [:contacts/contacts whisper-id :tags] tags)
-     :data-store/tx [(contacts-store/add-contact-tag-tx whisper-id tag)]}))
+        public-key (get-in db [:current-chat-id])
+        tags (conj (get-in db [:contacts/contacts public-key :tags] #{}) tag)]
+    {:db (assoc-in db [:contacts/contacts public-key :tags] tags)
+     :data-store/tx [(contacts-store/add-contact-tag-tx public-key tag)]}))
 
 (fx/defn remove-tag
   "remove a tag from the contact"
-  [{:keys [db] :as cofx} whisper-id tag]
-  (let [tags (disj (get-in db [:contacts/contacts whisper-id :tags] #{}) tag)]
-    {:db (assoc-in db [:contacts/contacts whisper-id :tags] tags)
-     :data-store/tx [(contacts-store/remove-contact-tag-tx whisper-id tag)]}))
+  [{:keys [db] :as cofx} public-key tag]
+  (let [tags (disj (get-in db [:contacts/contacts public-key :tags] #{}) tag)]
+    {:db (assoc-in db [:contacts/contacts public-key :tags] tags)
+     :data-store/tx [(contacts-store/remove-contact-tag-tx public-key tag)]}))
 
 (defn handle-contact-update
   [public-key
@@ -99,21 +99,20 @@
             ;; Backward compatibility with <= 0.9.21, as they don't send
             ;; fcm-token & address in contact updates
             contact-props    (cond->
-                              {:whisper-identity public-key
-                               :public-key       public-key
-                               :photo-path       profile-image
-                               :name             name
-                               :address          (or address
-                                                     (:address contact)
-                                                     (utils.contacts/public-key->address public-key))
-                               :last-updated     timestamp-ms
+                              {:public-key   public-key
+                               :photo-path   profile-image
+                               :name         name
+                               :address      (or address
+                                                 (:address contact)
+                                                 (utils.contacts/public-key->address public-key))
+                               :last-updated timestamp-ms
                                   ;;NOTE (yenda) in case of concurrent contact request
-                               :pending?         (get contact :pending? true)}
+                               :pending?     (get contact :pending? true)}
                                fcm-token (assoc :fcm-token fcm-token))]
         ;;NOTE (yenda) only update if there is changes to the contact
         (when-not (= contact-props
-                     (select-keys contact [:whisper-identity :public-key :address
-                                           :photo-path :name :fcm-token :pending?]))
+                     (select-keys contact [:public-key :address :photo-path
+                                           :name :fcm-token :pending?]))
           {:db            (update-in db [:contacts/contacts public-key]
                                      merge contact-props)
            :data-store/tx [(contacts-store/save-contact-tx
@@ -124,15 +123,15 @@
 (def receive-contact-update handle-contact-update)
 
 (fx/defn add-contact-and-open-chat
-  [cofx whisper-id]
+  [cofx public-key]
   (fx/merge cofx
-            (add-contact whisper-id)
-            (chat.models/start-chat whisper-id {:navigation-reset? true})))
+            (add-contact public-key)
+            (chat.models/start-chat public-key {:navigation-reset? true})))
 
 (fx/defn hide-contact
-  [{:keys [db]} whisper-id]
-  (when (get-in db [:contacts/contacts whisper-id])
-    {:db (assoc-in db [:contacts/contacts whisper-id :hide-contact?] true)}))
+  [{:keys [db]} public-key]
+  (when (get-in db [:contacts/contacts public-key])
+    {:db (assoc-in db [:contacts/contacts public-key :hide-contact?] true)}))
 
 (fx/defn handle-qr-code
   [{:keys [db] :as cofx} contact-identity]
