@@ -20,7 +20,7 @@
               [react/text {} label]]]))])
 
 (defn- contact-inner-view
-  ([{:keys [info style props] {:keys [whisper-identity name dapp?] :as contact} :contact}]
+  ([{:keys [info style props] {:keys [public-key name dapp?] :as contact} :contact}]
    [react/view (merge styles/contact-inner-container style)
     [react/view
      [chat-icon/contact-icon-contacts-tab contact]]
@@ -30,7 +30,7 @@
                         (when dapp? {:accessibility-label :dapp-name})
                         props)
       (if (string/blank? name)
-        (gfycat/generate-gfy whisper-identity)
+        (gfycat/generate-gfy public-key)
         (or name (i18n/label :t/chat-name)))]
      (when info
        [react/text {:style styles/info-text}
@@ -57,12 +57,12 @@
           [react/view styles/more-btn
            [vector-icons/icon :icons/options {:accessibility-label :options}]]]]))]])
 
-(views/defview toogle-contact-view [{:keys [whisper-identity] :as contact} selected-key on-toggle-handler]
-  (views/letsubs [checked [selected-key whisper-identity]]
+(views/defview toogle-contact-view [{:keys [public-key] :as contact} selected-key on-toggle-handler]
+  (views/letsubs [checked [selected-key public-key]]
     [react/view {:accessibility-label :contact-item}
      [list/list-item-with-checkbox
       {:checked?        checked
-       :on-value-change #(on-toggle-handler checked whisper-identity)
+       :on-value-change #(on-toggle-handler checked public-key)
        :plain-checkbox? true}
       [react/view styles/contact-container
        [contact-inner-view {:contact contact}]]]]))
