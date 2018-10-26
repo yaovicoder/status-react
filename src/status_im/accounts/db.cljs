@@ -5,8 +5,7 @@
             status-im.ui.screens.extensions.db
             [clojure.string :as string]
             [cljs.spec.alpha :as spec]
-            [status-im.constants :as const])
-  (:require-macros [status-im.utils.db :refer [allowed-keys]]))
+            [status-im.constants :as const]))
 
 (defn logged-in? [cofx]
   (boolean
@@ -53,18 +52,17 @@
 (spec/def :account/wallet-set-up-passed? (spec/nilable boolean?))
 (spec/def :account/mainnet-warning-shown? (spec/nilable boolean?))
 
-(spec/def :accounts/account (allowed-keys
-                             :req-un [:account/name :account/address :account/public-key
-                                      :account/photo-path :account/signing-phrase
-                                      :account/installation-id]
-                             :opt-un [:account/debug? :account/status :account/last-updated
-                                      :account/email :account/signed-up? :account/network
-                                      :account/networks :account/settings :account/mailserver
-                                      :account/last-sign-in :account/sharing-usage-data? :account/dev-mode?
-                                      :account/seed-backed-up? :account/mnemonic :account/desktop-notifications?
-                                      :account/wallet-set-up-passed? :account/last-request
-                                      :account/bootnodes :account/extensions
-                                      :account/mainnet-warning-shown?]))
+(spec/def :accounts/account (spec/keys :req-un [:account/name :account/address :account/public-key
+                                                :account/photo-path :account/signing-phrase
+                                                :account/installation-id]
+                                       :opt-un [:account/debug? :account/status :account/last-updated
+                                                :account/email :account/signed-up? :account/network
+                                                :account/networks :account/settings :account/mailserver
+                                                :account/last-sign-in :account/sharing-usage-data? :account/dev-mode?
+                                                :account/seed-backed-up? :account/mnemonic :account/desktop-notifications?
+                                                :account/wallet-set-up-passed? :account/last-request
+                                                :account/bootnodes :account/extensions
+                                                :account/mainnet-warning-shown?]))
 
 (spec/def :accounts/accounts (spec/nilable (spec/map-of :account/address :accounts/account)))
 
