@@ -7,6 +7,8 @@
             [status-im.i18n :as i18n]
             [status-im.utils.config :as config]
             [status-im.utils.clocks :as utils.clocks]
+            [status-im.chat.models.message :as models.message]
+            [status-im.contact.core :as models.contact]
             [status-im.native-module.core :as native-module]
             [status-im.transport.utils :as transport.utils]
             [status-im.transport.db :as transport.db]
@@ -99,15 +101,6 @@
                            (= from member)
                            (not= #{from} admins))
       false)))
-
-(defn wrap-group-message
-  "Wrap a group message in a membership update"
-  [cofx chat-id message]
-  (when-let [chat (get-in cofx [:db :chats chat-id])]
-    (message.group-chat/map->GroupMembershipUpdate.
-     {:chat-id              chat-id
-      :membership-updates   (:membership-updates chat)
-      :message              message})))
 
 (defn send-membership-update
   "Send a membership update to all participants but the sender"
@@ -236,6 +229,15 @@
            (assoc-in [:group-chat-profile/profile :valid-name?] (valid-name? name))
            (assoc-in [:group-chat-profile/profile :name] name))})
 
+(defn extract-creator
+  "Takes a chat as an input, returns the creator"
+  [{:keys [membership-updates]}]
+  (->> membership-updates
+       (filter (fn [{:keys [events]}]
+                 (some #(= "chat-created" (:type %)) events)))
+       first
+       :from))
+
 (fx/defn handle-name-changed
   "Store name in profile scratchpad"
   [cofx new-chat-name]
@@ -296,6 +298,50 @@
                               :admins               (:admins new-group)
                               :contacts              (:contacts new-group)})))
 
+(defn membership-changes->system-messages [cofx {:keys [chat-id chat-name creator members-added members-removed]}]
+  (let [get-contact      (partial models.contact/build-contact cofx)
+        format-message   (fn [contact text]
+                           {:chat-id chat-id
+                            :content {:text text}
+                            :from (:whisper-identity contact)})
+        creator-contact  (when creator (get-contact creator))
+        contacts-added   (map
+                          get-contact
+                          (disj members-added creator))
+        contacts-removed (map
+                          get-contact
+                          members-removed)]
+    (cond-> []
+      creator-contact (conj (format-message creator-contact
+                                            (i18n/label :group-chat-created
+                                                        {:name   chat-name
+                                                         :member (:name creator-contact)})))
+      (seq members-added) (concat (map #(format-message
+                                         %
+                                         (i18n/label :group-chat-member-added {:member (:name %)}))
+                                       contacts-added))
+      (seq members-removed) (concat (map #(format-message
+                                           %
+                                           (i18n/label :group-chat-member-removed {:member (:name %)}))
+                                         contacts-removed)))))
+
+(fx/defn add-system-messages [cofx chat-id previous-chat]
+  (let [current-chat (get-in cofx [:db :chats chat-id])
+        current-public-key (get-in cofx [:db :current-public-key])
+        members-added (clojure.set/difference (:contacts current-chat) (:contacts previous-chat) #{current-public-key})
+        members-removed (clojure.set/difference (:contacts previous-chat) (:contacts current-chat))
+        membership-changes (cond-> {:chat-id         chat-id
+                                    :chat-name       (:name current-chat)
+                                    :members-added   members-added
+                                    :members-removed members-removed}
+                             (nil? previous-chat)
+                             (assoc :creator (extract-creator current-chat)))]
+    (when (or (seq members-added)
+              (seq members-removed))
+      (->> membership-changes
+           (membership-changes->system-messages cofx)
+           (models.message/add-system-messages cofx)))))
+
 (fx/defn handle-membership-update
   "Upsert chat and receive message if valid"
   ;; Care needs to be taken here as chat-id is not coming from a whisper filter
@@ -306,10 +352,11 @@
    sender-signature]
   (let [dev-mode? (get-in cofx [:db :account/account :dev-mode?])]
     (when (and (config/group-chats-enabled? dev-mode?)
-               (valid-chat-id? chat-id (-> membership-updates first :from)))
+               (valid-chat-id? chat-id (extract-creator membership-update)))
       (let [previous-chat (get-in cofx [:db :chats chat-id])]
         (fx/merge cofx
                   (update-membership previous-chat membership-update)
+                  (add-system-messages chat-id previous-chat)
                   #(when (and message
                               ;; don't allow anything but group messages
                               (instance? protocol/Message message)
