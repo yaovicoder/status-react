@@ -27,11 +27,7 @@ set(StatusGo_STATIC_LIB
 
 include_directories(${StatusGo_INCLUDE_DIR})
 
-if (WIN32)
-  set(CONFIGURE_SCRIPT build-status-go.windows.sh)
-else()
-  set(CONFIGURE_SCRIPT build-status-go.sh)
-endif()
+set(CONFIGURE_SCRIPT build-status-go.sh)
 
 file (STRINGS "../../../STATUS_GO_VERSION" STATUS_GO_VERSION)
 
@@ -40,7 +36,7 @@ ExternalProject_Add(StatusGo_ep
   SOURCE_DIR ${StatusGo_SOURCE_DIR}
   URL https://github.com/status-im/status-go/archive/v${STATUS_GO_VERSION}.zip
   BUILD_BYPRODUCTS ${StatusGo_STATIC_LIB}
-  CONFIGURE_COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/${CONFIGURE_SCRIPT} ${GO_ROOT_PATH} ${StatusGo_ROOT} ${StatusGo_SOURCE_DIR} ${CMAKE_C_COMPILER} ${CMAKE_CXX_COMPILER}
+  CONFIGURE_COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/${CONFIGURE_SCRIPT} ${CMAKE_SYSTEM_NAME} ${GO_ROOT_PATH} ${StatusGo_ROOT} ${StatusGo_SOURCE_DIR} ${CMAKE_C_COMPILER} ${CMAKE_CXX_COMPILER}
   BUILD_COMMAND ""
   INSTALL_COMMAND ""
 )
