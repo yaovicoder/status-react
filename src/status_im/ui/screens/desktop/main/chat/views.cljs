@@ -170,6 +170,18 @@
   [react/view {:style {:width             40
                        :margin-horizontal 16}}])
 
+(views/defview system-message [text {:keys [content from first-in-group? timestamp] :as message}]
+  [react/view
+   [react/view {:style {:flex-direction :row :margin-top 24}}
+    [member-photo from]
+    [react/view {:style {:flex 1}}]
+    [react/text {:style styles/message-timestamp}
+     (time/timestamp->time timestamp)]]
+   [react/view {:style styles/not-first-in-group-wrapper}
+    [photo-placeholder]
+    [react/text {:style styles/system-message-text}
+     text]]])
+
 (views/defview message-with-name-and-avatar [text {:keys [from first-in-group? timestamp] :as message}]
   [react/view
    (when first-in-group?
@@ -195,6 +207,14 @@
     [photo-placeholder]
     [react/view {:style styles/message-command-container}
      [message/message-content-command message]]]])
+
+(views/defview message-content-status [text message]
+  [react/view
+   [system-message text message]])
+
+(defmethod message constants/content-type-status
+  [text _ message]
+  [message-content-status text message])
 
 (defmethod message :default
   [text me? {:keys [message-id chat-id message-status user-statuses from
