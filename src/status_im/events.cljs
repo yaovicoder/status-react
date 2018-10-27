@@ -1108,3 +1108,8 @@
  []
  (fn [cofx _]
    (pairing/send-installation-message cofx)))
+
+(handlers/register-handler-fx
+ :set-initial-props
+ (fn [cofx [_ initial-props]]
+   {:db (assoc (:db cofx) :initial-props initial-props)}))
