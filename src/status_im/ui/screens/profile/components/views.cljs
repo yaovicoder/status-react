@@ -32,19 +32,21 @@
                           :options options})))
 
 (defn- profile-header-display [{:keys [name] :as contact}]
-  [react/view styles/profile-header-display
-   [chat-icon.screen/my-profile-icon {:account contact
-                                      :edit?   false}]
-   [react/view styles/profile-header-name-container
-    [react/text {:style           styles/profile-name-text
-                 :font            :medium
-                 :number-of-lines 1}
-     name]
-    (when (:public-key contact)
-      [react/text {:style styles/profile-three-words
-                   :font :medium
+  (let [pk (:public-key contact)
+        generated-name (when pk (gfy/generate-gfy pk))]
+    [react/view styles/profile-header-display
+     [chat-icon.screen/my-profile-icon {:account contact
+                                        :edit?   false}]
+     [react/view styles/profile-header-name-container
+      [react/text {:style           styles/profile-name-text
+                   :font            :medium
                    :number-of-lines 1}
-       (gfy/generate-gfy (:public-key contact))])]])
+       name]
+      (when (and pk (not= generated-name name))
+        [react/text {:style styles/profile-three-words
+                     :font :medium
+                     :number-of-lines 1}
+         generated-name])]]))
 
 (defn- profile-header-edit [{:keys [name group-chat] :as contact}
                             icon-options on-change-text-event allow-icon-change?]
