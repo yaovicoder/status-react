@@ -90,7 +90,7 @@
                       :style  styles/photo-style}]]]]]))
 
 (views/defview my-photo [from]
-  (views/letsubs [account [:get-current-account]]
+  (views/letsubs [account [:account/account]]
     (let [{:keys [photo-path]} account]
       [react/view
        [react/image {:source {:uri (if (string/blank? photo-path)
@@ -216,7 +216,7 @@
 
 (views/defview messages-view [{:keys [chat-id group-chat]}]
   (views/letsubs [messages [:get-current-chat-messages-stream]
-                  current-public-key [:get-current-public-key]
+                  current-public-key [:account/public-key]
                   messages-to-load (reagent/atom load-step)
                   chat-id* (reagent/atom nil)]
     {:component-did-update #(load-more (count messages) messages-to-load)
@@ -264,7 +264,7 @@
 
 (views/defview reply-message [from message-text]
   (views/letsubs [username           [:get-contact-name-by-identity from]
-                  current-public-key [:get-current-public-key]]
+                  current-public-key [:account/public-key]]
     [react/view {:style styles/reply-content-container}
      [react/text {:style styles/reply-content-author}
       (chat-utils/format-reply-author from username current-public-key)]
