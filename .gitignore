@@ -136,9 +136,11 @@ CMakeCache.txt
 /desktop/run-app.sh
 /desktop/CMakeFiles/
 /desktop/reportApp/Makefile
+/deployment/windows/Status.rc
 *_autogen/
 /linuxdeployqt-*.AppImage
 CompleteBundleWin.cmake
 conan*.txt
 conanbuildinfo.cmake
 conan.cmake
+logger_settings.ini
