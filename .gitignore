@@ -142,3 +142,4 @@ CompleteBundleWin.cmake
 conan*.txt
 conanbuildinfo.cmake
 conan.cmake
+logger_settings.ini
