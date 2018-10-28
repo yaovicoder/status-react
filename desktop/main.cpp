@@ -203,6 +203,8 @@ int main(int argc, char **argv) {
 #ifdef BUILD_FOR_BUNDLE
   qInstallMessageHandler(saveMessage);
   runUbuntuServer();
+
+  app.setWindowIcon(QIcon(":/icon.png"));
 #endif
 
   QQuickView view;
