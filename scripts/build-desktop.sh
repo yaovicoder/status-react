@@ -182,6 +182,7 @@ function compile() {
             -DCMAKE_TOOLCHAIN_FILE='Toolchain-Ubuntu-mingw64.cmake' \
             -DCMAKE_C_COMPILER="$bin/x86_64-w64-mingw32.shared-gcc" \
             -DCMAKE_CXX_COMPILER="$bin/x86_64-w64-mingw32.shared-g++" \
+            -DCMAKE_RC_COMPILER="$bin/x86_64-w64-mingw32.shared-windres" \
             -DCMAKE_BUILD_TYPE=Release \
             -DEXTERNAL_MODULES_DIR="$EXTERNAL_MODULES_DIR" \
             -DDESKTOP_FONTS="$DESKTOP_FONTS" \
