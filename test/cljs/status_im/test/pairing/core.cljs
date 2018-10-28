@@ -95,7 +95,7 @@
           contact-4      {:name "contact-4"
                           :photo-path "contact-4"
                           :pending? true}
-          cofx {:db {:current-public-key "us"
+          cofx {:db {:account/account {:public-key "us"}
                      :contacts/contacts {"contact-1" old-contact-1
                                          "contact-2" new-contact-2
                                          "contact-3" contact-3}}}
@@ -115,7 +115,7 @@
 
 (deftest sync-installation-messages-test
   (testing "it creates a sync installation message"
-    (let [cofx {:db {:current-public-key "us"
+    (let [cofx {:db {:account/account {:public-key "us"}
                      :contacts/contacts {"contact-1" {:name "contact-1"}
                                          "contact-2" {:name "contact-2"}}}}
           expected [(transport.pairing/SyncInstallation. {"contact-1" {:name "contact-1"}})
@@ -126,7 +126,7 @@
   (with-redefs [config/pairing-enabled? (constantly true)]
     (let [installation-1 {:confirmed? true
                           :installation-id "installation-1"}
-          cofx {:db {:current-public-key "us"
+          cofx {:db {:account/account {:public-key "us"}
                      :pairing/installations {"installation-1" installation-1}}}]
       (testing "new installations"
         (let [new-installation {:identity "us" :installationID "installation-2"}
