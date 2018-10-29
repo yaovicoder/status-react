@@ -29,6 +29,12 @@ include(QtConfiguration)
 set(ICON_PNG_RESOURCE_PATH "${CMAKE_SOURCE_DIR}/../deployment/status-icon.png")
 if (WIN32)
   set(ICO_RESOURCE_PATH "${CMAKE_SOURCE_DIR}/../deployment/windows/status.ico")
+  set(APPLICATION_MAIN_RC_PATH "${CMAKE_SOURCE_DIR}/../deployment/windows/Status.rc")
+
+  configure_file(
+    ${CMAKE_SOURCE_DIR}/../deployment/windows/Status.rc.in
+    ${APPLICATION_MAIN_RC_PATH}
+  )
 endif()
 
 message(STATUS "EXTERNAL_MODULES_DIR: ${EXTERNAL_MODULES_DIR}")
