@@ -43,6 +43,9 @@ const QString CRASH_REPORT_EXECUTABLE = QStringLiteral("reportApp");
 const QString CRASH_REPORT_EXECUTABLE_RELATIVE_PATH =
     QStringLiteral("/../reportApp");
 
+const char *ENABLE_LOG_FILE_ENV_VAR_NAME = "STATUS_LOG_FILE_ENABLED";
+const char *LOG_FILE_PATH_ENV_VAR_NAME = "STATUS_LOG_PATH";
+
 // TODO: some way to change while running
 class ReactNativeProperties : public QObject {
   Q_OBJECT
@@ -173,7 +176,7 @@ bool redirectLogIntoFile() {
 #ifdef BUILD_FOR_BUNDLE
   return true;
 #else
-  return qEnvironmentVariable("STATUS_LOG_FILE_ENABLED", "") ==
+  return qEnvironmentVariable(ENABLE_LOG_FILE_ENV_VAR_NAME, "") ==
          QStringLiteral("1");
 #endif
 }
@@ -273,7 +276,7 @@ QString getLogFilePath() {
 #ifdef BUILD_FOR_BUNDLE
   logFilePath = getDataStoragePath() + "/Status.log";
 #else
-  logFilePath = qEnvironmentVariable("STATUS_LOG_PATH", "");
+  logFilePath = qEnvironmentVariable(LOG_FILE_PATH_ENV_VAR_NAME, "");
   if (logFilePath.isEmpty()) {
     logFilePath = getDataStoragePath() + "/StatusDev.log";
   }
