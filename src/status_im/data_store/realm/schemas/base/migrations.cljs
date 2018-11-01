@@ -111,3 +111,16 @@
 
 (defn v15 [old-realm new-realm]
   (log/debug "migrating base database v15: " old-realm new-realm))
+
+(defn v16 [old-realm new-realm]
+  (log/debug "migrating accounts schema v16")
+  (let [accounts (.objects new-realm "account")]
+    (dotimes [i (.-length accounts)]
+      (let [account      (aget accounts i)
+            old-settings (deserialize (aget account "settings"))
+            new-settings (update-in old-settings [:wallet :visible-tokens :mainnet]
+                                    #(cond-> %
+                                       true (disj :BQX)
+                                       (contains? % :BQX) (conj :ETHOS)))
+            updated      (serialize new-settings)]
+        (aset account "settings" updated)))))

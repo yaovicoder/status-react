@@ -45,23 +45,40 @@
 (defn ethereum? [symbol]
   (native-currency-symbols symbol))
 
-;; symbol are used as global identifier (per network) so they must be unique
+;; NOTE(goranjovic) - fields description:
+;;
+;; - address - token contract address
+;; - symbol - token identifier, must be unique within network
+;; - name - token display name
+;; - decimals - the maximum number of decimals (raw balance must be divided by 10^decimals to get the actual amount)
+;; - nft? - set to true when token is an ERC-781 collectible
+;; - hidden? - when true, token is not displayed in any asset selection screens, but will be displayed properly in
+;;             transaction history (setting this field is a form of "soft" token removal).
+;; - skip-name-check? - some tokens predate the ERC-20 and may not include the name field, so we skip this check
+;; - skip-symbol-check? - some tokens predate the ERC-20 and may not include the symbol field, so we skip this check
+;; - skip-decimals-check? - some tokens predate the ERC-20 and may not include the decimals field, so we skip this check
 
-(def all
+(def all-default-tokens
   {:mainnet
    (resolve-icons :mainnet
-                  [{:symbol   :DAI
-                    :name     "DAI"
-                    :address  "0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359"
-                    :decimals 18}
-                   {:symbol   :MKR
-                    :name     "MKR"
-                    :address  "0x9f8F72aA9304c8B593d555F12eF6589cC3A579A2"
-                    :decimals 18}
-                   {:symbol   :EOS
-                    :name     "EOS"
-                    :address  "0x86fa049857e0209aa7d9e616f7eb3b3b78ecfdb0"
-                    :decimals 18}
+                  [{:symbol             :DAI
+                    :name               "DAI"
+                    :address            "0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359"
+                    :decimals           18
+                    :skip-name-check?   true
+                    :skip-symbol-check? true}
+                   {:symbol             :MKR
+                    :name               "MKR"
+                    :address            "0x9f8F72aA9304c8B593d555F12eF6589cC3A579A2"
+                    :decimals           18
+                    :skip-name-check?   true
+                    :skip-symbol-check? true}
+                   {:symbol             :EOS
+                    :name               "EOS"
+                    :address            "0x86fa049857e0209aa7d9e616f7eb3b3b78ecfdb0"
+                    :decimals           18
+                    :skip-name-check?   true
+                    :skip-symbol-check? true}
                    {:symbol   :OMG
                     :name     "OMGToken"
                     :address  "0xd26114cd6EE289AccF82350c8d8487fedB8A0C07"
@@ -82,10 +99,13 @@
                     :name     "TenX Pay Token"
                     :address  "0xB97048628DB6B661D4C2aA833e95Dbe1A905B280"
                     :decimals 18}
-                   {:symbol   :VRS
-                    :name     "VEROS"
-                    :address  "0xedbaf3c5100302dcdda53269322f3730b1f0416d"
-                    :decimals 5}
+                   {:symbol               :VRS
+                    :name                 "VEROS"
+                    :address              "0xedbaf3c5100302dcdda53269322f3730b1f0416d"
+                    :decimals             5
+                    :skip-name-check?     true
+                    :skip-symbol-check?   true
+                    :skip-decimals-check? true}
                    {:symbol   :GNT
                     :name     "Golem Network Token"
                     :address  "0xa74476443119A942dE498590Fe1f2454d7D4aC0d"
@@ -106,10 +126,13 @@
                     :name     "Kyber Network Crystal"
                     :address  "0xdd974d5c2e2928dea5f71b9825b8b646686bd200"
                     :decimals 18}
-                   {:symbol   :DGD
-                    :name     "Digix DAO"
-                    :address  "0xe0b7927c4af23765cb51314a0e0521a9645f0e2a"
-                    :decimals 9}
+                   {:symbol               :DGD
+                    :name                 "Digix DAO"
+                    :address              "0xe0b7927c4af23765cb51314a0e0521a9645f0e2a"
+                    :decimals             9
+                    :skip-name-check?     true
+                    :skip-symbol-check?   true
+                    :skip-decimals-check? true}
                    {:symbol   :AE
                     :name     "Aeternity"
                     :address  "0x5ca9a71b1d01849c0a95490cc00559717fcf0d1d"
@@ -118,8 +141,8 @@
                     :name     "Tronix"
                     :address  "0xf230b790e05390fc8295f4d3f60332c93bed42e2"
                     :decimals 6}
-                   {:symbol   :BQX
-                    :name     "Bitquence"
+                   {:symbol   :ETHOS
+                    :name     "Ethos"
                     :address  "0x5af2be193a6abca9c8817001f45744777db30756"
                     :decimals 8}
                    {:symbol   :RDN
@@ -127,7 +150,7 @@
                     :address  "0x255aa6df07540cb5d3d297f0d0d4d84cb52bc8e6"
                     :decimals 18}
                    {:symbol   :SNT
-                    :name     "Status Network"
+                    :name     "Status Network Token"
                     :address  "0x744d70fdbe2ba4cf95131626614a1763df805b9e"
                     :decimals 18}
                    {:symbol   :SNGLS
@@ -202,16 +225,19 @@
                     :name     "Monaco"
                     :address  "0xb63b606ac810a52cca15e44bb630fd42d8d1d83d"
                     :decimals 8}
-                   {:symbol   :LRC
-                    :name     "loopring"
-                    :address  "0xEF68e7C694F40c8202821eDF525dE3782458639f"
-                    :decimals 18}
+                   {:symbol               :LRC
+                    :name                 "loopring"
+                    :address              "0xEF68e7C694F40c8202821eDF525dE3782458639f"
+                    :decimals             18
+                    :skip-name-check?     true
+                    :skip-symbol-check?   true
+                    :skip-decimals-check? true}
                    {:symbol   :ZSC
                     :name     "Zeus Shield Coin"
                     :address  "0x7A41e0517a5ecA4FdbC7FbebA4D4c47B9fF6DC63"
                     :decimals 18}
                    {:symbol   :DATA
-                    :name     "DATAcoin"
+                    :name     "Streamr DATAcoin"
                     :address  "0x0cf0ee63788a0849fe5297f3407f701e122cc023"
                     :decimals 18}
                    {:symbol   :RCN
@@ -271,7 +297,7 @@
                     :address  "0x12480e24eb5bec1a9d4369cab6a80cad3c0a377a"
                     :decimals 2}
                    {:symbol   :MANA
-                    :name     "Decentraland"
+                    :name     "Decentraland MANA"
                     :address  "0x0f5d2fb29fb7d3cfee444a200298f468908cc942"
                     :decimals 18}
                    {:symbol   :AST
@@ -283,7 +309,7 @@
                     :address  "0x48f775efbe4f5ece6e0df2f7b5932df56823b990"
                     :decimals 0}
                    {:symbol   :1ST
-                    :name     "Firstblood"
+                    :name     "FirstBlood Token"
                     :address  "0xaf30d2a7e90d7dc361c8c4585e9bb7d2f6f15bc7"
                     :decimals 18}
                    {:symbol   :CFI
@@ -326,10 +352,11 @@
                     :name     "Everex"
                     :address  "0xf3db5fa2c66b7af3eb0c0b782510816cbe4813b8"
                     :decimals 4}
-                   {:symbol   :ICOS
-                    :name     "ICOS"
-                    :address  "0x014b50466590340d41307cc54dcee990c8d58aa8"
-                    :decimals 6}
+                   {:symbol             :ICOS
+                    :name               "ICOS"
+                    :address            "0x014b50466590340d41307cc54dcee990c8d58aa8"
+                    :decimals           6
+                    :skip-symbol-check? true}
                    {:symbol   :DNT
                     :name     "district0x Network Token"
                     :address  "0x0abdace70d3790235af448c88547603b945604ea"
@@ -343,7 +370,7 @@
                     :address  "0xced4e93198734ddaff8492d525bd258d49eb388e"
                     :decimals 18}
                    {:symbol   :CSNO
-                    :name     "BitDice CSNO"
+                    :name     "BitDice"
                     :address  "0x29d75277ac7f0335b2165d0895e8725cbf658d73"
                     :decimals 8}
                    {:symbol   :COB
@@ -354,10 +381,12 @@
                     :name     "Enjin Coin"
                     :address  "0xf629cbd94d3791c9250152bd8dfbdf380e2a3b9c"
                     :decimals 18}
-                   {:symbol   :AVT
-                    :name     "AVENTUS"
-                    :address  "0x0d88ed6e74bbfd96b831231638b66c05571e824f"
-                    :decimals 18}
+                   {:symbol             :AVT
+                    :name               "AVENTUS"
+                    :address            "0x0d88ed6e74bbfd96b831231638b66c05571e824f"
+                    :decimals           18
+                    :skip-name-check?   true
+                    :skip-symbol-check? true}
                    {:symbol   :TIME
                     :name     "Chronobank TIME"
                     :address  "0x6531f133e6deebe7f2dce5a0441aa7ef330b4e53"
@@ -375,11 +404,11 @@
                     :address  "0x4DF812F6064def1e5e029f1ca858777CC98D2D81"
                     :decimals 8}
                    {:symbol   :VIB
-                    :name     "VIB"
+                    :name     "Vibe"
                     :address  "0x2c974b2d0ba1716e644c1fc59982a89ddd2ff724"
                     :decimals 18}
                    {:symbol   :PRG
-                    :name     "ParagonCoin"
+                    :name     "PRG"
                     :address  "0x7728dFEF5aBd468669EB7f9b48A7f70a501eD29D"
                     :decimals 6}
                    {:symbol   :DPY
@@ -395,7 +424,7 @@
                     :address  "0x08f5a9235b08173b7569f83645d2c7fb55e8ccd8"
                     :decimals 8}
                    {:symbol   :DRT
-                    :name     "Domraider"
+                    :name     "DomRaiderToken"
                     :address  "0x9af4f26941677c706cfecf6d3379ff01bb85d5ab"
                     :decimals 8}
                    {:symbol   :SPANK
@@ -414,13 +443,13 @@
                     :name     "Livepeer Token"
                     :address  "0x58b6a8a3302369daec383334672404ee733ab239"
                     :decimals 18}
-                   ;; NOTE(goranjovic) : the following three tokens are removed from the Manage Assets list
+                   ;; NOTE(goranjovic): the following three tokens are removed from the Manage Assets list
                    ;; and automatically removed from user's selection by a migration. However, we still need
                    ;; them listed here in order to correctly display any previous transactions the user had
                    ;; in their history prior to the upgrade. So, we're just hiding them, not actually deleting from the
                    ;; app.
-                   {:symbol   :CTR
-                    :name     "Centra"
+                   {:symbol   :Centra
+                    :name     "Centra token"
                     :address  "0x96A65609a7B84E8842732DEB08f56C3E21aC6f8a"
                     :decimals 18
                     :hidden?  true}
@@ -434,13 +463,14 @@
                     :address  "0x9B11EFcAAA1890f6eE52C6bB7CF8153aC5d74139"
                     :decimals 8
                     :hidden?  true}
+                   ;; NOTE(goranjovic): the following tokens are collectibles
                    {:symbol  :CK
                     :nft?    true
                     :name    "CryptoKitties"
                     :address "0x06012c8cf97bead5deae237070f9587f8e7a266d"}
                    {:symbol  :EMONA
                     :nft?    true
-                    :name    "Etheremon"
+                    :name    "EtheremonAsset"
                     :address "0xB2c0782ae4A299f7358758B2D15dA9bF29E1DD99"}
                    {:symbol  :STRK
                     :nft?    true
@@ -448,7 +478,7 @@
                     :address "0xdcaad9fd9a74144d226dbf94ce6162ca9f09ed7e"}
                    {:symbol  :SUPR
                     :nft?    true
-                    :name    "SuperRare"
+                    :name    "SupeRare"
                     :address "0x41a322b28d0ff354040e2cbc676f0320d8c8850d"}
                    {:symbol  :KDO
                     :nft?    true
@@ -465,7 +495,7 @@
                     :symbol   :HND
                     :decimals 0
                     :address  "0xdee43a267e8726efd60c2e7d5b81552dcd4fa35c"}
-                   {:name     "Lucky XS Test"
+                   {:name     "Lucky Test Token"
                     :symbol   :LXS
                     :decimals 2
                     :address  "0x703d7dc0bc8e314d65436adf985dda51e09ad43b"}
@@ -493,34 +523,30 @@
                     :name    "KudosToken"
                     :address "0x93bB0AFbd0627Bbd3a6C72Bc318341D3A22e254a"}])
 
-   :custom  []})
+   :custom []})
 
-(defn tokens-for [chain]
-  (get all chain))
+(defn tokens-for [all-tokens chain]
+  (vals (get all-tokens chain)))
 
-(defn all-assets-for [chain]
-  (concat [(native-currency chain)]
-          (tokens-for chain)))
+(defn nfts-for [all-tokens chain]
+  (filter :nft? (tokens-for all-tokens chain)))
 
-(defn nfts-for [chain]
-  (filter :nft? (tokens-for chain)))
-
-(defn sorted-tokens-for [chain]
-  (->> (tokens-for chain)
+(defn sorted-tokens-for [all-tokens chain]
+  (->> (tokens-for all-tokens chain)
        (filter #(not (:hidden? %)))
        (sort #(compare (string/lower-case (:name %1))
                        (string/lower-case (:name %2))))))
 
-(defn symbol->token [chain symbol]
-  (some #(when (= symbol (:symbol %)) %) (tokens-for chain)))
+(defn symbol->token [all-tokens chain symbol]
+  (some #(when (= symbol (:symbol %)) %) (tokens-for all-tokens chain)))
 
-(defn address->token [chain address]
+(defn address->token [all-tokens chain address]
   (some #(when (= (string/lower-case address)
-                  (string/lower-case (:address %))) %) (tokens-for chain)))
+                  (string/lower-case (:address %))) %) (tokens-for all-tokens chain)))
 
-(defn asset-for [chain symbol]
+(defn asset-for [all-tokens chain symbol]
   (let [native-coin (native-currency chain)]
     (if (or (= (:symbol-display native-coin) symbol)
             (= (:symbol native-coin) symbol))
       native-coin
-      (symbol->token chain symbol))))
+      (symbol->token all-tokens chain symbol))))
