@@ -12,7 +12,8 @@
             [status-im.utils.prices :as prices]
             [status-im.utils.transactions :as transactions]
             [taoensso.timbre :as log]
-            [status-im.utils.fx :as fx]))
+            [status-im.utils.fx :as fx]
+            [status-im.i18n :as i18n]))
 
 (defn get-balance [{:keys [web3 account-id on-success on-error]}]
   (if (and web3 account-id)
@@ -52,9 +53,9 @@
 
 (re-frame/reg-fx
  :get-tokens-balance
- (fn [{:keys [web3 symbols chain account-id success-event error-event]}]
+ (fn [{:keys [web3 symbols all-tokens chain account-id success-event error-event]}]
    (doseq [symbol symbols]
-     (let [contract (:address (tokens/symbol->token chain symbol))]
+     (let [contract (:address (tokens/symbol->token all-tokens chain symbol))]
        (get-token-balance {:web3       web3
                            :contract   contract
                            :account-id account-id
@@ -63,13 +64,14 @@
 
 (re-frame/reg-fx
  :get-transactions
- (fn [{:keys [web3 chain account-id token-addresses success-event error-event]}]
+ (fn [{:keys [web3 all-tokens chain account-id token-addresses success-event error-event]}]
    (transactions/get-transactions chain
                                   account-id
                                   #(re-frame/dispatch [success-event % account-id])
                                   #(re-frame/dispatch [error-event %]))
    (doseq [direction [:inbound :outbound]]
      (erc20/get-token-transactions web3
+                                   all-tokens
                                    chain
                                    token-addresses
                                    direction
@@ -95,6 +97,47 @@
  :update-estimated-gas
  (fn [{:keys [web3 obj success-event]}]
    (ethereum/estimate-gas-web3 web3 (clj->js obj) #(re-frame/dispatch [success-event %2]))))
+
+(defn- validate-token-name! [web3 {:keys [address symbol name skip-name-check?]}]
+  (when-not skip-name-check?
+    (erc20/name web3 address #(when-not (= name %2)
+                                (let [message (i18n/label :t/token-auto-validate-name-error
+                                                          {:symbol   symbol
+                                                           :expected name
+                                                           :actual   %2
+                                                           :address  address})]
+                                  (log/warn message)
+                                  (js/alert message))))))
+
+(defn- validate-token-symbol! [web3 {:keys [address symbol skip-symbol-check?]}]
+  (when-not skip-symbol-check?
+    (erc20/symbol web3 address #(when-not (= (clojure.core/name symbol) %2)
+                                  (let [message (i18n/label :t/token-auto-validate-symbol-error
+                                                            {:symbol   symbol
+                                                             :expected (clojure.core/name symbol)
+                                                             :actual   %2
+                                                             :address  address})]
+                                    (log/warn message)
+                                    (js/alert message))))))
+
+(defn- validate-token-decimals! [web3 {:keys [address symbol decimals nft? skip-decimals-check?]}]
+  (when-not skip-decimals-check?
+    (erc20/decimals web3 address #(when-not (or nft? (= decimals (int %2)))
+                                    (let [message (i18n/label :t/token-auto-validate-decimals-error
+                                                              {:symbol   symbol
+                                                               :expected decimals
+                                                               :actual   %2
+                                                               :address  address})]
+                                      (log/warn message)
+                                      (js/alert message))))))
+
+(re-frame/reg-fx
+ :wallet/validate-tokens
+ (fn [{:keys [web3 tokens]}]
+   (doseq [token tokens]
+     (validate-token-name! web3 token)
+     (validate-token-symbol! web3 token)
+     (validate-token-decimals! web3 token))))
 
 ;; Handlers
 (handlers/register-handler-fx
