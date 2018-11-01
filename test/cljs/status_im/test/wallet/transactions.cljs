@@ -75,6 +75,7 @@
                                      :token-addresses (),
                                      :chain           nil
                                      :web3            nil
+                                     :all-tokens      {}
                                      :success-event   :update-transactions-success
                                      :error-event     :update-transactions-fail}
               :db                   {:app-state      "active"
@@ -96,6 +97,7 @@
                                      :token-addresses (),
                                      :chain           nil
                                      :web3            nil
+                                     :all-tokens      {}
                                      :success-event   :update-transactions-success
                                      :error-event     :update-transactions-fail}
               :db                   {:app-state      "active"
@@ -121,6 +123,7 @@
                                      :token-addresses (),
                                      :chain           nil
                                      :web3            nil
+                                     :all-tokens      {}
                                      :success-event   :update-transactions-success
                                      :error-event     :update-transactions-fail}
               :db                   {:app-state      "active"
