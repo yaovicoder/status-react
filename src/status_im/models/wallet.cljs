@@ -212,8 +212,8 @@
 (defn clear-error-message [db error-type]
   (update-in db [:wallet :errors] dissoc error-type))
 
-(defn tokens-symbols [v chain]
-  (set/difference (set v) (set (map :symbol (tokens/nfts-for chain)))))
+(defn tokens-symbols [visible-token-symbols all-tokens chain]
+  (set/difference (set visible-token-symbols) (set (map :symbol (tokens/nfts-for all-tokens chain)))))
 
 (defn index-by [key coll]
   (into {} (map #(vector (key %) %) coll)))
@@ -225,11 +225,12 @@
 
 (fx/defn update-wallet
   [{{:keys [web3 network network-status] {:keys [address settings]} :account/account :as db} :db}]
-  (let [network     (get-in db [:account/account :networks network])
+  (let [all-tokens  (:wallet/all-tokens db)
+        network     (get-in db [:account/account :networks network])
         chain       (ethereum/network->chain-keyword network)
         mainnet?    (= :mainnet chain)
         assets      (get-in settings [:wallet :visible-tokens chain])
-        tokens      (tokens-symbols (get-in settings [:wallet :visible-tokens chain]) chain)
+        tokens      (tokens-symbols (get-in settings [:wallet :visible-tokens chain]) all-tokens chain)
         currency-id (or (get-in settings [:wallet :currency]) :usd)
         currency    (get constants/currencies currency-id)]
     (when (not= network-status :offline)

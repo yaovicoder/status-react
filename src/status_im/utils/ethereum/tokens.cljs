@@ -499,15 +499,14 @@
 (defn tokens-for [chain]
   (get all-default-tokens chain))
 
-(defn all-assets-for [chain]
-  (concat [(native-currency chain)]
-          (tokens-for chain)))
+(defn tokens-for2 [all-tokens chain]
+  (vals (get all-tokens chain)))
 
-(defn nfts-for [chain]
-  (filter :nft? (tokens-for chain)))
+(defn nfts-for [all-tokens chain]
+  (filter :nft? (tokens-for2 all-tokens chain)))
 
-(defn sorted-tokens-for [chain]
-  (->> (tokens-for chain)
+(defn sorted-tokens-for [all-tokens chain]
+  (->> (tokens-for2 all-tokens chain)
        (filter #(not (:hidden? %)))
        (sort #(compare (string/lower-case (:name %1))
                        (string/lower-case (:name %2))))))
