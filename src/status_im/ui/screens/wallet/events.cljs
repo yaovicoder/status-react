@@ -52,9 +52,9 @@
 
 (re-frame/reg-fx
  :get-tokens-balance
- (fn [{:keys [web3 symbols chain account-id success-event error-event]}]
+ (fn [{:keys [web3 symbols all-tokens chain account-id success-event error-event]}]
    (doseq [symbol symbols]
-     (let [contract (:address (tokens/symbol->token chain symbol))]
+     (let [contract (:address (tokens/symbol->token all-tokens chain symbol))]
        (get-token-balance {:web3       web3
                            :contract   contract
                            :account-id account-id
@@ -63,13 +63,14 @@
 
 (re-frame/reg-fx
  :get-transactions
- (fn [{:keys [web3 chain account-id token-addresses success-event error-event]}]
+ (fn [{:keys [web3 all-tokens chain account-id token-addresses success-event error-event]}]
    (transactions/get-transactions chain
                                   account-id
                                   #(re-frame/dispatch [success-event % account-id])
                                   #(re-frame/dispatch [error-event %]))
    (doseq [direction [:inbound :outbound]]
      (erc20/get-token-transactions web3
+                                   all-tokens
                                    chain
                                    token-addresses
                                    direction

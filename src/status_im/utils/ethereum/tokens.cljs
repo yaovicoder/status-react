@@ -47,7 +47,7 @@
 
 ;; symbol are used as global identifier (per network) so they must be unique
 
-(def all
+(def all-default-tokens
   {:mainnet
    (resolve-icons :mainnet
                   [{:symbol   :DAI
@@ -414,7 +414,7 @@
                     :name     "Livepeer Token"
                     :address  "0x58b6a8a3302369daec383334672404ee733ab239"
                     :decimals 18}
-                   ;; NOTE(goranjovic) : the following three tokens are removed from the Manage Assets list
+                   ;; NOTE(goranjovic): the following three tokens are removed from the Manage Assets list
                    ;; and automatically removed from user's selection by a migration. However, we still need
                    ;; them listed here in order to correctly display any previous transactions the user had
                    ;; in their history prior to the upgrade. So, we're just hiding them, not actually deleting from the
@@ -434,6 +434,7 @@
                     :address  "0x9B11EFcAAA1890f6eE52C6bB7CF8153aC5d74139"
                     :decimals 8
                     :hidden?  true}
+                   ;; NOTE(goranjovic): the following tokens are collectibles
                    {:symbol  :CK
                     :nft?    true
                     :name    "CryptoKitties"
@@ -495,32 +496,28 @@
 
    :custom  []})
 
-(defn tokens-for [chain]
-  (get all chain))
+(defn tokens-for [all-tokens chain]
+  (vals (get all-tokens chain)))
 
-(defn all-assets-for [chain]
-  (concat [(native-currency chain)]
-          (tokens-for chain)))
+(defn nfts-for [all-tokens chain]
+  (filter :nft? (tokens-for all-tokens chain)))
 
-(defn nfts-for [chain]
-  (filter :nft? (tokens-for chain)))
-
-(defn sorted-tokens-for [chain]
-  (->> (tokens-for chain)
+(defn sorted-tokens-for [all-tokens chain]
+  (->> (tokens-for all-tokens chain)
        (filter #(not (:hidden? %)))
        (sort #(compare (string/lower-case (:name %1))
                        (string/lower-case (:name %2))))))
 
-(defn symbol->token [chain symbol]
-  (some #(when (= symbol (:symbol %)) %) (tokens-for chain)))
+(defn symbol->token [all-tokens chain symbol]
+  (some #(when (= symbol (:symbol %)) %) (tokens-for all-tokens chain)))
 
-(defn address->token [chain address]
+(defn address->token [all-tokens chain address]
   (some #(when (= (string/lower-case address)
-                  (string/lower-case (:address %))) %) (tokens-for chain)))
+                  (string/lower-case (:address %))) %) (tokens-for all-tokens chain)))
 
-(defn asset-for [chain symbol]
+(defn asset-for [all-tokens chain symbol]
   (let [native-coin (native-currency chain)]
     (if (or (= (:symbol-display native-coin) symbol)
             (= (:symbol native-coin) symbol))
       native-coin
-      (symbol->token chain symbol))))
+      (symbol->token all-tokens chain symbol))))
