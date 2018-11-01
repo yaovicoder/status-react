@@ -22,17 +22,23 @@
             [status-im.utils.datetime :as datetime]
             [clojure.string :as string]
             [status-im.utils.security :as security]
+            [status-im.js-dependencies :as dependencies]
             [status-im.utils.types :as types])
   (:refer-clojure :exclude [name symbol]))
 
+(def utils dependencies/web3-utils)
+
 (defn name [web3 contract cb]
-  (ethereum/call web3 (ethereum/call-params contract "name()") cb))
+  (ethereum/call web3 (ethereum/call-params contract "name()")
+                 #(cb %1 (.hexToUtf8 utils %2))))
 
 (defn symbol [web3 contract cb]
-  (ethereum/call web3 (ethereum/call-params contract "symbol()") cb))
+  (ethereum/call web3 (ethereum/call-params contract "symbol()")
+                 #(cb %1 (.hexToUtf8 utils %2))))
 
 (defn decimals [web3 contract cb]
-  (ethereum/call web3 (ethereum/call-params contract "decimals()") cb))
+  (ethereum/call web3 (ethereum/call-params contract "decimals()")
+                 #(cb %1 (.hexToNumber utils %2))))
 
 (defn total-supply [web3 contract cb]
   (ethereum/call web3

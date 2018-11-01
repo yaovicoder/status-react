@@ -45,7 +45,7 @@
 
 (defn map-values
   "Efficiently apply function to all map values"
-  [m f]
+  [f m]
   (into {}
         (map (fn [[k v]]
                [k (f v)]))

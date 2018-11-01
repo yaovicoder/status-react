@@ -7,6 +7,7 @@
             [status-im.utils.ethereum.core :as ethereum]
             [status-im.utils.ethereum.tokens :as tokens]
             [status-im.utils.hex :as utils.hex]
+            [status-im.utils.core :as utils.core]
             [status-im.utils.money :as money]
             [status-im.utils.fx :as fx]
             [status-im.ui.screens.wallet.utils :as wallet.utils]))
@@ -213,6 +214,14 @@
 
 (defn tokens-symbols [v chain]
   (set/difference (set v) (set (map :symbol (tokens/nfts-for chain)))))
+
+(defn index-by [key coll]
+  (into {} (map #(vector (key %) %) coll)))
+
+(fx/defn initialize-tokens
+  [{:keys [db]}]
+  {:db (assoc db :wallet/all-tokens
+              (utils.core/map-values #(index-by :address %) tokens/all-default-tokens))})
 
 (fx/defn update-wallet
   [{{:keys [web3 network network-status] {:keys [address settings]} :account/account :as db} :db}]
