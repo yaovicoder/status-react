@@ -64,18 +64,19 @@
                    [:wallet :chat-transactions]
                    (missing-chat-transactions cofx))}))
 
-(fx/defn run-update [{{:keys [network network-status web3] :as db} :db}]
+(fx/defn run-update [{{:keys [network network-status web3] :wallet/keys [all-tokens] :as db} :db}]
   (when (not= network-status :offline)
     (let [network (get-in db [:account/account :networks network])
           chain (ethereum/network->chain-keyword network)]
       (when-not (= :custom chain)
-        (let [all-tokens (tokens/tokens-for chain)
+        (let [all-tokens (tokens/tokens-for all-tokens chain)
               token-addresses (map :address all-tokens)]
           (log/debug "Syncing transactions data..")
           {:get-transactions {:account-id      (get-in db [:account/account :address])
                               :token-addresses token-addresses
                               :chain           chain
                               :web3            web3
+                              :all-tokens      all-tokens
                               :success-event   :update-transactions-success
                               :error-event     :update-transactions-fail}
            :db               (-> db
