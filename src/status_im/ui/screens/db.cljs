@@ -38,6 +38,7 @@
              :app-state                          "active"
              :wallet.transactions                constants/default-wallet-transactions
              :wallet-selected-asset              {}
+             :wallet/all-tokens                  {}
              :prices                             {}
              :peers-count                        0
              :peers-summary                      []
@@ -238,6 +239,7 @@
                                 :desktop/desktop
                                 :dimensions/window
                                 :dapps/permissions
+                                :wallet/all-tokens
                                 :ui/contact
                                 :ui/search
                                 :ui/chat]
