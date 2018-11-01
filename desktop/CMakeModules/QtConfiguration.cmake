@@ -21,6 +21,10 @@ macro(import_qt_modules)
 endmacro(import_qt_modules)
 
 if(WIN32)
+  if(NOT DEFINED ENV{STATUS_CONAN_HOME})
+    message(FATAL_ERROR "STATUS_CONAN_HOME environment is not defined. Please set it to the location of the local status-conan repository")
+  endif()
+
   # Download automatically, you can also just copy the conan.cmake file
   # TODO: Create packages of qt5 for Linux and MacOS too, so that we can rely strictly on this branch of code 
   if(NOT EXISTS "${CMAKE_BINARY_DIR}/conan.cmake")
@@ -37,7 +41,7 @@ if(WIN32)
     set(_QT_PACKAGE_OPTIONS "qt5-mxe:webkit=True")
   endif()
   conan_cmake_run(REQUIRES qt5-mxe/5.11.2@status-im/experimental
-                  PROFILE $ENV{STATUS_REACT_HOME}/../status-conan/profiles/status-mxe-mingw32-x86_64-gcc55-libstdcxx # TODO Remove hardcoded path
+                  PROFILE $ENV{STATUS_CONAN_HOME}/profiles/status-mxe-mingw32-x86_64-gcc55-libstdcxx # TODO Remove hardcoded path
                   BASIC_SETUP
                   SETTINGS "qt5-mxe:os=Windows qt5-mxe:arch=x86_64"
                   OPTIONS ${_QT_PACKAGE_OPTIONS}

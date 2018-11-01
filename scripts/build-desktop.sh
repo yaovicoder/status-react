@@ -13,6 +13,9 @@ OS=$(uname -s)
 if [ -z $TARGET_SYSTEM_NAME ]; then
   TARGET_SYSTEM_NAME=$OS
 fi
+if [ -z $STATUS_CONAN_HOME ]; then
+  export STATUS_CONAN_HOME=$STATUS_REACT_HOME/../status-conan
+fi
 WINDOWS_CROSSTOOLCHAIN_PKG_NAME='mxetoolchain-x86_64-w64-mingw32'
 
 external_modules_dir=( \
@@ -95,11 +98,12 @@ function init() {
     rm -rf ./desktop/toolchain/
     if is_windows_target; then
       # TODO: Use Conan for Linux and MacOS builds too
+      export PATH=$STATUS_CONAN_HOME:$PATH
       if ! program_exists 'conan'; then
         echo "${RED}Conan package manager is not installed. Please install it from https://conan.io/${NC}"
         exit 1
       fi
-      conan install -if ./desktop/toolchain/ -g cmake -pr $STATUS_REACT_HOME/../status-conan/profiles/status-mxe-mingw32-x86_64-gcc55-libstdcxx $WINDOWS_CROSSTOOLCHAIN_PKG_NAME/5.5.0-1@status-im/experimental
+      conan install -if ./desktop/toolchain/ -g cmake -pr $STATUS_CONAN_HOME/profiles/status-mxe-mingw32-x86_64-gcc55-libstdcxx $WINDOWS_CROSSTOOLCHAIN_PKG_NAME/5.5.0-1@status-im/experimental
     fi
   fi
 }
