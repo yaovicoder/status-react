@@ -514,6 +514,9 @@
 (defn symbol->token [chain symbol]
   (some #(when (= symbol (:symbol %)) %) (tokens-for chain)))
 
+(defn symbol->token2 [all-tokens chain symbol]
+  (some #(when (= symbol (:symbol %)) %) (tokens-for2 all-tokens chain)))
+
 (defn address->token [all-tokens chain address]
   (some #(when (= (string/lower-case address)
                   (string/lower-case (:address %))) %) (tokens-for2 all-tokens chain)))

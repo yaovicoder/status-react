@@ -170,9 +170,10 @@
              {:dispatch (conj on-error "transaction was cancelled by user")}))))
 
 (defn prepare-unconfirmed-transaction [db now hash]
-  (let [transaction (get-in db [:wallet :send-transaction])]
+  (let [transaction (get-in db [:wallet :send-transaction])
+        all-tokens  (:wallet/all-tokens db)]
     (let [chain (:chain db)
-          token (tokens/symbol->token (keyword chain) (:symbol transaction))]
+          token (tokens/symbol->token2 all-tokens (keyword chain) (:symbol transaction))]
       (-> transaction
           (assoc :confirmations "0"
                  :timestamp (str now)
@@ -242,6 +243,7 @@
                             :account-id    address
                             :symbols       assets
                             :chain         chain
+                            :all-tokens    all-tokens
                             :success-event :update-token-balance-success
                             :error-event   :update-token-balance-fail}
        :get-prices         {:from          (if mainnet?
