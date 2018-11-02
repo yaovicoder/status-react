@@ -527,3 +527,10 @@
             (= (:symbol native-coin) symbol))
       native-coin
       (symbol->token chain symbol))))
+
+(defn asset-for2 [all-tokens chain symbol]
+  (let [native-coin (native-currency chain)]
+    (if (or (= (:symbol-display native-coin) symbol)
+            (= (:symbol native-coin) symbol))
+      native-coin
+      (symbol->token2 all-tokens chain symbol))))
