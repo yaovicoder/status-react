@@ -46,9 +46,9 @@
      [react/text {:style               styles/last-message-text
                   :number-of-lines     1
                   :accessibility-label :chat-message-text}
-      (if-let [render-recipe (:render-recipe content)]
-        (chat.utils/render-chunks render-recipe message)
-        (:text content))]
+      #_(if-let [render-recipe (:render-recipe content)]
+          (chat.utils/render-chunks render-recipe message))
+      (:text content)]
 
      :else
      [react/text {:style               styles/last-message-text
