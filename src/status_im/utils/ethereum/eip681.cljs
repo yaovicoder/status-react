@@ -65,7 +65,7 @@
           n (money/bignumber (string/replace s "ETH" ""))]
       (if eth? (.times n 1e18) n))))
 
-(defn extract-request-details [{:keys [value address chain-id function-name function-arguments]}]
+(defn extract-request-details [{:keys [value address chain-id function-name function-arguments]} all-tokens]
   "Return a map encapsulating request details (with keys `value`, `address` and `symbol`) from a parsed URI.
    Supports ethereum and erc20 token."
   (when address
@@ -76,7 +76,7 @@
        :address address}
       "transfer"
       {:value   (money/bignumber (:uint256 function-arguments))
-       :symbol  (:symbol (tokens/address->token (ethereum/chain-id->chain-keyword chain-id) address))
+       :symbol  (:symbol (tokens/address->token all-tokens (ethereum/chain-id->chain-keyword chain-id) address))
        :address (:address function-arguments)}
       nil)))
 

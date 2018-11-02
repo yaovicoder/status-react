@@ -63,13 +63,14 @@
 
 (re-frame/reg-fx
  :get-transactions
- (fn [{:keys [web3 chain account-id token-addresses success-event error-event]}]
+ (fn [{:keys [web3 all-tokens chain account-id token-addresses success-event error-event]}]
    (transactions/get-transactions chain
                                   account-id
                                   #(re-frame/dispatch [success-event % account-id])
                                   #(re-frame/dispatch [error-event %]))
    (doseq [direction [:inbound :outbound]]
      (erc20/get-token-transactions web3
+                                   all-tokens
                                    chain
                                    token-addresses
                                    direction

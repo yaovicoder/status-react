@@ -514,9 +514,9 @@
 (defn symbol->token [chain symbol]
   (some #(when (= symbol (:symbol %)) %) (tokens-for chain)))
 
-(defn address->token [chain address]
+(defn address->token [all-tokens chain address]
   (some #(when (= (string/lower-case address)
-                  (string/lower-case (:address %))) %) (tokens-for chain)))
+                  (string/lower-case (:address %))) %) (tokens-for2 all-tokens chain)))
 
 (defn asset-for [chain symbol]
   (let [native-coin (native-currency chain)]

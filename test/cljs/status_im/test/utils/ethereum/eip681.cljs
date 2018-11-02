@@ -73,13 +73,17 @@
   (is (.equals (money/bignumber "111122223333441239") (eip681/parse-eth-value "111122223333441239"))))
 
 (deftest extract-request-details
-  (let [{:keys [value symbol address]} (eip681/extract-request-details {:address "0x89205a3a3b2a69de6dbf7f01ed13b2108b2c43e7" :value "1ETH"})]
+  (let [{:keys [value symbol address]} (eip681/extract-request-details {:address "0x89205a3a3b2a69de6dbf7f01ed13b2108b2c43e7" :value "1ETH"} {})]
     (is (.equals (money/ether->wei (money/bignumber 1)) value))
     (is (= :ETH symbol))
     (is (= "0x89205a3a3b2a69de6dbf7f01ed13b2108b2c43e7" address)))
-  (is (nil? (eip681/extract-request-details {:address "0x744d70fdbe2ba4cf95131626614a1763df805b9e" :chain-id 1 :function-name "unknown"})))
+  (is (nil? (eip681/extract-request-details {:address "0x744d70fdbe2ba4cf95131626614a1763df805b9e" :chain-id 1 :function-name "unknown"} {})))
   (let [{:keys [value symbol address]} (eip681/extract-request-details {:address "0x744d70fdbe2ba4cf95131626614a1763df805b9e" :chain-id 1
-                                                                        :function-name "transfer" :function-arguments {:uint256 1000 :address "0x89205a3a3b2a69de6dbf7f01ed13b2108b2c43e7"}})]
+                                                                        :function-name "transfer" :function-arguments {:uint256 1000 :address "0x89205a3a3b2a69de6dbf7f01ed13b2108b2c43e7"}}
+                                                                       {:mainnet {"0x744d70fdbe2ba4cf95131626614a1763df805b9e" {:address  "0x744d70fdbe2ba4cf95131626614a1763df805b9e"
+                                                                                                                                :name     "Status Network Token"
+                                                                                                                                :symbol   :SNT
+                                                                                                                                :decimals 18}}})]
     (is (.equals (money/bignumber 1000) value))
     (is (= :SNT symbol))
     (is (= "0x89205a3a3b2a69de6dbf7f01ed13b2108b2c43e7" address))))

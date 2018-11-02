@@ -76,6 +76,7 @@
                               :token-addresses token-addresses
                               :chain           chain
                               :web3            web3
+                              :all-tokens      all-tokens
                               :success-event   :update-transactions-success
                               :error-event     :update-transactions-fail}
            :db               (-> db
