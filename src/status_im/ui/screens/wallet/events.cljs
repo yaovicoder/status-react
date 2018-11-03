@@ -54,7 +54,7 @@
  :get-tokens-balance
  (fn [{:keys [web3 symbols all-tokens chain account-id success-event error-event]}]
    (doseq [symbol symbols]
-     (let [contract (:address (tokens/symbol->token2 all-tokens chain symbol))]
+     (let [contract (:address (tokens/symbol->token all-tokens chain symbol))]
        (get-token-balance {:web3       web3
                            :contract   contract
                            :account-id account-id

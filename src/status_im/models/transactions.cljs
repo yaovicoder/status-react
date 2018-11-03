@@ -69,7 +69,7 @@
     (let [network (get-in db [:account/account :networks network])
           chain (ethereum/network->chain-keyword network)]
       (when-not (= :custom chain)
-        (let [all-tokens (tokens/tokens-for2 all-tokens chain)
+        (let [all-tokens (tokens/tokens-for all-tokens chain)
               token-addresses (map :address all-tokens)]
           (log/debug "Syncing transactions data..")
           {:get-transactions {:account-id      (get-in db [:account/account :address])

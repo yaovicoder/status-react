@@ -105,7 +105,7 @@
 (defn generate-erc20-uri
   "Generate a EIP 681 URI encapsulating ERC20 token transfer"
   [address {:keys [symbol value chain-id] :as m} all-tokens]
-  (when-let [token (tokens/symbol->token2 all-tokens (if chain-id (ethereum/chain-id->chain-keyword chain-id) :mainnet) symbol)]
+  (when-let [token (tokens/symbol->token all-tokens (if chain-id (ethereum/chain-id->chain-keyword chain-id) :mainnet) symbol)]
     (generate-uri (:address token)
                   (merge (dissoc m :value :symbol)
                          {:function-name      "transfer"

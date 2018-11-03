@@ -496,28 +496,28 @@
 
    :custom  []})
 
-(defn tokens-for2 [all-tokens chain]
+(defn tokens-for [all-tokens chain]
   (vals (get all-tokens chain)))
 
 (defn nfts-for [all-tokens chain]
-  (filter :nft? (tokens-for2 all-tokens chain)))
+  (filter :nft? (tokens-for all-tokens chain)))
 
 (defn sorted-tokens-for [all-tokens chain]
-  (->> (tokens-for2 all-tokens chain)
+  (->> (tokens-for all-tokens chain)
        (filter #(not (:hidden? %)))
        (sort #(compare (string/lower-case (:name %1))
                        (string/lower-case (:name %2))))))
 
-(defn symbol->token2 [all-tokens chain symbol]
-  (some #(when (= symbol (:symbol %)) %) (tokens-for2 all-tokens chain)))
+(defn symbol->token [all-tokens chain symbol]
+  (some #(when (= symbol (:symbol %)) %) (tokens-for all-tokens chain)))
 
 (defn address->token [all-tokens chain address]
   (some #(when (= (string/lower-case address)
-                  (string/lower-case (:address %))) %) (tokens-for2 all-tokens chain)))
+                  (string/lower-case (:address %))) %) (tokens-for all-tokens chain)))
 
-(defn asset-for2 [all-tokens chain symbol]
+(defn asset-for [all-tokens chain symbol]
   (let [native-coin (native-currency chain)]
     (if (or (= (:symbol-display native-coin) symbol)
             (= (:symbol native-coin) symbol))
       native-coin
-      (symbol->token2 all-tokens chain symbol))))
+      (symbol->token all-tokens chain symbol))))

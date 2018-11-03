@@ -33,7 +33,7 @@
                   network-status                                    [:network-status]
                   all-tokens                                        [:wallet/all-tokens]
                   scroll                                            (atom nil)]
-    (let [{:keys [decimals] :as token} (tokens/asset-for2 all-tokens (ethereum/network->chain-keyword network) symbol)]
+    (let [{:keys [decimals] :as token} (tokens/asset-for all-tokens (ethereum/network->chain-keyword network) symbol)]
       [wallet.components/simple-screen {:avoid-keyboard? true}
        [wallet.components/toolbar (i18n/label :t/new-request)]
        [react/view components.styles/flex

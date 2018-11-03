@@ -34,7 +34,7 @@
           gas-price          (:value gas-price-edit)
           chain              (ethereum/network->chain-keyword network)
           native-currency    (tokens/native-currency chain)
-          {:keys [decimals] :as token} (tokens/asset-for2 all-tokens chain symbol)]
+          {:keys [decimals] :as token} (tokens/asset-for all-tokens chain symbol)]
       [components/simple-screen {:status-bar-type :modal-wallet}
        [toolbar (i18n/label :t/wallet-transaction-fee)]
        [react/view components.styles/flex

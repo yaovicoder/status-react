@@ -20,7 +20,7 @@
  :erc721-token-uri
  (fn [[web3 all-tokens symbol tokenId chain-id]]
    (let [chain (ethereum/chain-id->chain-keyword chain-id)
-         contract (:address (tokens/symbol->token2 all-tokens chain symbol))]
+         contract (:address (tokens/symbol->token all-tokens chain symbol))]
      (erc721/token-uri web3 contract tokenId
                        #(re-frame/dispatch [:token-uri-success
                                             tokenId

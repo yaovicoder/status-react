@@ -173,7 +173,7 @@
   (let [transaction (get-in db [:wallet :send-transaction])
         all-tokens  (:wallet/all-tokens db)]
     (let [chain (:chain db)
-          token (tokens/symbol->token2 all-tokens (keyword chain) (:symbol transaction))]
+          token (tokens/symbol->token all-tokens (keyword chain) (:symbol transaction))]
       (-> transaction
           (assoc :confirmations "0"
                  :timestamp (str now)

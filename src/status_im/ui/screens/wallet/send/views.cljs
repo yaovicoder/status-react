@@ -143,7 +143,7 @@
                 sufficient-gas? in-progress? from-chat? symbol]} transaction
         chain                        (ethereum/network->chain-keyword network)
         native-currency              (tokens/native-currency chain)
-        {:keys [decimals] :as token} (tokens/asset-for2 all-tokens chain symbol)
+        {:keys [decimals] :as token} (tokens/asset-for all-tokens chain symbol)
         online? (= :online network-status)]
     [wallet.components/simple-screen {:avoid-keyboard? (not modal?)
                                       :status-bar-type (if modal? :modal-wallet :wallet)}

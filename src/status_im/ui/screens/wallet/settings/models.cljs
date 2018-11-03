@@ -28,7 +28,7 @@
   (let [{:keys [account/account web3 network-status] :wallet/keys [all-tokens]} db
         network   (get (:networks account) (:network account))
         chain     (ethereum/network->chain-keyword network)
-        contracts (->> (tokens/tokens-for2 all-tokens chain)
+        contracts (->> (tokens/tokens-for all-tokens chain)
                        (remove :hidden?))]
     (when-not (= network-status :offline)
       (doseq [{:keys [address symbol]} contracts]

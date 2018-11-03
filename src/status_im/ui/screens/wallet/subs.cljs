@@ -61,7 +61,7 @@
                   :<- [:wallet/all-tokens]
                   (fn [[balance prices currency network all-tokens] [_ currency-code]]
                     (if (and balance prices)
-                      (let [assets          (tokens/tokens-for2 all-tokens (ethereum/network->chain-keyword network))
+                      (let [assets          (tokens/tokens-for all-tokens (ethereum/network->chain-keyword network))
                             token->decimals (into {} (map #(vector (:symbol %) (:decimals %)) assets))
                             balance-total-value
                             (get-balance-total-value balance

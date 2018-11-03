@@ -156,7 +156,7 @@
   (views/letsubs [balance    [:balance]
                   network    [:network]
                   all-tokens [:wallet/all-tokens]]
-    (let [{:keys [name icon decimals] :as token} (tokens/asset-for2 all-tokens (ethereum/network->chain-keyword network) symbol)]
+    (let [{:keys [name icon decimals] :as token} (tokens/asset-for all-tokens (ethereum/network->chain-keyword network) symbol)]
       (when name
         [react/view
          [cartouche {:disabled? disabled? :on-press #(re-frame/dispatch [:navigate-to (type->view type)])}

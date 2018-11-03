@@ -39,7 +39,7 @@
  :load-collectibles-fx
  (fn [[web3 all-tokens symbol items-number address chain-id]]
    (let [chain (ethereum/chain-id->chain-keyword chain-id)
-         contract (:address (tokens/symbol->token2 all-tokens chain symbol))]
+         contract (:address (tokens/symbol->token all-tokens chain symbol))]
      (load-token web3 0 items-number contract address symbol))))
 
 (handlers/register-handler-fx

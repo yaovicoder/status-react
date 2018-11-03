@@ -153,7 +153,7 @@
           (comp (filter #(and (not (:nft? %))
                               (contains? visible-tokens (:symbol %))))
                 (map (juxt (comp name :symbol) :decimals)))
-          (tokens/tokens-for2 all-tokens chain-keyword))))
+          (tokens/tokens-for all-tokens chain-keyword))))
 
 (defn- personal-send-request-validation [{:keys [asset amount]} {:keys [db]}]
   (let [asset-decimals (get (allowed-assets db) asset)]
@@ -214,7 +214,7 @@
     (let [{{:keys [amount fiat-amount tx-hash asset currency] send-network :network} :params} content
           recipient-name (get-in content [:params :bot-db :public :recipient])
           network-mismatch? (and (seq send-network) (not= network send-network))
-          token             (tokens/asset-for2 all-tokens (keyword send-network) (keyword asset))]
+          token             (tokens/asset-for all-tokens (keyword send-network) (keyword asset))]
       [react/view transactions-styles/command-send-message-view
        [react/view
         [react/view transactions-styles/command-send-amount-row
@@ -261,7 +261,7 @@
 (defn- inject-coin-info [{:keys [network asset] :as parameters} {:keys [db]}]
   (let [all-tokens (:wallet/all-tokens db)
         coin (when (and network asset)
-               (tokens/asset-for2 all-tokens (keyword network) (keyword asset)))]
+               (tokens/asset-for all-tokens (keyword network) (keyword asset)))]
     (assoc parameters :coin coin)))
 
 (defn- inject-price-info [{:keys [amount asset] :as parameters} {:keys [db]}]
@@ -314,7 +314,7 @@
           chain                 (keyword (:chain db))
           symbol-param          (keyword asset)
           all-tokens            (:wallet/all-tokens db)
-          {:keys [symbol decimals]} (tokens/asset-for2 all-tokens chain symbol-param)
+          {:keys [symbol decimals]} (tokens/asset-for all-tokens chain symbol-param)
           {:keys [value error]}     (wallet.db/parse-amount amount decimals)
           next-view-id              (if (:wallet-set-up-passed? sender-account)
                                       :wallet-send-transaction-modal

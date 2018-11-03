@@ -57,7 +57,7 @@
          address-accessibility-label] (if (inbound? type)
                                         [(i18n/label :t/from) from-contact from :sender-text :sender-address-text]
                                         [(i18n/label :t/to) to-contact to :recipient-name-text :recipient-address-text])
-        {:keys [decimals] :as token}   (tokens/asset-for2 all-tokens (ethereum/network->chain-keyword network) symbol)]
+        {:keys [decimals] :as token}   (tokens/asset-for all-tokens (ethereum/network->chain-keyword network) symbol)]
     [list/touchable-item #(when-not hide-details? (re-frame/dispatch [:show-transaction-details hash]))
      [react/view {:accessibility-label :transaction-item}
       [list/item
@@ -166,7 +166,7 @@
     "..."))
 
 (defn details-header [network all-tokens {:keys [value date type symbol token]}]
-  (let [asset (tokens/asset-for2 all-tokens (ethereum/network->chain-keyword network) symbol)]
+  (let [asset (tokens/asset-for all-tokens (ethereum/network->chain-keyword network) symbol)]
     [react/view {:style styles/details-header}
      [react/view {:style styles/details-header-icon}
       [list/item-icon (transaction-type->icon type)]]
