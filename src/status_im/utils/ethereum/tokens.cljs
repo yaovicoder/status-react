@@ -496,9 +496,6 @@
 
    :custom  []})
 
-(defn tokens-for [chain]
-  (get all-default-tokens chain))
-
 (defn tokens-for2 [all-tokens chain]
   (vals (get all-tokens chain)))
 
@@ -511,22 +508,12 @@
        (sort #(compare (string/lower-case (:name %1))
                        (string/lower-case (:name %2))))))
 
-(defn symbol->token [chain symbol]
-  (some #(when (= symbol (:symbol %)) %) (tokens-for chain)))
-
 (defn symbol->token2 [all-tokens chain symbol]
   (some #(when (= symbol (:symbol %)) %) (tokens-for2 all-tokens chain)))
 
 (defn address->token [all-tokens chain address]
   (some #(when (= (string/lower-case address)
                   (string/lower-case (:address %))) %) (tokens-for2 all-tokens chain)))
-
-(defn asset-for [chain symbol]
-  (let [native-coin (native-currency chain)]
-    (if (or (= (:symbol-display native-coin) symbol)
-            (= (:symbol native-coin) symbol))
-      native-coin
-      (symbol->token chain symbol))))
 
 (defn asset-for2 [all-tokens chain symbol]
   (let [native-coin (native-currency chain)]
