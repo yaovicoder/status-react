@@ -87,12 +87,10 @@
 
 (defn personal-send-request-short-preview
   [label-key {:keys [content]}]
-  (let [{:keys [amount asset network]} (:params content)
-        token (when (and network asset)
-                (tokens/asset-for (keyword network) (keyword asset)))]
+  (let [{:keys [amount coin]} (:params content)]
     [chat-preview/text {}
      (i18n/label label-key {:amount (i18n/label-number amount)
-                            :asset  (wallet.utils/display-symbol token)})]))
+                            :asset  (wallet.utils/display-symbol coin)})]))
 
 (def personal-send-request-params
   [{:id          :asset
@@ -211,11 +209,12 @@
 
 (defview send-preview
   [{:keys [content timestamp-str outgoing group-chat]}]
-  (letsubs [network [:network-name]]
+  (letsubs [network    [:network-name]
+            all-tokens [:wallet/all-tokens]]
     (let [{{:keys [amount fiat-amount tx-hash asset currency] send-network :network} :params} content
           recipient-name (get-in content [:params :bot-db :public :recipient])
           network-mismatch? (and (seq send-network) (not= network send-network))
-          token             (tokens/asset-for (keyword send-network) (keyword asset))]
+          token             (tokens/asset-for2 all-tokens (keyword send-network) (keyword asset))]
       [react/view transactions-styles/command-send-message-view
        [react/view
         [react/view transactions-styles/command-send-amount-row
@@ -258,6 +257,12 @@
 
 (defn- inject-network-info [parameters {:keys [db]}]
   (assoc parameters :network (:chain db)))
+
+(defn- inject-coin-info [{:keys [network asset] :as parameters} {:keys [db]}]
+  (let [all-tokens (:wallet/all-tokens db)
+        coin (when (and network asset)
+               (tokens/asset-for2 all-tokens (keyword network) (keyword asset)))]
+    (assoc parameters :coin coin)))
 
 (defn- inject-price-info [{:keys [amount asset] :as parameters} {:keys [db]}]
   (let [currency (-> db
@@ -308,7 +313,8 @@
           sender-account        (:account/account db)
           chain                 (keyword (:chain db))
           symbol-param          (keyword asset)
-          {:keys [symbol decimals]} (tokens/asset-for chain symbol-param)
+          all-tokens            (:wallet/all-tokens db)
+          {:keys [symbol decimals]} (tokens/asset-for2 all-tokens chain symbol-param)
           {:keys [value error]}     (wallet.db/parse-amount amount decimals)
           next-view-id              (if (:wallet-set-up-passed? sender-account)
                                       :wallet-send-transaction-modal
@@ -333,10 +339,14 @@
                 (navigation/navigate-to-cofx next-view-id {}))))
   protocol/EnhancedParameters
   (enhance-send-parameters [_ parameters cofx]
-    (-> (inject-network-info parameters cofx)
+    (-> parameters
+        (inject-network-info cofx)
+        (inject-coin-info cofx)
         (inject-price-info cofx)))
   (enhance-receive-parameters [_ parameters cofx]
-    (inject-price-info parameters cofx)))
+    (-> parameters
+        (inject-coin-info cofx)
+        (inject-price-info cofx))))
 
 ;; `/request` command
 
@@ -468,7 +478,11 @@
     (request-preview command-message))
   protocol/EnhancedParameters
   (enhance-send-parameters [_ parameters cofx]
-    (-> (inject-network-info parameters cofx)
+    (-> parameters
+        (inject-network-info cofx)
+        (inject-coin-info cofx)
         (inject-price-info cofx)))
   (enhance-receive-parameters [_ parameters cofx]
-    (inject-price-info parameters cofx)))
+    (-> parameters
+        (inject-coin-info cofx)
+        (inject-price-info cofx))))
