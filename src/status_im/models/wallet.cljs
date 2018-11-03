@@ -216,13 +216,10 @@
 (defn tokens-symbols [visible-token-symbols all-tokens chain]
   (set/difference (set visible-token-symbols) (set (map :symbol (tokens/nfts-for all-tokens chain)))))
 
-(defn index-by [key coll]
-  (into {} (map #(vector (key %) %) coll)))
-
 (fx/defn initialize-tokens
   [{:keys [db]}]
   {:db (assoc db :wallet/all-tokens
-              (utils.core/map-values #(index-by :address %) tokens/all-default-tokens))})
+              (utils.core/map-values #(utils.core/index-by :address %) tokens/all-default-tokens))})
 
 (fx/defn update-wallet
   [{{:keys [web3 network network-status] {:keys [address settings]} :account/account :as db} :db}]
