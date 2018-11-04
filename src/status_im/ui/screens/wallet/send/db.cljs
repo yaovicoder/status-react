@@ -9,6 +9,7 @@
 (spec/def ::to (spec/nilable string?))
 (spec/def ::amount (spec/nilable money/valid?))
 (spec/def ::gas (spec/nilable money/valid?))
+(spec/def ::original-gas (spec/nilable money/valid?))
 (spec/def ::gas-price (spec/nilable money/valid?))
 ; dapp transaction
 (spec/def ::data (spec/nilable string?))
@@ -40,4 +41,4 @@
                                              ::password ::show-password-input? ::id ::from ::data ::nonce
                                              ::camera-flashlight ::in-progress? ::on-result ::on-error
                                              ::wrong-password? ::from-chat? ::symbol ::advanced?
-                                             ::gas ::gas-price ::whisper-identity ::method ::tx-hash]))
+                                             ::gas ::original-gas ::gas-price ::whisper-identity ::method ::tx-hash]))
