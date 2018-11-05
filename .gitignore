@@ -141,7 +141,15 @@ CMakeCache.txt
 /deployment/windows/Status.rc
 *_autogen/
 CompleteBundleWin.cmake
+logger_settings.ini
+
+# Conan
 conan*.txt
 conanbuildinfo.cmake
 conan.cmake
-logger_settings.ini
+/.conan_*/
+/.conan-lib
+/conan-*.py
+/conan-bin
+/envwrap.py
+/conanenv.json
