@@ -212,7 +212,6 @@ function compile() {
 }
 
 function bundleWindows() {
-  # TODO: Produce a setup program instead of a ZIP
   pushd $WORKFOLDER
     rm -rf Windows
     mkdir Windows
@@ -223,23 +222,13 @@ function bundleWindows() {
     fi
     unzip "$STATUSIM_WINDOWS_BASEIMAGE_ZIP" -d Windows/
 
-    rm -f Status-Windows-x86_64.zip
-    pushd Windows
-      cp $STATUSREACTPATH/.env .
-      mkdir -p assets/resources notifier
-      cp $STATUSREACTPATH/node_modules/node-notifier/vendor/snoreToast/SnoreToast.exe .
-      cp $STATUSREACTPATH/node_modules/node-notifier/vendor/notifu/*.exe notifier/
-      cp -r $STATUSREACTPATH/resources/fonts \
-            $STATUSREACTPATH/resources/icons \
-            $STATUSREACTPATH/resources/images \
-            assets/resources/
-      local _bin=$STATUSREACTPATH/desktop/bin
-      rm -rf $_bin/cmake_install.cmake $_bin/Makefile $_bin/CMakeFiles $_bin/Status_autogen && \
-      cp -r $_bin/* .
-      zip -mr9 ../../Status-Windows-x86_64.zip .
+    pushd $STATUSREACTPATH/desktop/bin
+      rm -rf cmake_install.cmake Makefile CMakeFiles Status_autogen
     popd
-    rm -rf Windows
   popd
+
+  local top_srcdir=$(joinExistingPath "$STATUSREACTPATH" '.')
+  makensis -Dtop_srcdir=${top_srcdir} -DVERSION_MAJOR=0 -DVERSION_MINOR=0 -DVERSION_BUILD=1 -DPUBLISHER=Status.im -DWEBSITE_URL="https://status.im/" ./deployment/windows/setup.nsi
 }
 
 function bundleLinux() {
