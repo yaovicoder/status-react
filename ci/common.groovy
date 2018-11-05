@@ -142,7 +142,7 @@ def pkgFilename(type, ext) {
 }
 
 
-def githubNotify(apkUrl, e2eUrl, ipaUrl, dmgUrl, appUrl, zipUrl, changeId) {
+def githubNotify(apkUrl, e2eUrl, ipaUrl, dmgUrl, appUrl, exeUrl, changeId) {
   withCredentials([string(credentialsId: 'GIT_HUB_TOKEN', variable: 'githubToken')]) {
     def message = (
       "#### :white_check_mark: CI BUILD SUCCESSFUL\\n" +
@@ -151,12 +151,12 @@ def githubNotify(apkUrl, e2eUrl, ipaUrl, dmgUrl, appUrl, zipUrl, changeId) {
       "* [Android](${apkUrl}), ([e2e](${e2eUrl}))\\n" +
       "* [iOS](${ipaUrl})\\n")
 
-    if (dmgUrl != null && appUrl != null && zipUrl != null) {
+    if (dmgUrl != null && appUrl != null && exeUrl != null) {
       message = message +
         "##### Desktop\\n" +
         "* [MacOS](${dmgUrl})\\n" +
         "* [AppImage](${appUrl})\\n" +
-        "* [Windows](${zipUrl})"
+        "* [Windows](${exeUrl})"
     }
     def script = (
       "curl "+
