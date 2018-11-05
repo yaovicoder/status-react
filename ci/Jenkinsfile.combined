@@ -78,11 +78,11 @@ pipeline {
         if (btype != 'release') {
           dmgUrl = cmn.uploadArtifact(cmn.pkgFind('dmg'))
           appUrl = cmn.uploadArtifact(cmn.pkgFind('AppImage'))
-          zipUrl = cmn.uploadArtifact(cmn.pkgFind('zip'))
+          exeUrl = cmn.uploadArtifact(cmn.pkgFind('exe'))
         } else {
           dmgUrl = null
           appUrl = null
-          zipUrl = null
+          exeUrl = null
         }
         /* special case for iOS Diawi links */
         ipaUrl = ios.getBuildVariables().get('DIAWI_URL')
@@ -93,7 +93,7 @@ pipeline {
           iOS: ipaUrl,
           App: appUrl,
           Mac: dmgUrl,
-          Win: zipUrl
+          Win: exeUrl
         )
       } }
     }
@@ -101,7 +101,7 @@ pipeline {
       steps { script {
         if (env.CHANGE_ID != null) {
           cmn.githubNotify(
-            apkUrl, e2eUrl, ipaUrl, dmgUrl, appUrl, zipUrl,
+            apkUrl, e2eUrl, ipaUrl, dmgUrl, appUrl, exeUrl,
             env.CHANGE_ID
           )
         }
@@ -118,7 +118,7 @@ pipeline {
                 [name: 'IOS_URL', value: ipaUrl, $class: 'StringParameterValue'],
                 [name: 'DMG_URL', value: dmgUrl, $class: 'StringParameterValue'],
                 [name: 'NIX_URL', value: appUrl, $class: 'StringParameterValue'],
-                [name: 'WIN_URL', value: zipUrl, $class: 'StringParameterValue']
+                [name: 'WIN_URL', value: exeUrl, $class: 'StringParameterValue']
               ]
             ); break
           case 'release':
