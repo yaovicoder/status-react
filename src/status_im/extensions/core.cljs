@@ -152,11 +152,12 @@
                      :style {:width "100%"}
                      :on-change-text #(re-frame/dispatch (on-change {:value %}))}])
 
-(defn touchable-opacity [{:keys [on-press]} & children]
-  (into [react/touchable-opacity {:on-press #(re-frame/dispatch (on-press {}))}] children))
+(defn touchable-opacity [{:keys [style on-press]} & children]
+  (into [react/touchable-opacity (merge {:on-press #(re-frame/dispatch (on-press {}))}
+                                        (when style {:style style}))] children))
 
 (defn image [{:keys [uri style]}]
-  [react/image (merge {:style (merge {:width 100 :height 100} style)} (when uri {:source {:uri uri}}))])
+  [react/image (merge {:style (merge {:width 100 :height 100} style)} {:source {:uri uri}})])
 
 (defn link [{:keys [uri]}]
   [react/text
@@ -170,8 +171,9 @@
 
 (defn checkbox [{:keys [on-change checked]}]
   [react/view {:style {:background-color colors/white}}
-   [checkbox/checkbox (merge {:checked checked :style {:padding 0}}
-                             (when on-change {:on-value-change #(re-frame/dispatch (on-change {:value %}))}))]])
+   [checkbox/checkbox {:checked?        checked
+                       :style {:padding 0}
+                       :on-value-change #(re-frame/dispatch (on-change {:value %}))}]])
 
 (def capacities
   {:components {'view               {:value react/view}
@@ -217,11 +219,11 @@
                 'store/put
                 {:permissions [:read]
                  :value       :store/put
-                 :arguments   {:key :string :value :string}}
+                 :arguments   {:key :string :value :map}}
                 'store/append
                 {:permissions [:read]
                  :value       :store/append
-                 :arguments   {:key :string :value :string}}
+                 :arguments   {:key :string :value :map}}
                 'store/clear
                 {:permissions [:read]
                  :value       :store/put
