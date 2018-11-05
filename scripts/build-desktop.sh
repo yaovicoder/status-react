@@ -13,9 +13,6 @@ OS=$(uname -s)
 if [ -z $TARGET_SYSTEM_NAME ]; then
   TARGET_SYSTEM_NAME=$OS
 fi
-if [ -z $STATUS_CONAN_HOME ]; then
-  export STATUS_CONAN_HOME=$STATUS_REACT_HOME/../status-conan
-fi
 WINDOWS_CROSSTOOLCHAIN_PKG_NAME='mxetoolchain-x86_64-w64-mingw32'
 
 external_modules_dir=( \
@@ -116,7 +113,7 @@ function init() {
         rm -rf ./conan-*.py ./.conan-lib ./.conan_*
         python3 ./conan-profiles/conan_init.py -ibv -p status-mingw32-x86_64 --no-password
       fi
-      conan install -if ./desktop/toolchain/ -g cmake -pr $STATUS_CONAN_HOME/profiles/status-mxe-mingw32-x86_64-gcc55-libstdcxx $WINDOWS_CROSSTOOLCHAIN_PKG_NAME/5.5.0-1@status-im/stable
+      conan-bin install -if ./desktop/toolchain/ -g cmake -pr ./conan-profiles/status-mxe-mingw32-x86_64-gcc55-libstdcxx $WINDOWS_CROSSTOOLCHAIN_PKG_NAME/5.5.0-1@status-im/stable
     fi
   fi
 }
