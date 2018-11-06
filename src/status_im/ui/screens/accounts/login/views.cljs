@@ -75,15 +75,14 @@
                                 (re-frame/dispatch [:set-in [:accounts/login :error] ""]))
           :secure-text-entry true
           :error             (when (not-empty error) (i18n/label (error-key error)))}]]
-       (when platform/ios?
-         [react/view {:style styles/save-password-checkbox-container}
-          [profile.components/settings-switch-item
-           {:label-kw (if can-save-password?
-                        :t/save-password
-                        :t/save-password-unavailable)
-            :active? can-save-password?
-            :value save-password?
-            :action-fn #(re-frame/dispatch [:set-in [:accounts/login :save-password?] %])}]])]]
+       [react/view {:style styles/save-password-checkbox-container}
+        [profile.components/settings-switch-item
+         {:label-kw  (if can-save-password?
+                       :t/save-password
+                       :t/save-password-unavailable)
+          :active?   can-save-password?
+          :value     save-password?
+          :action-fn #(re-frame/dispatch [:set-in [:accounts/login :save-password?] %])}]]]]
      (when processing
        [react/view styles/processing-view
         [components/activity-indicator {:animating true}]

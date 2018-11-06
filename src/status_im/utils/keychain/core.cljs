@@ -47,11 +47,9 @@
 
 ;; Stores the password for the address to the Keychain
 (defn save-user-password [address password callback]
-  (if-not platform/ios?
-    (callback true) ;; no-op on Androids (for now)
-    (-> (.setInternetCredentials rn/keychain address address password
-                                 (clj->js keychain-restricted-availability))
-        (.then callback))))
+  (-> (.setInternetCredentials rn/keychain address address password
+                               (clj->js keychain-restricted-availability))
+      (.then callback)))
 
 (defn handle-callback [callback result]
   (if result
@@ -60,23 +58,19 @@
 
 ;; Gets the password for a specified address from the Keychain
 (defn get-user-password [address callback]
-  (if-not platform/ios?
-    (callback) ;; no-op on Androids (for now)
-    (-> (.getInternetCredentials rn/keychain address)
-        (.then (partial handle-callback callback)))))
+  (-> (.getInternetCredentials rn/keychain address)
+      (.then (partial handle-callback callback))))
 
 ;; Clears the password for a specified address from the Keychain
 ;; (example of usage is logout or signing in w/o "save-password")
 (defn clear-user-password [address callback]
-  (if-not platform/ios?
-    (callback true)
-    (-> (.resetInternetCredentials rn/keychain address)
-        (.then callback))))
+  (-> (.resetInternetCredentials rn/keychain address)
+      (.then callback)))
 
 ;; Resolves to `false` if the device doesn't have neither a passcode nor a biometry auth.
 (defn can-save-user-password? [callback]
   (if-not platform/ios?
-    (callback false)
+    (callback true)
     (-> (.canImplyAuthentication
          rn/keychain
          (clj->js
