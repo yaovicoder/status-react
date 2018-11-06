@@ -38,6 +38,11 @@ pipeline {
         steps { script {
           nix = cmn.buildBranch('status-react/combined/desktop-linux')
         } } }
+        stage('Windows') {
+        when { expression { btype != 'release' } }
+        steps { script {
+          win = cmn.buildBranch('status-react/combined/desktop-windows')
+        } } }
         stage('iOS') { steps { script {
           ios = cmn.buildBranch('status-react/combined/mobile-ios')
         } } }
@@ -56,6 +61,7 @@ pipeline {
         if (btype != 'release') {
           cmn.copyArts('status-react/combined/desktop-macos', osx.number)
           cmn.copyArts('status-react/combined/desktop-linux', nix.number)
+          cmn.copyArts('status-react/combined/desktop-windows', win.number)
         }
         cmn.copyArts('status-react/combined/mobile-ios', ios.number)
         cmn.copyArts('status-react/combined/mobile-android', dro.number)
@@ -72,9 +78,11 @@ pipeline {
         if (btype != 'release') {
           dmgUrl = cmn.uploadArtifact(cmn.pkgFind('dmg'))
           appUrl = cmn.uploadArtifact(cmn.pkgFind('AppImage'))
+          zipUrl = cmn.uploadArtifact(cmn.pkgFind('zip'))
         } else {
           dmgUrl = null
           appUrl = null
+          zipUrl = null
         }
         /* special case for iOS Diawi links */
         ipaUrl = ios.getBuildVariables().get('DIAWI_URL')
@@ -84,7 +92,8 @@ pipeline {
           e2e: e2eUrl,
           iOS: ipaUrl,
           App: appUrl,
-          Mac: dmgUrl
+          Mac: dmgUrl,
+          Win: zipUrl
         )
       } }
     }
@@ -92,7 +101,7 @@ pipeline {
       steps { script {
         if (env.CHANGE_ID != null) {
           cmn.githubNotify(
-            apkUrl, e2eUrl, ipaUrl, dmgUrl, appUrl,
+            apkUrl, e2eUrl, ipaUrl, dmgUrl, appUrl, zipUrl,
             env.CHANGE_ID
           )
         }
@@ -108,7 +117,8 @@ pipeline {
                 [name: 'APK_URL', value: apkUrl, $class: 'StringParameterValue'],
                 [name: 'IOS_URL', value: ipaUrl, $class: 'StringParameterValue'],
                 [name: 'DMG_URL', value: dmgUrl, $class: 'StringParameterValue'],
-                [name: 'NIX_URL', value: appUrl, $class: 'StringParameterValue']
+                [name: 'NIX_URL', value: appUrl, $class: 'StringParameterValue'],
+                [name: 'WIN_URL', value: zipUrl, $class: 'StringParameterValue']
               ]
             ); break
           case 'release':
