@@ -100,12 +100,17 @@
 (re-frame/reg-fx
  :wallet/validate-tokens
  (fn [{:keys [web3 tokens]}]
-   (doseq [{:keys [address symbol name skip-name-check?]} tokens]
+   (doseq [{:keys [address symbol name skip-name-check? skip-symbol-check?]} tokens]
      (when-not skip-name-check?
        (erc20/name web3 address #(when (not= name %2)
                                    (let [message (str "Wrong name for token " symbol ". Set to " name " but detected as " %2)]
                                      (log/warn message)
-                                     (js/alert message))))))))
+                                     (js/alert message)))))
+     (when-not skip-symbol-check?
+       (erc20/symbol web3 address #(when (not= (clojure.core/name symbol) %2)
+                                     (let [message (str "Wrong symbol for token " symbol ". Set to " (clojure.core/name symbol) " but detected as " %2)]
+                                       (log/warn message)
+                                       (js/alert message))))))))
 
 ;; Handlers
 (handlers/register-handler-fx
