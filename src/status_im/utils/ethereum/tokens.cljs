@@ -505,7 +505,7 @@
                     :address  "0xe639e24346d646e927f323558e6e0031bfc93581"}
                    {:name     "Wagner Test Token"
                     :symbol   :WGN
-                    :decimals 10
+                    :decimals 9
                     :address  "0x2e7cd05f437eb256f363417fd8f920e2efa77540"}
                    {:name     "Modest Test Token"
                     :symbol   :MDS
