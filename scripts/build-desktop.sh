@@ -74,9 +74,11 @@ DEPLOYQT="$(joinPath . 'linuxdeployqt-continuous-x86_64.AppImage')"
 APPIMAGETOOL="$(joinPath . 'appimagetool-x86_64.AppImage')"
 
 function init() {
-  if [ -z $QT_PATH ]; then
-    echo "${RED}QT_PATH environment variable is not defined!${NC}"
-    exit 1
+  if ! is_windows_target; then
+    if [ -z $QT_PATH ]; then
+      echo "${RED}QT_PATH environment variable is not defined!${NC}"
+      exit 1
+    fi
   fi
 
   if is_macos; then
