@@ -74,6 +74,11 @@ DEPLOYQT="$(joinPath . 'linuxdeployqt-continuous-x86_64.AppImage')"
 APPIMAGETOOL="$(joinPath . 'appimagetool-x86_64.AppImage')"
 
 function init() {
+  if [ -z $STATUSREACTPATH ]; then
+    echo "${RED}STATUSREACTPATH environment variable is not defined!${NC}"
+    exit 1
+  fi
+
   if ! is_windows_target; then
     if [ -z $QT_PATH ]; then
       echo "${RED}QT_PATH environment variable is not defined!${NC}"
@@ -95,14 +100,14 @@ function init() {
     DEPLOYQT="$MACDEPLOYQT"
   elif is_linux; then
     rm -rf ./desktop/toolchain/
+    # TODO: Use Conan for Linux and MacOS builds too
     if is_windows_target; then
       if ! program_exists 'python3'; then
         echo "${RED}python3 prerequisite is missing. Exiting.${NC}"
         exit 1
       fi
 
-      # TODO: Use Conan for Linux and MacOS builds too
-      export PATH=$STATUS_REACT_HOME:$PATH
+      export PATH=$STATUSREACTPATH:$PATH
       if ! program_exists 'conan'; then
         if ! program_exists 'pip3'; then
           echo "${RED}pip3 package manager not found. Exiting.${NC}"
@@ -116,6 +121,7 @@ function init() {
       conan install -if ./desktop/toolchain/ -g json $WINDOWS_CROSSTOOLCHAIN_PKG_NAME/5.5.0-1@status-im/stable \
         -pr ./node_modules/status-conan/profiles/status-mingw32-x86_64
       python3 ./node_modules/status-conan/profiles/generate-profiles.py ./node_modules/status-conan/profiles ./desktop/toolchain/conanbuildinfo.json
+
       echo "Installing cross-toolchain..."
       conan install -if ./desktop/toolchain/ -g json -g cmake $WINDOWS_CROSSTOOLCHAIN_PKG_NAME/5.5.0-1@status-im/stable \
         -pr ./node_modules/status-conan/profiles/status-mxe-mingw32-x86_64-gcc55-libstdcxx
@@ -214,21 +220,21 @@ function bundleWindows() {
     fi
     unzip "$STATUSIM_WINDOWS_BASEIMAGE_ZIP" -d Windows/
 
-    rm -f Status-Windows.zip
+    rm -f Status-Windows-x86_64.zip
     pushd Windows
-      cp $STATUS_REACT_HOME/.env .
+      cp $STATUSREACTPATH/.env .
       mkdir -p assets/resources notifier
-      cp $STATUS_REACT_HOME/node_modules/node-notifier/vendor/snoreToast/SnoreToast.exe \
-         $STATUS_REACT_HOME/node_modules/node-notifier/vendor/notifu/*.exe \
+      cp $STATUSREACTPATH/node_modules/node-notifier/vendor/snoreToast/SnoreToast.exe \
+         $STATUSREACTPATH/node_modules/node-notifier/vendor/notifu/*.exe \
          notifier/
-      cp -r $STATUS_REACT_HOME/resources/fonts \
-            $STATUS_REACT_HOME/resources/icons \
-            $STATUS_REACT_HOME/resources/images \
+      cp -r $STATUSREACTPATH/resources/fonts \
+            $STATUSREACTPATH/resources/icons \
+            $STATUSREACTPATH/resources/images \
             assets/resources/
-      local _bin=$STATUS_REACT_HOME/desktop/bin
+      local _bin=$STATUSREACTPATH/desktop/bin
       rm -rf $_bin/cmake_install.cmake $_bin/Makefile $_bin/CMakeFiles $_bin/Status_autogen && \
       cp -r $_bin/* .
-      zip -mr9 ../Status-Windows.zip .
+      zip -mr9 ../../Status-Windows-x86_64.zip .
     popd
     rm -rf Windows
   popd
