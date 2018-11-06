@@ -269,10 +269,8 @@ void RCTStatus::callRPC(QString payload, double callbackId) {
 
 void RCTStatus::callPrivateRPC(QString payload, double callbackId) {
     Q_D(RCTStatus);
-    rnLog(RCTSTATUS) << "::callPrivateRPC call with param callbackId: " << callbackId;
     QtConcurrent::run([&](QString payload, double callbackId) {
             const char* result = CallPrivateRPC(payload.toUtf8().data());
-            rnLog(RCTSTATUS) << "::callPrivateRPC CallPrivateRPC result: " << statusGoResultError(result);
             d->bridge->invokePromiseCallback(callbackId, QVariantList{result});
         }, payload, callbackId);
 }
@@ -296,7 +294,6 @@ void RCTStatus::emitStatusGoEvent(QString event) {
 }
 
 void RCTStatus::onStatusGoEvent(QString event) {
-    rnLog(RCTSTATUS) << "::onStatusGoEvent call, ... event: " << event.toUtf8().data();
     RCTStatusPrivate::bridge->eventDispatcher()->sendDeviceEvent("gethEvent", QVariantMap{{"jsonEvent", event.toUtf8().data()}});
 }
 
