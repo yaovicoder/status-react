@@ -17,7 +17,8 @@
             [re-frame.core :as re-frame]
             [cljs.spec.alpha :as spec]
             [status-im.utils.platform :as platform]
-            [status-im.accounts.db :as db]))
+            [status-im.accounts.db :as db]
+            [status-im.utils.keychain.core :as keychain]))
 
 (defn login-toolbar [can-navigate-back?]
   [toolbar/toolbar
@@ -75,14 +76,14 @@
                                 (re-frame/dispatch [:set-in [:accounts/login :error] ""]))
           :secure-text-entry true
           :error             (when (not-empty error) (i18n/label (error-key error)))}]]
-       (when platform/ios?
+       (when keychain/can-use-keychain?
          [react/view {:style styles/save-password-checkbox-container}
           [profile.components/settings-switch-item
-           {:label-kw (if can-save-password?
-                        :t/save-password
-                        :t/save-password-unavailable)
-            :active? can-save-password?
-            :value save-password?
+           {:label-kw  (if can-save-password?
+                         :t/save-password
+                         :t/save-password-unavailable)
+            :active?   can-save-password?
+            :value     save-password?
             :action-fn #(re-frame/dispatch [:set-in [:accounts/login :save-password?] %])}]])]]
      (when processing
        [react/view styles/processing-view
