@@ -93,7 +93,8 @@
                     :address  "0xedbaf3c5100302dcdda53269322f3730b1f0416d"
                     :decimals 5
                     :skip-name-check? true
-                    :skip-symbol-check? true}
+                    :skip-symbol-check? true
+                    :skip-decimals-check? true}
                    {:symbol   :GNT
                     :name     "Golem Network Token"
                     :address  "0xa74476443119A942dE498590Fe1f2454d7D4aC0d"
@@ -119,7 +120,8 @@
                     :address  "0xe0b7927c4af23765cb51314a0e0521a9645f0e2a"
                     :decimals 9
                     :skip-name-check? true
-                    :skip-symbol-check? true}
+                    :skip-symbol-check? true
+                    :skip-decimals-check? true}
                    {:symbol   :AE
                     :name     "Aeternity"
                     :address  "0x5ca9a71b1d01849c0a95490cc00559717fcf0d1d"
@@ -217,7 +219,8 @@
                     :address  "0xEF68e7C694F40c8202821eDF525dE3782458639f"
                     :decimals 18
                     :skip-name-check? true
-                    :skip-symbol-check? true}
+                    :skip-symbol-check? true
+                    :skip-decimals-check? true}
                    {:symbol   :ZSC
                     :name     "Zeus Shield Coin"
                     :address  "0x7A41e0517a5ecA4FdbC7FbebA4D4c47B9fF6DC63"
