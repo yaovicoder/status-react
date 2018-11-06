@@ -90,6 +90,7 @@
 
 (defn is-valid-eth-name? [ens-name]
   (and ens-name
+       (string? ens-name)
        (string/ends-with? ens-name ".eth")))
 
 (defn pubkey [web3 resolver ens-name cb]
