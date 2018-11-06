@@ -53,15 +53,18 @@
                   [{:symbol   :DAI
                     :name     "DAI"
                     :address  "0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359"
-                    :decimals 18}
+                    :decimals 18
+                    :skip-name-check? true}
                    {:symbol   :MKR
                     :name     "MKR"
                     :address  "0x9f8F72aA9304c8B593d555F12eF6589cC3A579A2"
-                    :decimals 18}
+                    :decimals 18
+                    :skip-name-check? true}
                    {:symbol   :EOS
                     :name     "EOS"
                     :address  "0x86fa049857e0209aa7d9e616f7eb3b3b78ecfdb0"
-                    :decimals 18}
+                    :decimals 18
+                    :skip-name-check? true}
                    {:symbol   :OMG
                     :name     "OMGToken"
                     :address  "0xd26114cd6EE289AccF82350c8d8487fedB8A0C07"
@@ -85,7 +88,8 @@
                    {:symbol   :VRS
                     :name     "VEROS"
                     :address  "0xedbaf3c5100302dcdda53269322f3730b1f0416d"
-                    :decimals 5}
+                    :decimals 5
+                    :skip-name-check? true}
                    {:symbol   :GNT
                     :name     "Golem Network Token"
                     :address  "0xa74476443119A942dE498590Fe1f2454d7D4aC0d"
@@ -109,7 +113,8 @@
                    {:symbol   :DGD
                     :name     "Digix DAO"
                     :address  "0xe0b7927c4af23765cb51314a0e0521a9645f0e2a"
-                    :decimals 9}
+                    :decimals 9
+                    :skip-name-check? true}
                    {:symbol   :AE
                     :name     "Aeternity"
                     :address  "0x5ca9a71b1d01849c0a95490cc00559717fcf0d1d"
@@ -119,7 +124,7 @@
                     :address  "0xf230b790e05390fc8295f4d3f60332c93bed42e2"
                     :decimals 6}
                    {:symbol   :BQX
-                    :name     "Bitquence"
+                    :name     "Ethos"
                     :address  "0x5af2be193a6abca9c8817001f45744777db30756"
                     :decimals 8}
                    {:symbol   :RDN
@@ -127,7 +132,7 @@
                     :address  "0x255aa6df07540cb5d3d297f0d0d4d84cb52bc8e6"
                     :decimals 18}
                    {:symbol   :SNT
-                    :name     "Status Network"
+                    :name     "Status Network Token"
                     :address  "0x744d70fdbe2ba4cf95131626614a1763df805b9e"
                     :decimals 18}
                    {:symbol   :SNGLS
@@ -205,13 +210,14 @@
                    {:symbol   :LRC
                     :name     "loopring"
                     :address  "0xEF68e7C694F40c8202821eDF525dE3782458639f"
-                    :decimals 18}
+                    :decimals 18
+                    :skip-name-check? true}
                    {:symbol   :ZSC
                     :name     "Zeus Shield Coin"
                     :address  "0x7A41e0517a5ecA4FdbC7FbebA4D4c47B9fF6DC63"
                     :decimals 18}
                    {:symbol   :DATA
-                    :name     "DATAcoin"
+                    :name     "Streamr DATAcoin"
                     :address  "0x0cf0ee63788a0849fe5297f3407f701e122cc023"
                     :decimals 18}
                    {:symbol   :RCN
@@ -271,7 +277,7 @@
                     :address  "0x12480e24eb5bec1a9d4369cab6a80cad3c0a377a"
                     :decimals 2}
                    {:symbol   :MANA
-                    :name     "Decentraland"
+                    :name     "Decentraland MANA"
                     :address  "0x0f5d2fb29fb7d3cfee444a200298f468908cc942"
                     :decimals 18}
                    {:symbol   :AST
@@ -283,7 +289,7 @@
                     :address  "0x48f775efbe4f5ece6e0df2f7b5932df56823b990"
                     :decimals 0}
                    {:symbol   :1ST
-                    :name     "Firstblood"
+                    :name     "FirstBlood Token"
                     :address  "0xaf30d2a7e90d7dc361c8c4585e9bb7d2f6f15bc7"
                     :decimals 18}
                    {:symbol   :CFI
@@ -343,7 +349,7 @@
                     :address  "0xced4e93198734ddaff8492d525bd258d49eb388e"
                     :decimals 18}
                    {:symbol   :CSNO
-                    :name     "BitDice CSNO"
+                    :name     "BitDice"
                     :address  "0x29d75277ac7f0335b2165d0895e8725cbf658d73"
                     :decimals 8}
                    {:symbol   :COB
@@ -357,7 +363,8 @@
                    {:symbol   :AVT
                     :name     "AVENTUS"
                     :address  "0x0d88ed6e74bbfd96b831231638b66c05571e824f"
-                    :decimals 18}
+                    :decimals 18
+                    :skip-name-check? true}
                    {:symbol   :TIME
                     :name     "Chronobank TIME"
                     :address  "0x6531f133e6deebe7f2dce5a0441aa7ef330b4e53"
@@ -375,11 +382,11 @@
                     :address  "0x4DF812F6064def1e5e029f1ca858777CC98D2D81"
                     :decimals 8}
                    {:symbol   :VIB
-                    :name     "VIB"
+                    :name     "Vibe"
                     :address  "0x2c974b2d0ba1716e644c1fc59982a89ddd2ff724"
                     :decimals 18}
                    {:symbol   :PRG
-                    :name     "ParagonCoin"
+                    :name     "PRG"
                     :address  "0x7728dFEF5aBd468669EB7f9b48A7f70a501eD29D"
                     :decimals 6}
                    {:symbol   :DPY
@@ -395,7 +402,7 @@
                     :address  "0x08f5a9235b08173b7569f83645d2c7fb55e8ccd8"
                     :decimals 8}
                    {:symbol   :DRT
-                    :name     "Domraider"
+                    :name     "DomRaiderToken"
                     :address  "0x9af4f26941677c706cfecf6d3379ff01bb85d5ab"
                     :decimals 8}
                    {:symbol   :SPANK
@@ -420,7 +427,7 @@
                    ;; in their history prior to the upgrade. So, we're just hiding them, not actually deleting from the
                    ;; app.
                    {:symbol   :CTR
-                    :name     "Centra"
+                    :name     "Centra token"
                     :address  "0x96A65609a7B84E8842732DEB08f56C3E21aC6f8a"
                     :decimals 18
                     :hidden?  true}
@@ -441,7 +448,7 @@
                     :address "0x06012c8cf97bead5deae237070f9587f8e7a266d"}
                    {:symbol  :EMONA
                     :nft?    true
-                    :name    "Etheremon"
+                    :name    "EtheremonAsset"
                     :address "0xB2c0782ae4A299f7358758B2D15dA9bF29E1DD99"}
                    {:symbol  :STRK
                     :nft?    true
@@ -449,7 +456,7 @@
                     :address "0xdcaad9fd9a74144d226dbf94ce6162ca9f09ed7e"}
                    {:symbol  :SUPR
                     :nft?    true
-                    :name    "SuperRare"
+                    :name    "SupeRare"
                     :address "0x41a322b28d0ff354040e2cbc676f0320d8c8850d"}
                    {:symbol  :KDO
                     :nft?    true
@@ -466,7 +473,7 @@
                     :symbol   :HND
                     :decimals 0
                     :address  "0xdee43a267e8726efd60c2e7d5b81552dcd4fa35c"}
-                   {:name     "Lucky XS Test"
+                   {:name     "Lucky Test Token"
                     :symbol   :LXS
                     :decimals 2
                     :address  "0x703d7dc0bc8e314d65436adf985dda51e09ad43b"}

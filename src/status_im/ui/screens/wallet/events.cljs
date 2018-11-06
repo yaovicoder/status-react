@@ -97,6 +97,16 @@
  (fn [{:keys [web3 obj success-event]}]
    (ethereum/estimate-gas-web3 web3 (clj->js obj) #(re-frame/dispatch [success-event %2]))))
 
+(re-frame/reg-fx
+ :wallet/validate-tokens
+ (fn [{:keys [web3 tokens]}]
+   (doseq [{:keys [address symbol name skip-name-check?]} tokens]
+     (when-not skip-name-check?
+       (erc20/name web3 address #(when (not= name %2)
+                                   (let [message (str "Wrong name for token " symbol ". Set to " name " but detected as " %2)]
+                                     (log/warn message)
+                                     (js/alert message))))))))
+
 ;; Handlers
 (handlers/register-handler-fx
  :update-wallet

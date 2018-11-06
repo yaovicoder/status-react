@@ -218,8 +218,13 @@
 
 (fx/defn initialize-tokens
   [{:keys [db]}]
-  {:db (assoc db :wallet/all-tokens
-              (utils.core/map-values #(utils.core/index-by :address %) tokens/all-default-tokens))})
+  (let [network-id (get-in db [:account/account :network])
+        network    (get-in db [:account/account :networks network-id])
+        chain      (ethereum/network->chain-keyword network)]
+    {:db                     (assoc db :wallet/all-tokens
+                                    (utils.core/map-values #(utils.core/index-by :address %) tokens/all-default-tokens))
+     :wallet/validate-tokens {:web3   (:web3 db)
+                              :tokens (get tokens/all-default-tokens chain)}}))
 
 (fx/defn update-wallet
   [{{:keys [web3 network network-status] {:keys [address settings]} :account/account :as db} :db}]
