@@ -29,6 +29,9 @@
 
 #include "exceptionglobalhandler.h"
 
+Q_DECLARE_LOGGING_CATEGORY(JSSERVER)
+Q_LOGGING_CATEGORY(JSSERVER, "jsserver")
+
 static QStringList consoleOutputStrings;
 static QMutex consoleOutputMutex;
 
@@ -145,6 +148,7 @@ private:
 void saveMessage(QtMsgType type, const QMessageLogContext &context,
                  const QString &msg);
 void writeLogsToFile();
+void writeLogFromJSServer(const QString &msg);
 
 #ifdef BUILD_FOR_BUNDLE
 
@@ -212,6 +216,8 @@ int main(int argc, char **argv) {
   Q_INIT_RESOURCE(react_resources);
 
   loadFontsFromResources();
+
+  QLoggingCategory::setFilterRules(QStringLiteral("RCTStatus=true;UIManager=false;Flexbox=false;ViewManager=false;Networking=false;WebSocketModule=false"));
 
   if (redirectLogIntoFile()) {
     qInstallMessageHandler(saveMessage);
@@ -306,22 +312,21 @@ void runUbuntuServer() {
                                     "/ubuntu-server");
   QObject::connect(g_ubuntuServerProcess, &QProcess::errorOccurred,
                    [=](QProcess::ProcessError) {
-                     qDebug() << "process name: "
-                              << g_ubuntuServerProcess->program();
-                     qDebug() << "process error: "
-                              << g_ubuntuServerProcess->errorString();
+                     qCWarning(JSSERVER) << "process name: "
+                                         << g_ubuntuServerProcess->program();
+                     qCWarning(JSSERVER) << "process error: "
+                                         << g_ubuntuServerProcess->errorString();
                    });
 
   QObject::connect(
       g_ubuntuServerProcess, &QProcess::readyReadStandardOutput, [=] {
-        qDebug() << "ubuntu-server std: "
-                 << g_ubuntuServerProcess->readAllStandardOutput().trimmed();
+        writeLogFromJSServer(g_ubuntuServerProcess->readAllStandardOutput().trimmed());
       });
   QObject::connect(
       g_ubuntuServerProcess, &QProcess::readyReadStandardError, [=] {
         QString output =
             g_ubuntuServerProcess->readAllStandardError().trimmed();
-        qDebug() << "ubuntu-server err: " << output;
+        writeLogFromJSServer(output);
         if (output.contains("Server starting")) {
           ubuntuServerStarted = true;
         }
@@ -344,6 +349,34 @@ void runUbuntuServer() {
   qDebug() << "waiting finished";
 }
 #endif
+
+void writeLogFromJSServer(const QString &msg) {
+  if msg.contains("\\n") {
+    QStringList lines = msg.split("\\n");
+    foreach (const QString &line, lines) {
+      writeSingleLineLogFromJSServer(line);
+    }
+  } else {
+    writeSingleLineLogFromJSServer(msg);
+  }
+}
+
+void writeSingleLineLogFromJSServer(const QString &msg) {
+  if (msg.startsWith("TRACE "))
+    qCDebug(JSSERVER) << msg.mid(6);
+  else if (msg.startsWith("DEBUG "))
+    qCDebug(JSSERVER) << msg.mid(6);
+  else if (msg.startsWith("INFO "))
+    qCInfo(JSSERVER) << msg.mid(5);
+  else if (msg.startsWith("WARN "))
+    qCWarning(JSSERVER) << msg.mid(5);
+  else if (msg.startsWith("ERROR "))
+    qCWarning(JSSERVER) << msg.mid(6);
+  else if (msg.startsWith("FATAL "))
+    qCCritical(JSSERVER) << msg.mid(6);
+  else
+    qCDebug(JSSERVER) << msg;
+}
 
 void appendConsoleString(const QString &msg) {
   QMutexLocker locker(&consoleOutputMutex);
@@ -374,7 +407,7 @@ void saveMessage(QtMsgType type, const QMessageLogContext &context,
   case QtFatalMsg:
     typeStr = "F";
   }
-  appendConsoleString(QString("%1 - %2 - %3").arg(timestamp, typeStr, message));
+  appendConsoleString(QString("%1 - %2 - [%3] - %4").arg(timestamp, typeStr, context.category, message));
   if (type == QtFatalMsg) {
     writeLogsToFile();
     abort();
