@@ -35,7 +35,7 @@ public:
     QList<ModuleMethod*> methodsToExport() override;
     QVariantMap constantsToExport() override;
 
-    Q_INVOKABLE void sendNotification(QString text);
+    Q_INVOKABLE void sendNotification(QString text, QString title);
     Q_INVOKABLE void setDockBadgeLabel(const QString label);
 private:
     QScopedPointer<DesktopNotificationPrivate> d_ptr;

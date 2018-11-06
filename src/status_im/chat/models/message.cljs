@@ -100,7 +100,7 @@
                (not= from current-public-key)
                (get-in db [:account/account :desktop-notifications?])
                (< (time/seconds-ago (time/to-date timestamp)) constants/one-earth-day))
-      (.sendNotification react/desktop-notification (:text content)))
+      (.sendNotification react/desktop-notification (:text content) (get-in db [:chats chat-id :name])))
     (fx/merge cofx
               {:db            (cond->
                                (-> db
