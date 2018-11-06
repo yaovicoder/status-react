@@ -7,6 +7,10 @@
 
 (def key-bytes 64)
 (def username "status-im.encryptionkey")
+(def android-keystore-min-version 23)
+(def can-use-keychain?
+  (or platform/ios?
+      (platform/android-version>= android-keystore-min-version)))
 
 (defn- bytes->js-array [b]
   (.from js/Array b))
@@ -43,15 +47,15 @@
   ;; > you might choose kSecAttrAccessibleWhenPasscodeSetThisDeviceOnly.
   ;; That is exactly what we use there.
   ;; Note that the password won't be stored if the device isn't locked by a passcode.
-  {:accessible    (enum-val "ACCESSIBLE"     "WHEN_PASSCODE_SET_THIS_DEVICE_ONLY")})
+  {:accessible (enum-val "ACCESSIBLE" "WHEN_PASSCODE_SET_THIS_DEVICE_ONLY")})
 
 ;; Stores the password for the address to the Keychain
 (defn save-user-password [address password callback]
-  (if-not platform/ios?
-    (callback true) ;; no-op on Androids (for now)
-    (-> (.setInternetCredentials rn/keychain address address password
-                                 (clj->js keychain-restricted-availability))
-        (.then callback))))
+  (if can-use-keychain?
+    (-> (.setInternetCredentials rn/keychain address address password (clj->js keychain-restricted-availability))
+        (.then callback))
+    ;; no-op on Android 22 and less
+    (callback true)))
 
 (defn handle-callback [callback result]
   (if result
@@ -60,29 +64,37 @@
 
 ;; Gets the password for a specified address from the Keychain
 (defn get-user-password [address callback]
-  (if-not platform/ios?
-    (callback) ;; no-op on Androids (for now)
+  (if can-use-keychain?
     (-> (.getInternetCredentials rn/keychain address)
-        (.then (partial handle-callback callback)))))
+        (.then (partial handle-callback callback)))
+    ;; no-op on Android 22 and less
+    (callback)))
 
 ;; Clears the password for a specified address from the Keychain
 ;; (example of usage is logout or signing in w/o "save-password")
 (defn clear-user-password [address callback]
-  (if-not platform/ios?
-    (callback true)
+  (if can-use-keychain?
     (-> (.resetInternetCredentials rn/keychain address)
-        (.then callback))))
+        (.then callback))
+    ;; no-op on Android 22 and less
+    (callback true)))
 
 ;; Resolves to `false` if the device doesn't have neither a passcode nor a biometry auth.
 (defn can-save-user-password? [callback]
-  (if-not platform/ios?
-    (callback false)
+  (cond
+    platform/ios?
     (-> (.canImplyAuthentication
          rn/keychain
          (clj->js
           {:authenticationType
            (enum-val "ACCESS_CONTROL" "BIOMETRY_ANY_OR_DEVICE_PASSCODE")}))
-        (.then callback))))
+        (.then callback))
+
+    can-use-keychain?
+    (callback true)
+
+    :else
+    false))
 
 ;; ********************************************************************************
 ;; Storing / Retrieving the realm encryption key to/from the Keychain
