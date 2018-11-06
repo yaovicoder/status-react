@@ -920,7 +920,7 @@
 (handlers/register-handler-fx
  :browser.callback/resolve-ens-multihash-error
  (fn [cofx _]
-   (browser/update-browser-option cofx :resolving? false)))
+   (browser/resolve-ens-multihash-error cofx)))
 
 (handlers/register-handler-fx
  :browser.callback/call-rpc
