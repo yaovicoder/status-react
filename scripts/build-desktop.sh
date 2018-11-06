@@ -192,7 +192,7 @@ function bundleWindows() {
     fi
     unzip "$STATUSIM_WINDOWS_BASEIMAGE_ZIP" -d Windows/
 
-    rm -f Status-Windows.zip
+    rm -f Status-Windows-x86_64.zip
     pushd Windows
       cp $STATUS_REACT_HOME/.env .
       mkdir -p assets/resources notifier
@@ -206,7 +206,7 @@ function bundleWindows() {
       local _bin=$STATUS_REACT_HOME/desktop/bin
       rm -rf $_bin/cmake_install.cmake $_bin/Makefile $_bin/CMakeFiles $_bin/Status_autogen && \
       cp -r $_bin/* .
-      zip -mr9 ../Status-Windows.zip .
+      zip -mr9 ../Status-Windows-x86_64.zip .
     popd
     rm -rf Windows
   popd
