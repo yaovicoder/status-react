@@ -90,6 +90,13 @@ def pytest_addoption(parser):
                      default=600,
                      help='Running time in seconds')
 
+    # battery tests
+
+    parser.addoption('--device_ip',
+                     action='store',
+                     default=None,
+                     help='Android device IP address used for battery tests')
+
 
 def is_master(config):
     return not hasattr(config, 'slaveinput')
