@@ -38,7 +38,7 @@ if(WIN32)
   endif()
   conan_cmake_run(CONAN_COMMAND conan-bin
                   REQUIRES qt5-mxe/5.11.2@status-im/stable
-                  PROFILE ../conan-profiles/status-mxe-mingw32-x86_64-gcc55-libstdcxx
+                  PROFILE ../node_modules/status-conan-profiles/status-mxe-mingw32-x86_64-gcc55-libstdcxx
                   BASIC_SETUP
                   SETTINGS "qt5-mxe:os=Windows qt5-mxe:arch=x86_64"
                   OPTIONS ${_QT_PACKAGE_OPTIONS}
