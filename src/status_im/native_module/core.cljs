@@ -63,3 +63,5 @@
 (def extract-group-membership-signatures native-module/extract-group-membership-signatures)
 
 (def sign-group-membership native-module/sign-group-membership)
+
+(def rooted-device? native-module/rooted-device?)
