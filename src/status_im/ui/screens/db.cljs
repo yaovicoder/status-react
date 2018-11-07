@@ -57,6 +57,7 @@
              :chat/last-outgoing-message-sent-at 0
              :chat/spam-messages-frequency       0
              :tooltips                           {}
+             :initial-props                      {}
              :desktop/desktop                    {:tab-view-id :home}
              :dimensions/window                  (dimensions/window)
              :push-notifications/stored          {}
@@ -147,6 +148,7 @@
 
 (spec/def :desktop/desktop (spec/nilable any?))
 (spec/def ::tooltips (spec/nilable any?))
+(spec/def ::initial-props (spec/nilable any?))
 
 ;;;;NETWORK
 
@@ -252,6 +254,7 @@
                                    ::was-modal?
                                    ::rpc-url
                                    ::tooltips
+                                   ::initial-props
                                    ::web3
                                    ::web3-node-version
                                    ::webview-bridge
