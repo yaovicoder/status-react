@@ -10,6 +10,7 @@ class TestCreateAccount(SingleDeviceTestCase):
 
     @marks.testrail_id(5300)
     @marks.critical
+    @marks.device_nightly
     def test_create_account(self):
         sign_in = SignInView(self.driver, skip_popups=False)
         sign_in.accept_agreements()
