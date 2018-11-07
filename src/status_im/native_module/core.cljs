@@ -67,3 +67,5 @@
 (def enable-installation native-module/enable-installation)
 
 (def disable-installation native-module/disable-installation)
+
+(def rooted-device? native-module/rooted-device?)
