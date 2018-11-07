@@ -63,6 +63,7 @@ def installJSDeps(platform) {
 
 def doGitRebase() {
   try {
+    sh 'git reset --hard'
     sh 'git rebase origin/develop'
   } catch (e) {
     sh 'git rebase --abort'
