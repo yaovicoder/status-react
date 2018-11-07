@@ -36,7 +36,9 @@ pipeline {
     LC_ALL = 'en_US.UTF-8'
     NPM_CONFIG_CACHE = '/var/tmp/npm'
     LEIN_HOME = '/var/tmp/lein'
-    TARGET_SYSTEM_NAME = 'Windows' 
+    TARGET_SYSTEM_NAME = 'Windows'
+    CONAN_PRINT_RUN_COMMANDS = '1'
+    CONAN_SYSREQUIRES_SUDO = '0' 
     STATUSIM_WINDOWS_BASEIMAGE_ZIP = '/opt/StatusIm-Windows-base-image.zip'
   }
 
