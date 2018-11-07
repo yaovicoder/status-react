@@ -15,6 +15,7 @@
                                                       :extension/name
                                                       :extension/url
                                                       :extension/active?]
-                                             :opt-un [:extension/data]))
+                                             :opt-un [:extension/data
+                                                      :extension/hooks]))
 
 (spec/def :extensions/extensions (spec/nilable (spec/map-of :extension/id :extension/extension)))
