@@ -1,4 +1,0 @@
-[submodule "conan-profiles"]
-	path = conan-profiles
-	url = https://github.com/status-im/status-conan-profiles.git
-	branch = master
