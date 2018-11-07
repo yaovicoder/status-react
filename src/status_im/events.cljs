@@ -18,6 +18,7 @@
             [status-im.contact.core :as contact]
             [status-im.data-store.core :as data-store]
             [status-im.extensions.core :as extensions]
+            [status-im.extensions.registry :as extensions.registry]
             [status-im.fleet.core :as fleet]
             [status-im.group-chats.core :as group-chats]
             [status-im.hardwallet.core :as hardwallet]
@@ -35,9 +36,7 @@
             [status-im.signals.core :as signals]
             [status-im.transport.inbox :as inbox]
             [status-im.transport.message.core :as transport.message]
-            [status-im.ui.screens.currency-settings.models
-             :as
-             currency-settings.models]
+            [status-im.ui.screens.currency-settings.models :as currency-settings.models]
             [status-im.ui.screens.navigation :as navigation]
             [status-im.utils.fx :as fx]
             [status-im.utils.handlers :as handlers]
@@ -440,19 +439,19 @@
 
 (handlers/register-handler-fx
  :extensions.ui/activation-checkbox-pressed
- (fn [cofx [_ id state]]
-   (extensions/toggle-activation cofx id state)))
+ (fn [cofx [_ extension-key active?]]
+   (extensions.registry/change-state cofx extension-key active?)))
 
 (handlers/register-handler-fx
  :extensions.ui/show-button-pressed
  (fn [cofx [_ url]]
-   (extensions/load cofx url)))
+   (extensions.registry/load cofx url)))
 
 (handlers/register-handler-fx
  :extensions.ui/install-button-pressed
  [(re-frame/inject-cofx :random-id-generator)]
  (fn [cofx [_ data]]
-   (extensions/install cofx data)))
+   (extensions.registry/install cofx data)))
 
 ;; log-level module
 
