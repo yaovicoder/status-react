@@ -282,7 +282,7 @@
                  :chat/chat-id
                  :chat/new-chat
                  :chat/new-chat-name
-                 :chat/chat-animations
+                 :chat/animations
                  :chat/chat-ui-props
                  :chat/chat-list-ui-props
                  :chat/layout-height
