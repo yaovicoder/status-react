@@ -2,15 +2,12 @@
   (:require [re-frame.core :as re-frame]
             [taoensso.timbre :as log]
             [status-im.react-native.js-dependencies :as rn]
-            [status-im.utils.handlers :as handlers]
-            [status-im.utils.platform :as platform]))
+            [status-im.utils.platform :as platform]
+            [status-im.native-module.core :as status]))
 
 (def key-bytes 64)
 (def username "status-im.encryptionkey")
 (def android-keystore-min-version 23)
-(def can-use-keychain?
-  (or platform/ios?
-      (platform/android-version>= android-keystore-min-version)))
 
 (defn- bytes->js-array [b]
   (.from js/Array b))
@@ -51,11 +48,8 @@
 
 ;; Stores the password for the address to the Keychain
 (defn save-user-password [address password callback]
-  (if can-use-keychain?
-    (-> (.setInternetCredentials rn/keychain address address password (clj->js keychain-restricted-availability))
-        (.then callback))
-    ;; no-op on Android 22 and less
-    (callback true)))
+  (-> (.setInternetCredentials rn/keychain address address password (clj->js keychain-restricted-availability))
+      (.then callback)))
 
 (defn handle-callback [callback result]
   (if result
@@ -64,20 +58,14 @@
 
 ;; Gets the password for a specified address from the Keychain
 (defn get-user-password [address callback]
-  (if can-use-keychain?
-    (-> (.getInternetCredentials rn/keychain address)
-        (.then (partial handle-callback callback)))
-    ;; no-op on Android 22 and less
-    (callback)))
+  (-> (.getInternetCredentials rn/keychain address)
+      (.then (partial handle-callback callback))))
 
 ;; Clears the password for a specified address from the Keychain
 ;; (example of usage is logout or signing in w/o "save-password")
 (defn clear-user-password [address callback]
-  (if can-use-keychain?
-    (-> (.resetInternetCredentials rn/keychain address)
-        (.then callback))
-    ;; no-op on Android 22 and less
-    (callback true)))
+  (-> (.resetInternetCredentials rn/keychain address)
+      (.then callback)))
 
 ;; Resolves to `false` if the device doesn't have neither a passcode nor a biometry auth.
 (defn can-save-user-password? [callback]
@@ -90,8 +78,8 @@
            (enum-val "ACCESS_CONTROL" "BIOMETRY_ANY_OR_DEVICE_PASSCODE")}))
         (.then callback))
 
-    can-use-keychain?
-    (callback true)
+    (platform/android-version>= android-keystore-min-version)
+    (status/rooted-device? (comp callback not))
 
     :else
     false))
