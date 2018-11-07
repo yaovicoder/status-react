@@ -96,9 +96,20 @@ function init() {
   elif is_linux; then
     rm -rf ./desktop/toolchain/
     if is_windows_target; then
+      if ! program_exists 'python3'; then
+        echo "${RED}python3 prerequisite is missing. Exiting.${NC}"
+        exit 1
+      fi
+
       # TODO: Use Conan for Linux and MacOS builds too
       export PATH=$STATUS_REACT_HOME:$PATH
       if ! program_exists 'conan-bin'; then
+        if ! program_exists 'pip'; then
+          echo "${RED}pip package manager not found. Installing...${NC}"
+          curl https://bootstrap.pypa.io/get-pip.py -o /tmp/get-pip.py
+          python3 /tmp/get-pip.py --user --no-wheel
+        fi
+
         echo "${RED}Conan package manager not found. Installing...${NC}"
         rm -rf ./conan-*.py ./.conan-lib ./.conan_*
         python3 ./conan-profiles/conan_init.py -ibv -p status-mingw32-x86_64 --no-password
