@@ -111,9 +111,9 @@ function init() {
 
         echo "${RED}Conan package manager not found. Installing...${NC}"
         rm -rf ./conan-*.py ./.conan-lib ./.conan_*
-        python3 ./conan-profiles/conan_init.py -ibv -p status-mingw32-x86_64 --no-password
+        python3 ./node_modules/status-conan-profiles/conan_init.py -ibv -p status-mingw32-x86_64 --no-password
       fi
-      conan-bin install -if ./desktop/toolchain/ -g cmake -pr ./conan-profiles/status-mxe-mingw32-x86_64-gcc55-libstdcxx $WINDOWS_CROSSTOOLCHAIN_PKG_NAME/5.5.0-1@status-im/stable
+      conan-bin install -if ./desktop/toolchain/ -g cmake -pr ./node_modules/status-conan-profiles/status-mxe-mingw32-x86_64-gcc55-libstdcxx $WINDOWS_CROSSTOOLCHAIN_PKG_NAME/5.5.0-1@status-im/stable
     fi
   fi
 }
