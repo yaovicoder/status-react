@@ -78,6 +78,15 @@ pipeline {
         }
         /* special case for iOS Diawi links */
         ipaUrl = ios.getBuildVariables().get('DIAWI_URL')
+        /* Create latest.json with newest nightly URLs */
+        if (btype != 'nightly') {
+          cmn.updateLatestNightlies(
+            APK: apkUrl,
+            IOS: ipaUrl,
+            APP: appUrl,
+            MAC: dmgUrl
+          )
+        }
         /* add URLs to the build description */
         cmn.setBuildDesc(
           Apk: apkUrl,
