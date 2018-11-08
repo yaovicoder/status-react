@@ -25,10 +25,9 @@
             [status-im.ui.screens.desktop.main.chat.events :as chat.events]
             [status-im.ui.screens.chat.message.message :as chat.message]))
 
-(views/defview toolbar-chat-view [{:keys [chat-id color public-key public? group-chat]
-                                   :as current-chat}]
-  (views/letsubs [chat-name         [:get-current-chat-name]
-                  {:keys [pending? whisper-identity photo-path]} [:get-current-chat-contact]]
+(defn toolbar-chat-view [{:keys [chat-id color public-key public? group-chat chat-name contact]
+                          :as current-chat}]
+  (let [{:keys [photo-path whisper-identity pending?]} contact]
     [react/view {:style styles/toolbar-chat-view}
      [react/view {:style {:flex-direction :row
                           :flex 1}}
@@ -68,50 +67,39 @@
                                                   chat-id])}
        (i18n/label :t/delete-chat)]]]))
 
-(views/defview message-author-name [{:keys [from]}]
-  (views/letsubs [incoming-name   [:get-contact-name-by-identity from]]
-    (let [name (chat-utils/format-author from incoming-name)]
-      [react/touchable-highlight {:on-press #(re-frame/dispatch [:show-contact-dialog from name (boolean incoming-name)])}
-       [react/text {:style styles/author :font :medium} name]])))
+(defn message-author-name [{:keys [from user-name generated-name]}]
+  [react/view {:flex-direction :row}
+   (when user-name
+     [react/text {:style styles/author} user-name])
+   (when user-name
+     [react/text {:style styles/author} " :: "])
+   [react/text {:style styles/author} generated-name]])
 
-(views/defview member-photo [from]
-  (views/letsubs [photo-path [:get-photo-path from]]
-    [react/view {:style {:width 40 :margin-horizontal 16}}
-     [react/view {:style {:position :absolute}}
-      [react/touchable-highlight {:on-press #(re-frame/dispatch [:show-profile-desktop from])}
-       [react/view {:style styles/member-photo-container}
-        [react/image {:source {:uri (if (string/blank? photo-path)
-                                      (identicon/identicon from)
-                                      photo-path)}
-                      :style  styles/photo-style}]]]]]))
+(defn member-photo [from photo-path]
+  [react/view {:style {:width 40 :margin-horizontal 16}}
+   [react/view {:style {:position :absolute}}
+    [react/touchable-highlight {:on-press #(re-frame/dispatch [:show-profile-desktop from])}
+     [react/view {:style styles/member-photo-container}
+      [react/image {:source {:uri photo-path}
+                    :style  styles/photo-style}]]]]])
 
-(views/defview my-photo [from]
-  (views/letsubs [account [:get-current-account]]
-    (let [{:keys [photo-path]} account]
-      [react/view
-       [react/image {:source {:uri (if (string/blank? photo-path)
-                                     (identicon/identicon from)
-                                     photo-path)}
-                     :style  styles/photo-style}]])))
-
-(views/defview quoted-message [{:keys [from text]} outgoing current-public-key]
-  (views/letsubs [username [:get-contact-name-by-identity from]]
-    [react/view {:style styles/quoted-message-container}
-     [react/view {:style styles/quoted-message-author-container}
-      [icons/icon :icons/reply {:style           (styles/reply-icon outgoing)
-                                :width           16
-                                :height          16
-                                :container-style (when outgoing {:opacity 0.4})}]
-      [react/text {:style (message.style/quoted-message-author outgoing)}
-       (chat-utils/format-reply-author from username current-public-key)]]
-     [react/text {:style           (message.style/quoted-message-text outgoing)
-                  :number-of-lines 5}
-      text]]))
+(defn quoted-message [{:keys [from text contact-name]} outgoing current-public-key]
+  [react/view {:style styles/quoted-message-container}
+   [react/view {:style styles/quoted-message-author-container}
+    [icons/icon :icons/reply {:style           (styles/reply-icon outgoing)
+                              :width           16
+                              :height          16
+                              :container-style (when outgoing {:opacity 0.4})}]
+    [react/text {:style (message.style/quoted-message-author outgoing)}
+     (chat-utils/format-reply-author from contact-name current-public-key)]]
+   [react/text {:style           (message.style/quoted-message-text outgoing)
+                :number-of-lines 5}
+    text]])
 
 (defn- message-sent? [user-statuses current-public-key]
   (not= (get-in user-statuses [current-public-key :status]) :not-sent))
 
-(views/defview message-without-timestamp
+(defn message-without-timestamp
   [text {:keys [message-id content current-public-key user-statuses] :as message} style]
   [react/view {:flex 1 :margin-vertical 5}
    [react/touchable-highlight {:on-press #(if (= "right" (.-button (.-nativeEvent %)))
@@ -129,14 +117,15 @@
         (chat-utils/render-chunks render-recipe message)
         (:text content))]]]])
 
-(views/defview photo-placeholder []
+(defn photo-placeholder []
   [react/view {:style {:width             40
                        :margin-horizontal 16}}])
 
-(views/defview system-message [text {:keys [content from first-in-group? timestamp] :as message}]
+(defn system-message
+  [text {:keys [content from first-in-group? timestamp photo-path] :as message}]
   [react/view
    [react/view {:style {:flex-direction :row :margin-top 24}}
-    [member-photo from]
+    [member-photo from photo-path]
     [react/view {:style {:flex 1}}]
     [react/text {:style styles/message-timestamp}
      (time/timestamp->time timestamp)]]
@@ -145,11 +134,12 @@
     [react/text {:style styles/system-message-text}
      text]]])
 
-(views/defview message-with-name-and-avatar [text {:keys [from first-in-group? timestamp] :as message}]
+(defn message-with-name-and-avatar
+  [text {:keys [from first-in-group? timestamp photo-path] :as message}]
   [react/view
    (when first-in-group?
      [react/view {:style {:flex-direction :row :margin-top 24}}
-      [member-photo from]
+      [member-photo from photo-path]
       [message-author-name message]
       [react/view {:style {:flex 1}}]
       [react/text {:style styles/message-timestamp}
@@ -161,17 +151,17 @@
 (defmulti message (fn [_ _ {:keys [content-type]}] content-type))
 
 (defmethod message constants/content-type-command
-  [_ _ {:keys [from] :as message}]
+  [_ _ {:keys [from photo-path] :as message}]
   [react/view
    [react/view {:style {:flex-direction :row :align-items :center :margin-top 15}}
-    [member-photo from]
+    [member-photo from photo-path]
     [message-author-name message]]
    [react/view {:style styles/not-first-in-group-wrapper}
     [photo-placeholder]
     [react/view {:style styles/message-command-container}
      [message/message-content-command message]]]])
 
-(views/defview message-content-status [text message]
+(defn message-content-status [text message]
   [react/view
    [system-message text message]])
 
@@ -212,128 +202,131 @@
   (let [next-count (min all-messages-count (+ @messages-to-load load-step))]
     (reset! messages-to-load next-count)))
 
-(views/defview messages-view [{:keys [chat-id group-chat]}]
-  (views/letsubs [messages [:get-current-chat-messages-stream]
-                  current-public-key [:get-current-public-key]
-                  messages-to-load (reagent/atom load-step)
-                  chat-id* (reagent/atom nil)]
-    {:component-did-update #(load-more (count messages) messages-to-load)
-     :component-did-mount  #(load-more (count messages) messages-to-load)}
-    (let [scroll-ref (atom nil)
-          scroll-timer (atom nil)
-          scroll-height (atom nil)
-          _ (when (or (not @chat-id*) (not= @chat-id* chat-id))
-              (do
-                (reset! messages-to-load load-step)
-                (reset! chat-id* chat-id)))]
-      [react/view {:style styles/messages-view}
-       [react/scroll-view {:scrollEventThrottle    16
-                           :headerHeight styles/messages-list-vertical-padding
-                           :footerWidth styles/messages-list-vertical-padding
-                           :enableArrayScrollingOptimization true
-                           :inverted true
-                           :on-scroll              (fn [e]
-                                                     (let [ne (.-nativeEvent e)
-                                                           y (.-y (.-contentOffset ne))]
-                                                       (when (<= y 0)
-                                                         (when @scroll-timer (js/clearTimeout @scroll-timer))
-                                                         (reset! scroll-timer (js/setTimeout #(re-frame/dispatch [:chat.ui/load-more-messages]) 300)))
-                                                       (reset! scroll-height (+ y (.-height (.-layoutMeasurement ne))))))
-                           :ref                    #(reset! scroll-ref %)}
-        [react/view
-         (doall
-          (for [{:keys [from content] :as message-obj} (take @messages-to-load messages)]
-            ^{:key message-obj}
-            [message (:text content) (= from current-public-key)
-             (assoc message-obj :group-chat group-chat
-                    :current-public-key current-public-key)]))]]
-       [connectivity/error-view]])))
+(defn messages-view [chat-id group-chat messages current-public-key]
+  (let [messages-to-load (reagent/atom load-step)
+        chat-id* (reagent/atom nil)]
+    (reagent/create-class
+     {:component-did-update #(load-more (count messages) messages-to-load)
+      :component-did-mount  #(load-more (count messages) messages-to-load)
+      :reagent-render (fn [chat-id group-chat messages current-public-key]
+                        (let [scroll-ref (atom nil)
+                              scroll-timer (atom nil)
+                              scroll-height (atom nil)
+                              _ (when (or (not @chat-id*) (not= @chat-id* chat-id))
+                                  (do
+                                    (reset! messages-to-load load-step)
+                                    (reset! chat-id* chat-id)))]
+                          [react/view {:style styles/messages-view}
+                           [react/scroll-view {:scrollEventThrottle    16
+                                               :headerHeight styles/messages-list-vertical-padding
+                                               :footerWidth styles/messages-list-vertical-padding
+                                               :enableArrayScrollingOptimization true
+                                               :inverted true
+                                               :on-scroll              (fn [e]
+                                                                         (let [ne (.-nativeEvent e)
+                                                                               y (.-y (.-contentOffset ne))]
+                                                                           (when (<= y 0)
+                                                                             (when @scroll-timer (js/clearTimeout @scroll-timer))
+                                                                             (reset! scroll-timer (js/setTimeout #(re-frame/dispatch [:chat.ui/load-more-messages]) 300)))
+                                                                           (reset! scroll-height (+ y (.-height (.-layoutMeasurement ne))))))
+                                               :ref                    #(reset! scroll-ref %)}
+                            [react/view
+                             (doall
+                              (for [{:keys [from content] :as message-obj} (take @messages-to-load messages)]
+                                ^{:key message-obj}
+                                [message (:text content) (= from current-public-key)
+                                 (assoc message-obj :group-chat group-chat
+                                        :current-public-key current-public-key)]))]]
+                           [connectivity/error-view]]))})))
 
-(views/defview send-button [inp-ref network-status]
-  (views/letsubs [{:keys [input-text]} [:get-current-chat]]
-    (let [empty? (= "" input-text)
-          offline? (= :offline network-status)
-          inactive? (or empty? offline?)]
-      [react/touchable-highlight {:style    styles/send-button
-                                  :disabled inactive?
-                                  :on-press (fn []
-                                              (when-not inactive?
-                                                (.clear @inp-ref)
-                                                (.focus @inp-ref)
-                                                (re-frame/dispatch [:chat.ui/send-current-message])))}
-       [react/view {:style (styles/send-icon inactive?)}
-        [icons/icon :icons/arrow-left {:style (styles/send-icon-arrow inactive?)}]]])))
+(defn send-button [input-text inp-ref network-status]
+  (let [empty? (= "" input-text)
+        offline? (= :offline network-status)
+        inactive? (or empty? offline?)]
+    [react/touchable-highlight {:style    styles/send-button
+                                :disabled inactive?
+                                :on-press (fn []
+                                            (when-not inactive?
+                                              (.clear @inp-ref)
+                                              (.focus @inp-ref)
+                                              (re-frame/dispatch [:chat.ui/send-current-message])))}
+     [react/view {:style (styles/send-icon inactive?)}
+      [icons/icon :icons/arrow-left {:style (styles/send-icon-arrow inactive?)}]]]))
 
-(views/defview reply-message [from message-text]
-  (views/letsubs [username           [:get-contact-name-by-identity from]
-                  current-public-key [:get-current-public-key]]
+(defn reply-message [from message-text user-name generated-name current-public-key]
+  (let [me? (= from current-public-key)]
     [react/view {:style styles/reply-content-container}
-     [react/text {:style styles/reply-content-author}
-      (chat-utils/format-reply-author from username current-public-key)]
+     (if me?
+       [react/text {:style styles/reply-content-author}
+        (i18n/label :t/You)]
+       [react/view {:flex-direction :row}
+        (when user-name
+          [react/text {:style styles/reply-content-author} user-name])
+        (when user-name
+          [react/text {:style styles/reply-content-author} " :: "])
+        [react/text {:style styles/reply-content-author} generated-name]])
      [react/text {:style styles/reply-content-message} message-text]]))
 
-(views/defview reply-member-photo [from]
-  (views/letsubs [photo-path [:get-photo-path from]]
-    [react/image {:source {:uri (if (string/blank? photo-path)
-                                  (identicon/identicon from)
-                                  photo-path)}
-                  :style  styles/reply-photo-style}]))
+(defn reply-message-view [{:keys [content from user-name generated-name photo-path] :as message} current-public-key]
+  (when message
+    [react/view {:style styles/reply-wrapper}
+     [react/view {:style styles/reply-container}
+      [react/image {:source {:uri photo-path}
+                    :style  styles/reply-photo-style}]
+      [reply-message from (:text content) user-name generated-name current-public-key]]
+     [react/touchable-highlight
+      {:style               styles/reply-close-highlight
+       :on-press            #(re-frame/dispatch [:chat.ui/cancel-message-reply])
+       :accessibility-label :cancel-message-reply}
+      [react/view {}
+       [icons/icon :icons/close {:style styles/reply-close-icon}]]]]))
 
-(views/defview reply-message-view []
-  (views/letsubs [{:keys [content from] :as message} [:get-reply-message]]
-    (when message
-      [react/view {:style styles/reply-wrapper}
-       [react/view {:style styles/reply-container}
-        [reply-member-photo from]
-        [reply-message from (:text content)]]
-       [react/touchable-highlight
-        {:style               styles/reply-close-highlight
-         :on-press            #(re-frame/dispatch [:chat.ui/cancel-message-reply])
-         :accessibility-label :cancel-message-reply}
-        [react/view {}
-         [icons/icon :icons/close {:style styles/reply-close-icon}]]]])))
-
-(views/defview chat-text-input [chat-id input-text]
-  (views/letsubs [inp-ref (atom nil)
-                  network-status [:network-status]]
-    {:component-will-update
-     (fn [e [_ new-chat-id new-input-text]]
-       (let [[_ old-chat-id] (.. e -props -argv)]
-         (when (not= old-chat-id new-chat-id)
-           ;; reset default text when switch to another chat
-           (.setNativeProps @inp-ref #js {:text (or new-input-text "")}))))}
-    (let [component               (reagent/current-component)
-          set-container-height-fn #(reagent/set-state component {:container-height %})
-          {:keys [container-height]} (reagent/state component)]
-      [react/view {:style (styles/chat-box container-height)}
-       [react/text-input {:placeholder            (i18n/label :t/type-a-message)
-                          :auto-focus             true
-                          :multiline              true
-                          :blur-on-submit         true
-                          :style                  (styles/chat-text-input container-height)
-                          :font                   :default
-                          :ref                    #(reset! inp-ref %)
-                          :default-value          input-text
-                          :on-content-size-change #(set-container-height-fn (.-height (.-contentSize (.-nativeEvent %))))
-                          :submit-shortcut        {:key "Enter"}
-                          :on-submit-editing      #(when (= :online network-status)
-                                                     (.clear @inp-ref)
-                                                     (.focus @inp-ref)
-                                                     (re-frame/dispatch [:chat.ui/send-current-message]))
-                          :on-change              (fn [e]
-                                                    (let [native-event (.-nativeEvent e)
-                                                          text         (.-text native-event)]
-                                                      (re-frame/dispatch [:chat.ui/set-chat-input-text text])))}]
-       [send-button inp-ref network-status]])))
+(defn chat-text-input [chat-id input-text]
+  (let [inp-ref (atom nil)
+        network-status [:network-status]]
+    (reagent/create-class
+     {:component-will-update
+      (fn [e [_ new-chat-id new-input-text]]
+        (let [[_ old-chat-id] (.. e -props -argv)]
+          (when (not= old-chat-id new-chat-id)
+            ;; reset default text when switch to another chat
+            (.setNativeProps @inp-ref #js {:text (or new-input-text "")}))))
+      :reagent-render (fn [chat-id input-text]
+                        (let [component               (reagent/current-component)
+                              set-container-height-fn #(reagent/set-state component {:container-height %})
+                              {:keys [container-height]} (reagent/state component)]
+                          [react/view {:style (styles/chat-box container-height)}
+                           [react/text-input {:placeholder            (i18n/label :t/type-a-message)
+                                              :auto-focus             true
+                                              :multiline              true
+                                              :blur-on-submit         true
+                                              :style                  (styles/chat-text-input container-height)
+                                              :font                   :default
+                                              :ref                    #(reset! inp-ref %)
+                                              :default-value          input-text
+                                              :on-content-size-change #(set-container-height-fn (.-height (.-contentSize (.-nativeEvent %))))
+                                              :submit-shortcut        {:key "Enter"}
+                                              :on-submit-editing      #(when (= :online network-status)
+                                                                         (.clear @inp-ref)
+                                                                         (.focus @inp-ref)
+                                                                         (re-frame/dispatch [:chat.ui/send-current-message]))
+                                              :on-change              (fn [e]
+                                                                        (let [native-event (.-nativeEvent e)
+                                                                              text         (.-text native-event)]
+                                                                          (re-frame/dispatch [:chat.ui/set-chat-input-text text])))}]
+                           [send-button input-text inp-ref network-status]]))})))
 
 (views/defview chat-view []
-  (views/letsubs [{:keys [input-text chat-id] :as current-chat} [:get-current-chat]]
+  (views/letsubs [{:keys [input-text chat-id group-chat] :as current-chat} [:get-current-chat]
+                  messages [:get-current-chat-messages-stream]
+                  current-public-key [:get-current-public-key]
+                  reply-message [:get-reply-message]]
     [react/view {:style styles/chat-view}
      [toolbar-chat-view current-chat]
      [react/view {:style styles/separator}]
-     [messages-view current-chat]
+     [messages-view chat-id group-chat messages current-public-key]
      [react/view {:style styles/separator}]
-     [reply-message-view]
+     [reply-message-view reply-message current-public-key]
      [chat-text-input chat-id input-text]]))
 
 (views/defview chat-profile []

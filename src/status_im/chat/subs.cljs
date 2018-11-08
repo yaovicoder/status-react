@@ -10,7 +10,8 @@
             [status-im.utils.gfycat.core :as gfycat]
             [status-im.i18n :as i18n]
             [status-im.models.transactions :as transactions]
-            [clojure.set :as clojure.set]))
+            [clojure.set :as clojure.set]
+            [status-im.utils.identicon :as identicon]))
 
 (reg-sub :get-chats :chats)
 
@@ -42,6 +43,18 @@
                 :name
                 (or contact-name
                     (gfycat/generate-gfy chat-id)))))
+
+(reg-sub
+ :get-current-chat
+ :<- [:get-active-chats]
+ :<- [:get-current-chat-id]
+ :<- [:get-current-chat-contact]
+ (fn [[chats current-chat-id contact]]
+   (when-let [current-chat (get chats current-chat-id)]
+     (assoc current-chat
+            :chat-name (chat-name current-chat contact)
+            :contact contact))))
+
 (reg-sub
  :get-current-chat-name
  :<- [:get-current-chat-contact]
@@ -106,13 +119,6 @@
  :<- [:get-active-chats]
  (fn [chats [_ chat-id]]
    (get chats chat-id)))
-
-(reg-sub
- :get-current-chat
- :<- [:get-active-chats]
- :<- [:get-current-chat-id]
- (fn [[chats current-chat-id]]
-   (get chats current-chat-id)))
 
 (reg-sub
  :get-current-chat-message
@@ -192,7 +198,7 @@
       (and (not outgoing)
            (not (= :user-message message-type)))))
 
-; any message that comes after this amount of ms will be grouped separately
+;; any message that comes after this amount of ms will be grouped separately
 (def ^:private group-ms 60000)
 
 (defn add-positional-metadata
@@ -201,18 +207,18 @@
   [{:keys [stream last-outgoing-seen]}
    {:keys [type message-type from datemark outgoing timestamp] :as message}]
   (let [previous-message         (peek stream)
-        ; Was the previous message from a different author or this message
-        ; comes after x ms
+        ;; Was the previous message from a different author or this message
+        ;; comes after x ms
         last-in-group?           (or (= :system-message message-type)
                                      (not= from (:from previous-message))
                                      (> (- (:timestamp previous-message) timestamp) group-ms))
         same-direction?          (= outgoing (:outgoing previous-message))
-        ; Have we seen an outgoing message already?
+        ;; Have we seen an outgoing message already?
         last-outgoing?           (and (not last-outgoing-seen)
                                       outgoing)
         datemark?                (= :datemark (:type message))
-        ; If this is a datemark or this is the last-message of a group,
-        ; then the previous message was the first
+        ;; If this is a datemark or this is the last-message of a group,
+        ;; then the previous message was the first
         previous-first-in-group? (or datemark?
                                      last-in-group?)
         new-message              (assoc message
@@ -222,12 +228,12 @@
                                         :last-outgoing?  last-outgoing?)]
     {:stream             (cond-> stream
                            previous-first-in-group?
-                           ; update previuous message if necessary
+                           ;; update previuous message if necessary
                            set-previous-message-info
 
                            :always
                            (conj new-message))
-     ; mark the last message sent by the user
+     ;; mark the last message sent by the user
      :last-outgoing-seen (or last-outgoing-seen last-outgoing?)}))
 
 (defn messages-stream
@@ -248,16 +254,42 @@
                     :last-outgoing-seen (:last-outgoing? message-with-metadata)})
            :stream))))
 
+(defn get-photo-path [contacts account id]
+  (let [photo-path (or (:photo-path (contacts id))
+                       (when (= id (:public-key account))
+                         (:photo-path account)))]
+    (if (string/blank? photo-path)
+      (identicon/identicon id)
+      photo-path)))
+
+(defn get-contact-name [contacts account id]
+  (let [me? (= (:public-key account) id)]
+    (if me?
+      (:name account)
+      (:name (contacts id)))))
+
+(defn add-metadata [{:keys [from] :as message} contacts account]
+  (assoc message
+         :photo-path (get-photo-path contacts account from)
+         :user-name (get-contact-name contacts account from)
+         :generated-name (gfycat/generate-gfy from)))
+
+(defn messages-with-metadata [messages contacts account]
+  (mapv #(add-metadata % contacts account) messages))
+
 (reg-sub
  :get-current-chat-messages-stream
  :<- [:get-current-chat-messages]
  :<- [:get-current-chat-message-groups]
  :<- [:get-current-chat-message-statuses]
  :<- [:get-current-chat-referenced-messages]
- (fn [[messages message-groups message-statuses referenced-messages]]
+ :<- [:get-contacts]
+ :<- [:get-current-account]
+ (fn [[messages message-groups message-statuses referenced-messages contacts account]]
    (-> (sort-message-groups message-groups messages)
        (messages-with-datemarks-and-statuses messages message-statuses referenced-messages)
-       messages-stream)))
+       messages-stream
+       (messages-with-metadata contacts account))))
 
 (reg-sub
  :get-commands-for-chat
@@ -353,9 +385,7 @@
  :<- [:get-contacts]
  :<- [:get-current-account]
  (fn [[contacts account] [_ id]]
-   (or (:photo-path (contacts id))
-       (when (= id (:public-key account))
-         (:photo-path account)))))
+   (get-photo-path contacts account id)))
 
 (reg-sub
  :get-last-message
@@ -409,5 +439,8 @@
 (reg-sub
  :get-reply-message
  :<- [:get-current-chat]
- (fn [{:keys [metadata messages]}]
-   (get messages (:responding-to-message metadata))))
+ :<- [:get-contacts]
+ :<- [:get-current-account]
+ (fn [[{:keys [metadata messages]} contacts account]]
+   (when-let [message (get messages (:responding-to-message metadata))]
+     (add-metadata message contacts account))))
