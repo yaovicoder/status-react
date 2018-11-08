@@ -38,6 +38,7 @@ pipeline {
     LEIN_HOME = '/var/tmp/lein'
     TARGET_SYSTEM_NAME = 'Windows'
     CONAN_PRINT_RUN_COMMANDS = '1'
+    CONAN_SYSREQUIRES_MODE = 'disabled'
     CONAN_SYSREQUIRES_SUDO = '0' 
     STATUSIM_WINDOWS_BASEIMAGE_ZIP = '/opt/StatusIm-Windows-base-image.zip'
   }
