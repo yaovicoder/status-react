@@ -98,31 +98,34 @@
  (fn [{:keys [web3 obj success-event]}]
    (ethereum/estimate-gas-web3 web3 (clj->js obj) #(re-frame/dispatch [success-event %2]))))
 
-(defn- validate-token-name! [web3 {:keys [address symbol name skip-name-check?]}]
-  (when-not skip-name-check?
-    (erc20/name web3 address #(when-not (= name %2)
-                                (let [message (i18n/label :t/token-auto-validate-name-error
+(defn- validate-token-name! [web3 {:keys [address symbol name]}]
+  (erc20/name web3 address #(when (and (seq %2) ;;NOTE(goranjovic): skipping check if field not set in contract
+                                       (not= name %2))
+                              (let [message (i18n/label :t/token-auto-validate-name-error
+                                                        {:symbol   symbol
+                                                         :expected name
+                                                         :actual   %2
+                                                         :address  address})]
+                                (log/warn message)
+                                (js/alert message)))))
+
+(defn- validate-token-symbol! [web3 {:keys [address symbol]}]
+  (erc20/symbol web3 address #(when (and (seq %2) ;;NOTE(goranjovic): skipping check if field not set in contract
+                                         (not= (clojure.core/name symbol) %2))
+                                (let [message (i18n/label :t/token-auto-validate-symbol-error
                                                           {:symbol   symbol
-                                                           :expected name
+                                                           :expected (clojure.core/name symbol)
                                                            :actual   %2
                                                            :address  address})]
                                   (log/warn message)
-                                  (js/alert message))))))
-
-(defn- validate-token-symbol! [web3 {:keys [address symbol skip-symbol-check?]}]
-  (when-not skip-symbol-check?
-    (erc20/symbol web3 address #(when-not (= (clojure.core/name symbol) %2)
-                                  (let [message (i18n/label :t/token-auto-validate-symbol-error
-                                                            {:symbol   symbol
-                                                             :expected (clojure.core/name symbol)
-                                                             :actual   %2
-                                                             :address  address})]
-                                    (log/warn message)
-                                    (js/alert message))))))
+                                  (js/alert message)))))
 
 (defn- validate-token-decimals! [web3 {:keys [address symbol decimals nft? skip-decimals-check?]}]
+  ;;NOTE(goranjovic): only skipping check if skip-decimals-check? flag is present because we can't differentiate
+  ;;between unset decimals and 0 decimals.
   (when-not skip-decimals-check?
-    (erc20/decimals web3 address #(when-not (or nft? (= decimals (int %2)))
+    (erc20/decimals web3 address #(when (and (not nft?)
+                                             (not= decimals (int %2)))
                                     (let [message (i18n/label :t/token-auto-validate-decimals-error
                                                               {:symbol   symbol
                                                                :expected decimals

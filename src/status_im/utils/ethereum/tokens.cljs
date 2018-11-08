@@ -54,31 +54,26 @@
 ;; - nft? - set to true when token is an ERC-781 collectible
 ;; - hidden? - when true, token is not displayed in any asset selection screens, but will be displayed properly in
 ;;             transaction history (setting this field is a form of "soft" token removal).
-;; - skip-name-check? - some tokens predate the ERC-20 and may not include the name field, so we skip this check
-;; - skip-symbol-check? - some tokens predate the ERC-20 and may not include the symbol field, so we skip this check
-;; - skip-decimals-check? - some tokens predate the ERC-20 and may not include the decimals field, so we skip this check
+;; - skip-decimals-check? - some tokens do not include the decimals field, which is compliant with ERC-20 since it is
+;;;     and optional field. In that case we are explicitly skipping this step in order not to raise a false error.
+;;;     We have this explicit flag for decimals and not for name and symbol because we can't tell apart unset decimals
+;;;     from 0 decimals case.
 
 (def all-default-tokens
   {:mainnet
    (resolve-icons :mainnet
-                  [{:symbol             :DAI
-                    :name               "DAI"
-                    :address            "0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359"
-                    :decimals           18
-                    :skip-name-check?   true
-                    :skip-symbol-check? true}
-                   {:symbol             :MKR
-                    :name               "MKR"
-                    :address            "0x9f8F72aA9304c8B593d555F12eF6589cC3A579A2"
-                    :decimals           18
-                    :skip-name-check?   true
-                    :skip-symbol-check? true}
-                   {:symbol             :EOS
-                    :name               "EOS"
-                    :address            "0x86fa049857e0209aa7d9e616f7eb3b3b78ecfdb0"
-                    :decimals           18
-                    :skip-name-check?   true
-                    :skip-symbol-check? true}
+                  [{:symbol   :DAI
+                    :name     "DAI"
+                    :address  "0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359"
+                    :decimals 18}
+                   {:symbol   :MKR
+                    :name     "MKR"
+                    :address  "0x9f8F72aA9304c8B593d555F12eF6589cC3A579A2"
+                    :decimals 18}
+                   {:symbol   :EOS
+                    :name     "EOS"
+                    :address  "0x86fa049857e0209aa7d9e616f7eb3b3b78ecfdb0"
+                    :decimals 18}
                    {:symbol   :OMG
                     :name     "OMGToken"
                     :address  "0xd26114cd6EE289AccF82350c8d8487fedB8A0C07"
@@ -99,13 +94,10 @@
                     :name     "TenX Pay Token"
                     :address  "0xB97048628DB6B661D4C2aA833e95Dbe1A905B280"
                     :decimals 18}
-                   {:symbol               :VRS
-                    :name                 "VEROS"
-                    :address              "0xedbaf3c5100302dcdda53269322f3730b1f0416d"
-                    :decimals             5
-                    :skip-name-check?     true
-                    :skip-symbol-check?   true
-                    :skip-decimals-check? true}
+                   {:symbol   :VRS
+                    :name     "Veros"
+                    :address  "0x92E78dAe1315067a8819EFD6dCA432de9DCdE2e9"
+                    :decimals 6}
                    {:symbol   :GNT
                     :name     "Golem Network Token"
                     :address  "0xa74476443119A942dE498590Fe1f2454d7D4aC0d"
@@ -130,8 +122,6 @@
                     :name                 "Digix DAO"
                     :address              "0xe0b7927c4af23765cb51314a0e0521a9645f0e2a"
                     :decimals             9
-                    :skip-name-check?     true
-                    :skip-symbol-check?   true
                     :skip-decimals-check? true}
                    {:symbol   :AE
                     :name     "Aeternity"
@@ -229,8 +219,6 @@
                     :name                 "loopring"
                     :address              "0xEF68e7C694F40c8202821eDF525dE3782458639f"
                     :decimals             18
-                    :skip-name-check?     true
-                    :skip-symbol-check?   true
                     :skip-decimals-check? true}
                    {:symbol   :ZSC
                     :name     "Zeus Shield Coin"
@@ -352,11 +340,10 @@
                     :name     "Everex"
                     :address  "0xf3db5fa2c66b7af3eb0c0b782510816cbe4813b8"
                     :decimals 4}
-                   {:symbol             :ICOS
-                    :name               "ICOS"
-                    :address            "0x014b50466590340d41307cc54dcee990c8d58aa8"
-                    :decimals           6
-                    :skip-symbol-check? true}
+                   {:symbol   :ICOS
+                    :name     "ICOS"
+                    :address  "0x014b50466590340d41307cc54dcee990c8d58aa8"
+                    :decimals 6}
                    {:symbol   :DNT
                     :name     "district0x Network Token"
                     :address  "0x0abdace70d3790235af448c88547603b945604ea"
@@ -381,12 +368,10 @@
                     :name     "Enjin Coin"
                     :address  "0xf629cbd94d3791c9250152bd8dfbdf380e2a3b9c"
                     :decimals 18}
-                   {:symbol             :AVT
-                    :name               "AVENTUS"
-                    :address            "0x0d88ed6e74bbfd96b831231638b66c05571e824f"
-                    :decimals           18
-                    :skip-name-check?   true
-                    :skip-symbol-check? true}
+                   {:symbol   :AVT
+                    :name     "AVENTUS"
+                    :address  "0x0d88ed6e74bbfd96b831231638b66c05571e824f"
+                    :decimals 18}
                    {:symbol   :TIME
                     :name     "Chronobank TIME"
                     :address  "0x6531f133e6deebe7f2dce5a0441aa7ef330b4e53"

@@ -30,7 +30,8 @@
 
 (def abi
   (clj->js
-   [{:constant        true :inputs []
+   [{:constant        true
+     :inputs          []
      :name            "name"
      :outputs         [{:name ""
                         :type "string"}]
