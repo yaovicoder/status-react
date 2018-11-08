@@ -86,6 +86,13 @@ pipeline {
           App: appUrl,
           Mac: dmgUrl
         )
+        /* Create latest.json with newest URLs */
+        cmn.updateLatestNightlies(
+          APK: apkUrl,
+          IOS: ipaUrl,
+          APP: appUrl,
+          MAC: dmgUrl
+        )
       } }
     }
     stage('Notify') {

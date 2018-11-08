@@ -181,6 +181,12 @@ def setBuildDesc(Map links) {
   currentBuild.description = desc
 }
 
+def updateLatestNightlies(Map links) {
+  def latestFile = 'pkg/latest.json'
+  new File(latestFile).write(JsonOutput.toJson(account))
+  return cmn.uploadArtifact(latestFile)
+}
+
 def getParentRunEnv(name) {
   def c = currentBuild.rawBuild.getCause(hudson.model.Cause$UpstreamCause)
   if (c == null) { return null }
