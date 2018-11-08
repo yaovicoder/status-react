@@ -11,6 +11,7 @@
 
 (def ^:private mergable-keys
   #{:data-store/tx :data-store/base-tx :chat-received-message/add-fx
+    :set-dock-badge-label
     :shh/add-new-sym-keys :shh/get-new-sym-keys :shh/post
     :shh/generate-sym-key-from-password  :transport/confirm-messages-processed
     :group-chats/extract-membership-signature :utils/dispatch-later})
