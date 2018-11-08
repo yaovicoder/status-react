@@ -34,8 +34,13 @@
    :width              230})
 
 (def author
-  {:color         colors/black
-   :font-size     14})
+  {:color       colors/black
+   :font-weight :bold
+   :font-size   14})
+
+(def author-generated
+  {:color       colors/gray
+   :font-size   14})
 
 (defn chat-box [height]
   {:height            (+ height (* 2 chat-vertical-padding))
