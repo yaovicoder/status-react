@@ -330,6 +330,11 @@ void runUbuntuServer() {
   g_ubuntuServerProcess->setWorkingDirectory(getDataStoragePath());
   g_ubuntuServerProcess->setProgram(QGuiApplication::applicationDirPath() +
                                     "/ubuntu-server");
+  QString port = qgetenv("REACT_SERVER_PORT");
+  if (!port.isEmpty()) {
+      QStringList arguments = (QStringList() << "--port" << port);
+      g_ubuntuServerProcess->setArguments(arguments);
+  }
   QObject::connect(g_ubuntuServerProcess, &QProcess::errorOccurred,
                    [=](QProcess::ProcessError) {
                      qDebug() << "process name: "
