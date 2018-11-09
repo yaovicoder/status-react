@@ -50,6 +50,12 @@
              [react/text {:style styles/public-chat-text}
               (i18n/label :t/public-chat)])]]
      [react/view
+      [react/popup-menu
+       [react/popup-menu-trigger {:text "Popup test"}]
+       [react/popup-menu-options
+        [react/popup-menu-option {:text "First"}]
+        [react/popup-menu-option {:text "Second"}]]]]
+     [react/view
       (when (and (not group-chat) (not public?))
         [react/text {:style (styles/profile-actions-text colors/black)
                      :on-press #(re-frame/dispatch [:show-profile-desktop public-key])}
