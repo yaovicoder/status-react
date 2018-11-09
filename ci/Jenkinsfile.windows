@@ -7,6 +7,7 @@ pipeline {
       args (
         "--privileged "+
         "-v /dev/fuse:/dev/fuse "+
+        "-v /var/tmp/.conan:/var/tmp/conan:rw "+
         "-v /var/tmp/lein:/var/tmp/lein:rw "+
         "-v /var/tmp/npm:/var/tmp/npm:rw "+
         "-v /opt/StatusIm-Windows-base-image.zip:/opt/StatusIm-Windows-base-image.zip:ro"
@@ -37,6 +38,7 @@ pipeline {
     NPM_CONFIG_CACHE = '/var/tmp/npm'
     LEIN_HOME = '/var/tmp/lein'
     TARGET_SYSTEM_NAME = 'Windows'
+    CONAN_USER_HOME = '/var/tmp/conan'
     CONAN_PRINT_RUN_COMMANDS = '1'
     CONAN_SYSREQUIRES_MODE = 'disabled'
     CONAN_SYSREQUIRES_SUDO = '0'
