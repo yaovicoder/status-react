@@ -288,13 +288,12 @@
 
 (fx/defn process-bridge-message
   [{:keys [db] :as cofx} message]
-  (let [{:browser/keys [options browsers]} db
-        {:keys [browser-id]} options
-        browser (get browsers browser-id)
+  (let [browser (get-current-browser db)
+        url-original (get-current-url browser)
         data    (types/json->clj message)
-        {{:keys [url]} :navState :keys [type host permission payload messageId]} data
+        {{:keys [url]} :navState :keys [type permission payload messageId]} data
         {:keys [dapp? name]} browser
-        dapp-name (if dapp? name host)]
+        dapp-name (if dapp? name (http/url-host url-original))]
     (cond
       (and (= type constants/history-state-changed)
            platform/ios?

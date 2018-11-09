@@ -136,7 +136,7 @@
 
 (defn url-host [url]
   (try
-    (when-let [host (.getDomain (goog.Uri. url))]
+    (when-let [host (.getDomain (goog.Uri. (normalize-url url)))]
       (when-not (string/blank? host)
         (string/replace host #"www." "")))
     (catch :default _ nil)))
