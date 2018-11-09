@@ -25,6 +25,35 @@
             [status-im.ui.screens.desktop.main.chat.events :as chat.events]
             [status-im.ui.screens.chat.message.message :as chat.message]))
 
+(defn toolbar-popup-menu [public-key group-chat public? chat-id]
+  (let [menu-ref (atom nil)]
+    [react/popup-menu {:renderer (:NotAnimatedContextMenu react/popup-menu-renderers)
+                       :ref #(reset! menu-ref %)}
+     [react/popup-menu-trigger {:disabled true}]
+     [react/popup-menu-options {:custom-styles {:options-wrapper {:border-width 1
+                                                                  :border-color colors/gray
+                                                                  :border-radius 5
+                                                                  :background-color colors/gray-lighter}}}
+      (when (and (not group-chat) (not public?))
+        [react/popup-menu-option {:text (i18n/label :t/view-profile)
+                                  :on-select #(re-frame/dispatch [:show-profile-desktop public-key])}])
+      (when (and group-chat (not public?))
+        [react/popup-menu-option {:text (i18n/label :t/group-info)}
+         :on-select #(re-frame/dispatch [:show-group-chat-profile])])
+      [react/popup-menu-option {:text (i18n/label :t/clear-history)
+                                :on-select #(re-frame/dispatch [:chat.ui/clear-history-pressed])}]
+      [react/popup-menu-option {:text (i18n/label :t/delete-chat)
+                                :on-select #(re-frame/dispatch [(if (and group-chat (not public?))
+                                                                  :group-chats.ui/remove-chat-pressed
+                                                                  :chat.ui/remove-chat-pressed)
+                                                                chat-id])}]]
+     [react/touchable-highlight {:on-press #(let [right-click? (= "right" (.-button (.-nativeEvent %)))]
+                                              (log/debug "### menu-trigger on " (if right-click? "right" "left") "click")
+                                              (when right-click? (.open @menu-ref)))}
+      [vector-icons/icon :icons/dots-horizontal
+       {:style {:tint-color colors/black
+                :width      24
+                :height     24}}]]]))
 (views/defview toolbar-chat-view [{:keys [chat-id color public-key public? group-chat]
                                    :as current-chat}]
   (views/letsubs [chat-name         [:get-current-chat-name]
@@ -49,30 +78,7 @@
              public?
              [react/text {:style styles/public-chat-text}
               (i18n/label :t/public-chat)])]]
-     [react/view
-      [react/popup-menu {:renderer (:NotAnimatedContextMenu react/popup-menu-renderers)}
-       [react/popup-menu-trigger #_{:text "Popup test"}
-        [vector-icons/icon :icons/dots-horizontal
-         {:style {:tint-color colors/black
-                  :width      24
-                  :height     24}}]]
-       [react/popup-menu-options {:custom-styles {:options-wrapper {:border-width 1
-                                                                    :border-color colors/gray
-                                                                    :border-radius 5
-                                                                    :background-color colors/gray-lighter}}}
-        (when (and (not group-chat) (not public?))
-          [react/popup-menu-option {:text (i18n/label :t/view-profile)
-                                    :on-select #(re-frame/dispatch [:show-profile-desktop public-key])}])
-        (when (and group-chat (not public?))
-          [react/popup-menu-option {:text (i18n/label :t/group-info)}
-           :on-select #(re-frame/dispatch [:show-group-chat-profile])])
-        [react/popup-menu-option {:text (i18n/label :t/clear-history)
-                                  :on-select #(re-frame/dispatch [:chat.ui/clear-history-pressed])}]
-        [react/popup-menu-option {:text (i18n/label :t/delete-chat)
-                                  :on-select #(re-frame/dispatch [(if (and group-chat (not public?))
-                                                                    :group-chats.ui/remove-chat-pressed
-                                                                    :chat.ui/remove-chat-pressed)
-                                                                  chat-id])}]]]]]))
+     [toolbar-popup-menu public-key group-chat public? chat-id]]))
 
 (views/defview message-author-name [{:keys [from]}]
   (views/letsubs [incoming-name   [:get-contact-name-by-identity from]]
