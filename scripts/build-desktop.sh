@@ -177,6 +177,7 @@ function compile() {
         echo -e "${RED}Could not find valid bindirs_$WINDOWS_CROSSTOOLCHAIN_PKG_NAME value in 'toolchain/conanbuildinfo.txt', aborting${NC}"
         exit 1
       fi
+      PATH=$bin:$STATUSREACTPATH:$PATH \
       cmake -Wno-dev \
             -DCMAKE_TOOLCHAIN_FILE='Toolchain-Ubuntu-mingw64.cmake' \
             -DCMAKE_C_COMPILER="$bin/x86_64-w64-mingw32.shared-gcc" \
