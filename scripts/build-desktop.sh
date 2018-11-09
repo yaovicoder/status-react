@@ -106,6 +106,9 @@ function init() {
         exit 1
       fi
 
+      # TODO: Remove this
+      rm -rf /root/.conan
+
       # TODO: Use Conan for Linux and MacOS builds too
       export PATH=$STATUSREACTPATH:$PATH
       if ! program_exists 'conan-bin'; then
