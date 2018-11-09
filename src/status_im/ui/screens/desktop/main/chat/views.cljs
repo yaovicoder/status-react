@@ -50,29 +50,29 @@
              [react/text {:style styles/public-chat-text}
               (i18n/label :t/public-chat)])]]
      [react/view
-      [react/popup-menu
-       [react/popup-menu-trigger {:text "Popup test"}]
-       [react/popup-menu-options
-        [react/popup-menu-option {:text "First"}]
-        [react/popup-menu-option {:text "Second"}]]]]
-     [react/view
-      (when (and (not group-chat) (not public?))
-        [react/text {:style (styles/profile-actions-text colors/black)
-                     :on-press #(re-frame/dispatch [:show-profile-desktop public-key])}
-         (i18n/label :t/view-profile)])
-      (when (and group-chat (not public?))
-        [react/text {:style (styles/profile-actions-text colors/black)
-                     :on-press #(re-frame/dispatch [:show-group-chat-profile])}
-         (i18n/label :t/group-info)])
-      [react/text {:style (styles/profile-actions-text colors/black)
-                   :on-press #(re-frame/dispatch [:chat.ui/clear-history-pressed])}
-       (i18n/label :t/clear-history)]
-      [react/text {:style (styles/profile-actions-text colors/black)
-                   :on-press #(re-frame/dispatch [(if (and group-chat (not public?))
-                                                    :group-chats.ui/remove-chat-pressed
-                                                    :chat.ui/remove-chat-pressed)
-                                                  chat-id])}
-       (i18n/label :t/delete-chat)]]]))
+      [react/popup-menu {:renderer (:NotAnimatedContextMenu react/popup-menu-renderers)}
+       [react/popup-menu-trigger #_{:text "Popup test"}
+        [vector-icons/icon :icons/dots-horizontal
+         {:style {:tint-color colors/black
+                  :width      24
+                  :height     24}}]]
+       [react/popup-menu-options {:custom-styles {:options-wrapper {:border-width 1
+                                                                    :border-color colors/gray
+                                                                    :border-radius 5
+                                                                    :background-color colors/gray-lighter}}}
+        (when (and (not group-chat) (not public?))
+          [react/popup-menu-option {:text (i18n/label :t/view-profile)
+                                    :on-select #(re-frame/dispatch [:show-profile-desktop public-key])}])
+        (when (and group-chat (not public?))
+          [react/popup-menu-option {:text (i18n/label :t/group-info)}
+           :on-select #(re-frame/dispatch [:show-group-chat-profile])])
+        [react/popup-menu-option {:text (i18n/label :t/clear-history)
+                                  :on-select #(re-frame/dispatch [:chat.ui/clear-history-pressed])}]
+        [react/popup-menu-option {:text (i18n/label :t/delete-chat)
+                                  :on-select #(re-frame/dispatch [(if (and group-chat (not public?))
+                                                                    :group-chats.ui/remove-chat-pressed
+                                                                    :chat.ui/remove-chat-pressed)
+                                                                  chat-id])}]]]]]))
 
 (views/defview message-author-name [{:keys [from]}]
   (views/letsubs [incoming-name   [:get-contact-name-by-identity from]]
