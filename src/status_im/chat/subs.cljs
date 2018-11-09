@@ -319,6 +319,13 @@
        (messages-with-metadata contacts account))))
 
 (reg-sub
+ :chat/current
+ :<- [:get-current-chat]
+ :<- [:get-current-chat-messages-stream]
+ (fn [[current-chat messages]]
+   (assoc current-chat :messages messages)))
+
+(reg-sub
  :get-commands-for-chat
  :<- [:get-id->command]
  :<- [:get-access-scope->command-id]

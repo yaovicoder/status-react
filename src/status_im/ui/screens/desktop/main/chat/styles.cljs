@@ -163,6 +163,7 @@
 
 (def chat-view
   {:flex             1
+   :flex-direction   :column
    :background-color :white})
 
 (defn contact-card-text [color]
