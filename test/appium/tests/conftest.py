@@ -35,6 +35,10 @@ def pytest_addoption(parser):
                      action='store',
                      default='sauce',
                      help='Specify environment: local/sauce/api')
+    parser.addoption('--platform_version',
+                     action='store',
+                     default='7.1',
+                     help='Android device platform version')
     parser.addoption('--log',
                      action='store',
                      default=False,
@@ -90,8 +94,17 @@ def pytest_addoption(parser):
                      default=600,
                      help='Running time in seconds')
 
-    # battery tests
+    # running tests using appium docker instance
 
+    parser.addoption('--docker',
+                     action='store',
+                     default=False,
+                     help='Are you using the appium docker container to run the tests?')
+    parser.addoption('--docker_shared_volume',
+                     action='store',
+                     default=None,
+                     help='Path to a directory with .apk that will be shared with docker instance. Test reports will '
+                          'be also saved there')
     parser.addoption('--device_ip',
                      action='store',
                      default=None,
