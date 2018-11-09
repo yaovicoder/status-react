@@ -154,7 +154,7 @@
              :photo-path  "contacts://smartz"
              :description "Easy smart contract management"}
             {:name        "Status Test DApp"
-             :dapp-url    "https://status-im.github.io/dapp/"
+             :dapp-url    "simpledapp.eth"
              :description "Request test assets and test basic web3 functionality."
              :developer?  true}]}])
 
