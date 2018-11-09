@@ -226,7 +226,7 @@ function bundleWindows() {
       local _bin=$STATUSREACTPATH/desktop/bin
       rm -rf $_bin/cmake_install.cmake $_bin/Makefile $_bin/CMakeFiles $_bin/Status_autogen && \
       cp -r $_bin/* .
-      zip -mr9 ../Status-Windows-x86_64.zip .
+      zip -mr9 ../../Status-Windows-x86_64.zip .
     popd
     rm -rf Windows
   popd
