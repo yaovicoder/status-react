@@ -28,16 +28,16 @@ pipeline {
     }
     stage('Build') {
       parallel {
-        stage('MacOS') {
-        when { expression { btype != 'release' } }
-        steps { script {
-          osx = cmn.buildBranch('status-react/combined/desktop-macos')
-        } } }
-        stage('Linux') {
-        when { expression { btype != 'release' } }
-        steps { script {
-          nix = cmn.buildBranch('status-react/combined/desktop-linux')
-        } } }
+        // stage('MacOS') {
+        // when { expression { btype != 'release' } }
+        // steps { script {
+        //   osx = cmn.buildBranch('status-react/combined/desktop-macos')
+        // } } }
+        // stage('Linux') {
+        // when { expression { btype != 'release' } }
+        // steps { script {
+        //   nix = cmn.buildBranch('status-react/combined/desktop-linux')
+        // } } }
         stage('Windows') {
         when { expression { btype != 'release' } }
         steps { script {
@@ -59,8 +59,8 @@ pipeline {
         sh('rm -f pkg/*')
 
         if (btype != 'release') {
-          cmn.copyArts('status-react/combined/desktop-macos', osx.number)
-          cmn.copyArts('status-react/combined/desktop-linux', nix.number)
+          // cmn.copyArts('status-react/combined/desktop-macos', osx.number)
+          // cmn.copyArts('status-react/combined/desktop-linux', nix.number)
           cmn.copyArts('status-react/combined/desktop-windows', win.number)
         }
         cmn.copyArts('status-react/combined/mobile-ios', ios.number)
