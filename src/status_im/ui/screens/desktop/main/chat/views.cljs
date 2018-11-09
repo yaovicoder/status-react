@@ -6,6 +6,7 @@
             [status-im.ui.screens.chat.styles.message.message :as message.style]
             [status-im.ui.screens.chat.message.message :as message]
             [taoensso.timbre :as log]
+            [status-im.ui.components.list.views :as list]
             [reagent.core :as reagent]
             [status-im.ui.screens.chat.utils :as chat-utils]
             [status-im.utils.gfycat.core :as gfycat]
@@ -186,40 +187,54 @@
   (let [next-count (min all-messages-count (+ @messages-to-load load-step))]
     (reset! messages-to-load next-count)))
 
-(defn messages-view [chat-id group-chat messages]
-  (let [messages-to-load (reagent/atom load-step)
-        chat-id* (reagent/atom nil)]
-    (reagent/create-class
-     {:component-did-update #(load-more (count messages) messages-to-load)
-      :component-did-mount  #(load-more (count messages) messages-to-load)
-      :reagent-render (fn [chat-id group-chat messages]
-                        (let [scroll-ref (atom nil)
-                              scroll-timer (atom nil)
-                              scroll-height (atom nil)
-                              _ (when (or (not @chat-id*) (not= @chat-id* chat-id))
-                                  (do
-                                    (reset! messages-to-load load-step)
-                                    (reset! chat-id* chat-id)))]
-                          [react/view {:style styles/messages-view}
-                           [react/scroll-view {:scrollEventThrottle    16
-                                               :headerHeight styles/messages-list-vertical-padding
-                                               :footerWidth styles/messages-list-vertical-padding
-                                               :enableArrayScrollingOptimization true
-                                               :inverted true
-                                               :on-scroll              (fn [e]
-                                                                         (let [ne (.-nativeEvent e)
-                                                                               y (.-y (.-contentOffset ne))]
-                                                                           (when (<= y 0)
-                                                                             (when @scroll-timer (js/clearTimeout @scroll-timer))
-                                                                             (reset! scroll-timer (js/setTimeout #(re-frame/dispatch [:chat.ui/load-more-messages]) 300)))
-                                                                           (reset! scroll-height (+ y (.-height (.-layoutMeasurement ne))))))
-                                               :ref                    #(reset! scroll-ref %)}
-                            [react/view
-                             (doall
-                              (for [message (take @messages-to-load messages)]
-                                ^{:key message}
-                                [message-view (assoc message :group-chat group-chat)]))]]
-                           [connectivity/error-view]]))})))
+#_(defn messages-view [{:keys [messages] :as current-chat}]
+    (let [messages-to-load (reagent/atom load-step)]
+      (reagent/create-class
+       {:component-did-update (fn [comp [_ prev-current-chat _ _]]
+                                (let [{:keys [chat-id messages]} (reagent/props comp)]
+                                  (when-not (= chat-id
+                                               (:chat-id prev-current-chat))
+                                    (reset! messages-to-load load-step))
+                                  (load-more (count messages) messages-to-load)))
+        :component-did-mount  #(load-more (count messages) messages-to-load)
+        :reagent-render (fn [{:keys [all-loaded? group-chat messages]}]
+                          (let [scroll-ref (atom nil)
+                                scroll-timer (atom nil)
+                                scroll-height (atom nil)]
+                            [react/view {:style styles/messages-view}
+                             [react/scroll-view {:scrollEventThrottle    16
+                                                 :headerHeight styles/messages-list-vertical-padding
+                                                 :footerWidth styles/messages-list-vertical-padding
+                                                 :enableArrayScrollingOptimization true
+                                                 :inverted true
+                                                 :on-scroll     (fn [e]
+                                                                  (when-not all-loaded?
+                                                                    (let [ne (.-nativeEvent e)
+                                                                          y (.-y (.-contentOffset ne))]
+                                                                      (when (<= y 0)
+                                                                        (re-frame/dispatch [:chat.ui/load-more-messages]))
+                                                                      (reset! scroll-height (+ y (.-height (.-layoutMeasurement ne)))))))
+                                                 :ref                    #(reset! scroll-ref %)}
+                              [react/view
+                               (doall
+                                (for [message (take @messages-to-load messages)]
+                                  ^{:key message}
+                                  [message-view (assoc message :group-chat group-chat)]))]]
+                             [connectivity/error-view]]))})))
+
+(defn messages-view [{:keys [messages all-loaded? group-chat] :as current-chat}]
+  [react/view {:style styles/messages-view}
+   [react/scroll-view {:scroll-enabled false}
+    [react/view {:style {:flex 1
+                         :background-color :red}}
+     [list/flat-list {:data                      messages
+                      :key-fn                    #(or (:message-id %) (:value %))
+                      :render-fn                 (fn [message]
+                                                   [message-view (assoc message :group-chat group-chat)])
+                      :inverted true
+                      :onEndReached              #(re-frame/dispatch [:chat.ui/load-more-messages])
+                      :enableEmptySections       true}]]]
+   [connectivity/error-view]])
 
 (defn send-button [input-text inp-ref network-status]
   (let [empty? (= "" input-text)
@@ -289,14 +304,13 @@
                            [send-button input-text inp-ref network-status]]))})))
 
 (views/defview chat-view []
-  (views/letsubs [{:keys [input-text chat-id group-chat] :as current-chat} [:get-current-chat]
-                  messages [:get-current-chat-messages-stream]
+  (views/letsubs [{:keys [input-text chat-id group-chat] :as current-chat} [:chat/current]
                   reply-message [:get-reply-message]
                   network-status [:network-status]]
     [react/view {:style styles/chat-view}
      [toolbar-chat-view current-chat]
      [react/view {:style styles/separator}]
-     [messages-view chat-id group-chat messages]
+     [messages-view current-chat]
      [react/view {:style styles/separator}]
      [reply-message-view reply-message]
      [chat-text-input chat-id input-text network-status]]))
