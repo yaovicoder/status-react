@@ -90,7 +90,8 @@
                              :Fleet              (name current-fleet-key)
                              :BootNodes          (pick-nodes 4 (vals (:boot current-fleet)))
                              :TrustedMailServers (pick-nodes 6 (vals (:mail current-fleet)))
-                             :StaticNodes        (pick-nodes 2 (vals (:whisper current-fleet)))})
+                             :StaticNodes        (pick-nodes 2 (vals (:whisper current-fleet)))
+                             :RendezvousNodes    (pick-nodes 3 (vals (:rendezvous current-fleet)))})
 
       :always
       (assoc :WhisperConfig         {:Enabled true
