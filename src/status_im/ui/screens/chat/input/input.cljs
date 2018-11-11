@@ -1,24 +1,21 @@
 (ns status-im.ui.screens.chat.input.input
-  (:require-macros [status-im.utils.views :refer [defview letsubs]])
   (:require [clojure.string :as string]
-            [reagent.core :as reagent]
             [re-frame.core :as re-frame]
-            [status-im.ui.screens.chat.styles.input.input :as style]
-            [status-im.ui.screens.chat.styles.message.message :as message-style]
+            [reagent.core :as reagent]
+            [status-im.i18n :as i18n]
+            [status-im.ui.components.animation :as animation]
+            [status-im.ui.components.chat :as components.chat]
+            [status-im.ui.components.colors :as colors]
+            [status-im.ui.components.icons.vector-icons :as vector-icons]
+            [status-im.ui.components.react :as react]
             [status-im.ui.screens.chat.input.parameter-box :as parameter-box]
             [status-im.ui.screens.chat.input.send-button :as send-button]
             [status-im.ui.screens.chat.input.suggestions :as suggestions]
             [status-im.ui.screens.chat.input.validation-messages :as validation-messages]
             [status-im.ui.screens.chat.photos :as photos]
-            [status-im.ui.screens.chat.utils :as chat-utils]
-            [status-im.i18n :as i18n]
-            [status-im.ui.components.animation :as animation]
-            [status-im.ui.components.colors :as colors]
-            [status-im.ui.components.react :as react]
-            [status-im.ui.components.icons.vector-icons :as vector-icons]
-            [status-im.utils.platform :as platform]
-            [status-im.utils.gfycat.core :as gfycat]
-            [status-im.utils.utils :as utils]))
+            [status-im.ui.screens.chat.styles.input.input :as style]
+            [status-im.ui.screens.chat.styles.message.message :as message-style])
+  (:require-macros [status-im.utils.views :refer [defview letsubs]]))
 
 (defview basic-text-input [{:keys [set-container-width-fn height single-line-input?]}]
   (letsubs [{:keys [input-text]} [:get-current-chat]
@@ -105,27 +102,26 @@
         [vector-icons/icon :icons/input-commands {:container-style style/input-commands-icon
                                                   :color           :dark}]]])))
 
-(defview reply-message [from message-text]
-  (letsubs [username           [:get-contact-name-by-identity from]
-            current-public-key [:account/public-key]]
-    [react/view {:style style/reply-message-content}
-     [react/text {:style style/reply-message-author} (chat-utils/format-reply-author from username current-public-key)]
-     [react/text {:style (message-style/style-message-text false)} message-text]]))
+(defn reply-message
+  [{:keys [content] :as message}]
+  [react/view {:style style/reply-message-content}
+   [components.chat/message-author-name {:style style/reply-message-author} message]
+   [react/text {:style (message-style/style-message-text false)} (:text content)]])
 
-(defview reply-message-view []
-  (letsubs [{:keys [content from] :as message} [:get-reply-message]]
-    (when message
-      [react/view {:style style/reply-message-container}
-       [react/view {:style style/reply-message}
-        [photos/member-photo from]
-        [reply-message from (:text content)]]
-       [react/touchable-highlight
-        {:style               style/cancel-reply-highlight
-         :on-press            #(re-frame/dispatch [:chat.ui/cancel-message-reply])
-         :accessibility-label :cancel-message-reply}
-        [react/view {:style style/cancel-reply-container}
-         [vector-icons/icon :icons/close {:container-style style/cancel-reply-icon
-                                          :color           colors/white}]]]])))
+(defn reply-message-view
+  [{:keys [photo-path] :as message}]
+  (when message
+    [react/view {:style style/reply-message-container}
+     [react/view {:style style/reply-message}
+      [photos/member-photo photo-path]
+      [reply-message message]]
+     [react/touchable-highlight
+      {:style               style/cancel-reply-highlight
+       :on-press            #(re-frame/dispatch [:chat.ui/cancel-message-reply])
+       :accessibility-label :cancel-message-reply}
+      [react/view {:style style/cancel-reply-container}
+       [vector-icons/icon :icons/close {:container-style style/cancel-reply-icon
+                                        :color           colors/white}]]]]))
 
 (defview input-container []
   (letsubs [margin               [:chat-input-margin]

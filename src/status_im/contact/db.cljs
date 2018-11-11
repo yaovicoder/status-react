@@ -1,5 +1,6 @@
 (ns status-im.contact.db
   (:require [cljs.spec.alpha :as spec]
+            [status-im.utils.contacts :as utils.contacts]
             status-im.utils.db))
 
 ;;;; DB
@@ -76,3 +77,21 @@
 
 (spec/def :contact/new-tag string?)
 (spec/def :ui/contact (spec/keys :opt [:contact/new-tag]))
+
+(defn blocked?
+  [{:keys [tags] :or {tags #{}}}]
+  (tags "blocked"))
+
+(defn blocked-contacts
+  [contacts]
+  (set (keep #(when (blocked? %)
+                (:public-key %))
+             (vals contacts))))
+
+(defn enrich-contact
+  [contacts public-key]
+  (let [{:keys [public-key] :as contact}
+        (or (get contacts public-key)
+            (utils.contacts/public-key->new-contact public-key))]
+    (cond-> contact
+      (blocked? contact) (assoc :blocked? true))))

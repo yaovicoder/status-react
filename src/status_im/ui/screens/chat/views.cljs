@@ -25,23 +25,22 @@
             [status-im.ui.components.colors :as colors]
             [status-im.ui.components.toolbar.actions :as toolbar.actions]))
 
-(defview add-contact-bar [contact-identity]
-  (letsubs [{:keys [hide-contact?] :as contact} [:get-contact-by-identity]]
-    (when (and (not hide-contact?)
-               (models.contact/can-add-to-contacts? contact))
-      [react/view style/add-contact
-       [react/view style/add-contact-left]
-       [react/touchable-highlight
-        {:on-press            #(re-frame/dispatch [:contact.ui/add-to-contact-pressed contact-identity])
-         :accessibility-label :add-to-contacts-button}
-        [react/view style/add-contact-center
-         [vector-icons/icon :icons/add {:color colors/blue}]
-         [react/i18n-text {:style style/add-contact-text :key :add-to-contacts}]]]
-       [react/touchable-highlight
-        {:on-press            #(re-frame/dispatch [:contacts.ui/close-contact-pressed contact-identity])
-         :accessibility-label :add-to-contacts-close-button}
-        [vector-icons/icon :icons/close {:color           colors/black
-                                         :container-style style/add-contact-close-icon}]]])))
+(defn add-contact-bar [{:keys [hide-contact? public-key] :as contact}]
+  (when (and (not hide-contact?)
+             (models.contact/can-add-to-contacts? contact))
+    [react/view style/add-contact
+     [react/view style/add-contact-left]
+     [react/touchable-highlight
+      {:on-press            #(re-frame/dispatch [:contact.ui/add-to-contact-pressed public-key])
+       :accessibility-label :add-to-contacts-button}
+      [react/view style/add-contact-center
+       [vector-icons/icon :icons/add {:color colors/blue}]
+       [react/i18n-text {:style style/add-contact-text :key :add-to-contacts}]]]
+     [react/touchable-highlight
+      {:on-press            #(re-frame/dispatch [:contacts.ui/close-contact-pressed public-key])
+       :accessibility-label :add-to-contacts-close-button}
+      [vector-icons/icon :icons/close {:color           colors/black
+                                       :container-style style/add-contact-close-icon}]]]))
 
 (defn- on-options [chat-id chat-name group-chat? public?]
   (list-selection/show {:title   chat-name
@@ -49,7 +48,7 @@
 
 (defview chat-toolbar [public? modal?]
   (letsubs [name                                  [:get-current-chat-name]
-            {:keys [group-chat chat-id contacts]} [:get-current-chat]]
+            {:keys [group-chat chat-id contacts contact]} [:get-current-chat]]
     [react/view
      [status-bar/status-bar (when modal? {:type :modal-white})]
      [toolbar/platform-agnostic-toolbar {}
@@ -63,7 +62,7 @@
                            :icon-opts {:color               :black
                                        :accessibility-label :chat-menu-button}
                            :handler   #(on-options chat-id name group-chat public?)}]])]
-     (when-not (or public? group-chat) [add-contact-bar (first contacts)])]))
+     (when-not (or public? group-chat) [add-contact-bar contact])]))
 
 (defmulti message-row (fn [{{:keys [type]} :row}] type))
 
@@ -100,23 +99,21 @@
       [react/animated-view {:style (style/message-view-animated opacity)}
        message-view]]]))
 
-(defview empty-chat-container [{:keys [group-chat chat-id]}]
-  (letsubs [contact [:get-contact-by-identity chat-id]]
-    (let [one-to-one (and (not group-chat)
-                          (not (:dapp? contact)))]
-      [react/view style/empty-chat-container
-       (when one-to-one
-         [vector-icons/icon :icons/lock])
-       [react/text {:style style/empty-chat-text}
-        (if one-to-one
-          [react/text style/empty-chat-container-one-to-one
-           (i18n/label :t/empty-chat-description-one-to-one)
-           [react/text {:style style/empty-chat-text-name} (:name contact)]]
-          (i18n/label :t/empty-chat-description))]])))
+(defn empty-chat-container [{:keys [group-chat chat-id contact]}]
+  (let [one-to-one (and (not group-chat)
+                        (not (:dapp? contact)))]
+    [react/view style/empty-chat-container
+     (when one-to-one
+       [vector-icons/icon :icons/lock])
+     [react/text {:style style/empty-chat-text}
+      (if one-to-one
+        [react/text style/empty-chat-container-one-to-one
+         (i18n/label :t/empty-chat-description-one-to-one)
+         [react/text {:style style/empty-chat-text-name} (:name contact)]]
+        (i18n/label :t/empty-chat-description))]]))
 
 (defview messages-view [group-chat modal?]
-  (letsubs [messages           [:get-current-chat-messages-stream]
-            chat               [:get-current-chat]
+  (letsubs [{:keys [contact messages] :as chat}               [:chat/current]
             current-public-key [:account/public-key]]
     {:component-did-mount #(re-frame/dispatch [:chat.ui/set-chat-ui-props {:messages-focused? true
                                                                            :input-focused? false}])}

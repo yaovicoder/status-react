@@ -7,7 +7,8 @@
 (defn public-key->new-contact [public-key]
   {:name       (gfycat/generate-gfy public-key)
    :photo-path (identicon/identicon public-key)
-   :public-key public-key})
+   :public-key public-key
+   :tags       #{}})
 
 (defn public-key->address [public-key]
   (let [length (count public-key)
