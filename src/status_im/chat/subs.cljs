@@ -11,7 +11,8 @@
             [status-im.i18n :as i18n]
             [status-im.models.transactions :as transactions]
             [clojure.set :as clojure.set]
-            [status-im.utils.identicon :as identicon]))
+            [status-im.utils.identicon :as identicon]
+            [status-im.contact.db :as contact.db]))
 
 (reg-sub :get-chats :chats)
 
@@ -164,7 +165,7 @@
 
                    (pos? unviewed-messages-count)
                    (assoc :unviewed-messages-label (if large-unviewed-messages-label?
-                                                     "9+"
+                                                     (i18n/label :t/counter-9-plus)
                                                      unviewed-messages-count))
                    large-unviewed-messages-label? (assoc :large-unviewed-messages-label? large-unviewed-messages-label?)
                    last-message (assoc :last-message last-message)
@@ -180,12 +181,6 @@
  (fn [chats [_ chat-id]]
    (get chats chat-id)))
 
-(reg-sub
- :get-current-chat-message
- :<- [:get-current-chat]
- (fn [{:keys [messages]} [_ message-id]]
-   (get messages message-id)))
-
 (defn filter-messages-from-blocked-contacts
   [messages blocked-contacts]
   (reduce (fn [acc [message-id {:keys [from] :as message}]]
@@ -196,26 +191,26 @@
           messages))
 
 (reg-sub
- :get-current-chat-messages
+ ::get-current-chat-messages
  :<- [:get-current-chat]
  :<- [:contacts/blocked]
  (fn [[{:keys [messages]} blocked-contacts]]
    (filter-messages-from-blocked-contacts messages blocked-contacts)))
 
 (reg-sub
- :get-current-chat-message-groups
+ ::get-current-chat-message-groups
  :<- [:get-current-chat]
  (fn [{:keys [message-groups]}]
    (or message-groups {})))
 
 (reg-sub
- :get-current-chat-message-statuses
+ ::get-current-chat-message-statuses
  :<- [:get-current-chat]
  (fn [{:keys [message-statuses]}]
    (or message-statuses {})))
 
 (reg-sub
- :get-current-chat-referenced-messages
+ ::get-current-chat-referenced-messages
  :<- [:get-current-chat]
  (fn [{:keys [referenced-messages]}]
    (or referenced-messages {})))
@@ -371,11 +366,11 @@
   (mapv #(add-metadata % contacts account) messages))
 
 (reg-sub
- :get-current-chat-messages-stream
- :<- [:get-current-chat-messages]
- :<- [:get-current-chat-message-groups]
- :<- [:get-current-chat-message-statuses]
- :<- [:get-current-chat-referenced-messages]
+ ::get-current-chat-messages-stream
+ :<- [::get-current-chat-messages]
+ :<- [::get-current-chat-message-groups]
+ :<- [::get-current-chat-message-statuses]
+ :<- [::get-current-chat-referenced-messages]
  :<- [:get-contacts]
  :<- [:account/account]
  (fn [[messages message-groups message-statuses referenced-messages contacts account]]
@@ -386,10 +381,14 @@
 
 (reg-sub
  :chat/current
+ :<- [:get-contacts]
  :<- [:get-current-chat]
- :<- [:get-current-chat-messages-stream]
- (fn [[current-chat messages]]
-   (assoc current-chat :messages messages)))
+ :<- [::get-current-chat-messages-stream]
+ (fn [[all-contacts {:keys [contacts chat-id] :as current-chat} messages]]
+   (let [public-key (or chat-id
+                        (first contacts))]
+     (cond-> (assoc current-chat :messages messages)
+       public-key (assoc :contact (contact.db/enrich-contact all-contacts public-key))))))
 
 (reg-sub
  :get-commands-for-chat
@@ -472,32 +471,6 @@
  :<- [:selected-chat-command]
  (fn [[show-suggestions-box? selected-command]]
    (and show-suggestions-box? (not selected-command))))
-
-(reg-sub
- :unviewed-messages-count
- (fn [[_ chat-id]]
-   (subscribe [:get-chat chat-id]))
- (fn [{:keys [unviewed-messages]}]
-   (count unviewed-messages)))
-
-(reg-sub
- :get-photo-path
- :<- [:get-contacts]
- :<- [:account/account]
- (fn [[contacts account] [_ id]]
-   (get-photo-path contacts account id)))
-
-(reg-sub
- :get-last-message
- (fn [[_ chat-id]]
-   (subscribe [:get-chat chat-id]))
- (fn [{:keys [messages message-groups]}]
-   (->> (sort-message-groups message-groups messages)
-        first
-        second
-        last
-        :message-id
-        (get messages))))
 
 (reg-sub
  :chat-animations
