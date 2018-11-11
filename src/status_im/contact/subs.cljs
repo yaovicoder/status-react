@@ -1,9 +1,10 @@
 (ns status-im.contact.subs
-  (:require [re-frame.core :refer [reg-sub subscribe]]
+  (:require [re-frame.core :as re-frame :refer [reg-sub subscribe]]
             [status-im.utils.contacts :as utils.contacts]
-            [status-im.utils.identicon :as identicon]))
+            [status-im.utils.identicon :as identicon]
+            [status-im.contact.db :as contact.db]))
 
-(reg-sub :get-current-contact-identity :contacts/identity)
+(reg-sub :contact/public-key :contacts/identity)
 
 (reg-sub :get-contacts :contacts/contacts)
 
@@ -11,21 +12,13 @@
          (fn [db]
            (:contacts/dapps db)))
 
-(reg-sub :contacts/blocked
-         :<- [:get-contacts]
-         (fn [contacts]
-           (set (keep #(when ((get % :tags #{}) "blocked")
-                         (:public-key %))
-                      (vals contacts)))))
+(re-frame/reg-sub
+ :contacts/blocked
+ :<- [:get-contacts]
+ (fn [contacts]
+   (contact.db/blocked-contacts contacts)))
 
-(reg-sub :get-current-contact
-         :<- [:get-contacts]
-         :<- [:contacts/blocked]
-         :<- [:get-current-contact-identity]
-         (fn [[contacts blocked identity]]
-           (cond-> (contacts identity)
-             (blocked identity) (assoc :blocked? true))))
-
+;; should be chat/current-contact
 (reg-sub :get-current-chat-contact
          :<- [:get-contacts]
          :<- [:get-current-chat-id]
@@ -53,15 +46,16 @@
          (fn [contacts]
            (remove :dapp? contacts)))
 
-(reg-sub :contacts/added
-         :<- [:get-contacts]
-         :<- [:contacts/blocked]
-         (fn [[contacts blocked-contacts]]
-           (->> contacts
-                (remove (fn [[_ {:keys [dapp? pending? hide-contact? public-key]}]]
-                          (or dapp? pending? hide-contact?
-                              (blocked-contacts public-key))))
-                (sort-contacts))))
+(re-frame/reg-sub
+ :contacts/added
+ :<- [:get-contacts]
+ :<- [:contacts/blocked]
+ (fn [[contacts blocked-contacts]]
+   (->> contacts
+        (remove (fn [[_ {:keys [dapp? pending? hide-contact? public-key]}]]
+                  (or dapp? pending? hide-contact?
+                      (blocked-contacts public-key))))
+        (sort-contacts))))
 
 (defn- filter-dapps [v dev-mode?]
   (remove #(when-not dev-mode? (true? (:developer? %))) v))
@@ -81,14 +75,13 @@
   (let [group-contacts' (into #{} group-contacts)]
     (filter #(group-contacts' (:public-key %)) contacts)))
 
-(reg-sub :get-contact-by-identity
-         :<- [:get-contacts]
-         :<- [:get-current-chat]
-         (fn [[all-contacts {:keys [contacts]}] [_ identity]]
-           (let [identity' (or identity (first contacts))]
-             (or
-              (get all-contacts identity')
-              (utils.contacts/public-key->new-contact identity')))))
+(re-frame/reg-sub
+ :contact/current
+ :<- [:get-contacts]
+ :<- [:contact/public-key]
+ (fn [[contacts public-key]]
+   (when public-key
+     (contact.db/enrich-contact contacts public-key))))
 
 (reg-sub :contacts/dapps-by-name
          :<- [:all-dapps]
@@ -101,15 +94,6 @@
                                     (:data category))))
                    {}
                    dapps)))
-
-(reg-sub :get-contact-name-by-identity
-         :<- [:get-contacts]
-         :<- [:account/account]
-         (fn [[contacts current-account] [_ identity]]
-           (let [me? (= (:public-key current-account) identity)]
-             (if me?
-               (:name current-account)
-               (:name (contacts identity))))))
 
 (defn query-chat-contacts [[{:keys [contacts]} all-contacts] [_ query-fn]]
   (let [participant-set (into #{} (filter identity) contacts)]
