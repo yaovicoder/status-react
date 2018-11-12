@@ -13,6 +13,7 @@ class TestRecoverAccountSingleDevice(SingleDeviceTestCase):
 
     @marks.testrail_id(5301)
     @marks.critical
+    @marks.device_nightly
     def test_recover_account(self):
         sign_in = SignInView(self.driver)
         home = sign_in.create_user()
