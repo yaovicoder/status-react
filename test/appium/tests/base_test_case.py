@@ -13,10 +13,9 @@ from selenium.common.exceptions import NoSuchElementException
 from selenium.common.exceptions import WebDriverException
 
 from support.api.network_api import NetworkApi
-from support.appium_container import AppiumContainer
 from support.github_report import GithubHtmlReport
 from support.message_reliability_report import create_one_to_one_chat_report, create_public_chat_report
-from tests import test_suite_data, start_threads
+from tests import test_suite_data, start_threads, appium_container
 
 
 class AbstractTestCase:
@@ -160,9 +159,8 @@ class SingleDeviceTestCase(AbstractTestCase):
 
     def setup_method(self, method, max_duration=1800):
         if pytest.config.getoption('docker'):
-            self.appium_container = AppiumContainer()
-            self.appium_container.start_appium_container(pytest.config.getoption('docker_shared_volume'))
-            self.appium_container.connect_device(pytest.config.getoption('device_ip'))
+            appium_container.start_appium_container(pytest.config.getoption('docker_shared_volume'))
+            appium_container.connect_device(pytest.config.getoption('device_ip'))
 
         (executor, capabilities) = (self.executor_sauce_lab, self.capabilities_sauce_lab) if \
             self.environment == 'sauce' else (self.executor_local, self.capabilities_local)
@@ -172,19 +170,16 @@ class SingleDeviceTestCase(AbstractTestCase):
         self.driver.implicitly_wait(self.implicitly_wait)
 
         if pytest.config.getoption('docker'):
-            self.appium_container.reset_battery_stats()
+            appium_container.reset_battery_stats()
 
     def teardown_method(self, method):
-        if pytest.config.getoption('docker'):
-            self.appium_container.generate_battery_stats(method.__name__)
-
         if self.environment == 'sauce':
             self.print_sauce_lab_info(self.driver)
         try:
             self.add_alert_text_to_report(self.driver)
             self.driver.quit()
             if pytest.config.getoption('docker'):
-                self.appium_container.stop_container()
+                appium_container.stop_container()
         except (WebDriverException, AttributeError):
             pass
         finally:
