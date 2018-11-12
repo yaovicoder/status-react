@@ -100,13 +100,15 @@ function init() {
     DEPLOYQT="$MACDEPLOYQT"
   elif is_linux; then
     rm -rf ./desktop/toolchain/
+    # TODO: Use Conan for Linux and MacOS builds too
     if is_windows_target; then
       if ! program_exists 'python3'; then
         echo "${RED}python3 prerequisite is missing. Exiting.${NC}"
         exit 1
       fi
 
-      # TODO: Use Conan for Linux and MacOS builds too
+      [ -f ./node_modules/status-conan/profiles/status-mxe-mingw32-x86_64-gcc55-libstdcxx ] || rm -f ./conan* # Clean up an incomplete Conan installation
+
       export PATH=$STATUSREACTPATH:$PATH
       if ! program_exists 'conan-bin'; then
         if ! program_exists 'pip3'; then
