@@ -61,19 +61,12 @@
       [message-status-row contact row])))
 
 (defn bottom-info-view []
-  (let [bottom-info (re-frame/subscribe [:chat/current-chat-ui-prop :bottom-info])
-        contacts    (re-frame/subscribe [:contacts/contacts])]
+  (let [message-details (re-frame/subscribe [:chat/message-details])]
     (reagent/create-class
      {:display-name "bottom-info-view"
       :reagent-render
       (fn []
-        (let [{:keys [user-statuses message-status participants]} @bottom-info
-              participants (->> participants
-                                (map (fn [{:keys [identity]}]
-                                       [identity {:public-key identity
-                                                  :status     message-status}]))
-                                (into {}))
-              statuses     (vals (merge participants user-statuses))]
+        (let [{:keys [user-statuses message-status participants]} @message-details]
           [overlay {:on-click-outside #(re-frame/dispatch [:chat.ui/set-chat-ui-props {:show-bottom-info? false}])}
            [container (* styles/item-height (count statuses))
             [list/flat-list {:contentContainerStyle styles/bottom-info-list-container

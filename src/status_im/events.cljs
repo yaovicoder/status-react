@@ -567,9 +567,9 @@
 
 (handlers/register-handler-fx
  :chat.ui/show-message-details
- (fn [{:keys [db]} [_ details]]
+ (fn [{:keys [db]} [_ message-id]]
    {:db (chat/set-chat-ui-props db {:show-bottom-info? true
-                                    :bottom-info       details})}))
+                                    :bottom-info       message-id})}))
 
 (handlers/register-handler-fx
  :chat.ui/show-message-options

@@ -150,7 +150,7 @@
 
 (defmethod message-view
   :default
-  [{:keys [content message-id chat-id message-status user-statuses from on-seen-message-fn
+  [{:keys [content message-id chat-id message-status status user-statuses from on-seen-message-fn
            content-type outgoing type value] :as message}]
   (if (= type :datemark)
     ^{:key (str "datemark" message-id)}
@@ -166,7 +166,7 @@
           [react/view
            [message-with-name-and-avatar message]
            [react/view {:style (message.style/delivery-status outgoing)}
-            [message/message-delivery-status message]]])}))))
+            [message/message-delivery-status status message]]])}))))
 
 (defn messages-view [{:keys [messages all-loaded? group-chat] :as current-chat}]
   [react/view {:style styles/messages-view}

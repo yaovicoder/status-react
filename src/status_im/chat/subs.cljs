@@ -59,10 +59,16 @@
  :<- [::get-current-chat-message-groups]
  :<- [::get-current-chat-message-statuses]
  :<- [::get-current-chat-referenced-messages]
+ :<- [:chats/active-chats]
+ :<- [::current-chat-id]
+ :<- [:network-name]
  :<- [:contacts/contacts]
  :<- [:account/account]
- (fn [[messages message-groups message-statuses referenced-messages contacts account]]
-   (chat.db/get-current-chat-messages-stream messages message-groups message-statuses referenced-messages contacts account)))
+ (fn [[messages message-groups message-statuses referenced-messages active-chats chat-id current-network contacts account]]
+   (let [current-chat (get active-chats chat-id)]
+     (chat.db/get-current-chat-messages-stream
+      messages message-groups message-statuses referenced-messages
+      current-chat current-network contacts account))))
 
 (re-frame/reg-sub
  ::get-commands-for-chat
@@ -98,10 +104,9 @@
 
 (re-frame/reg-sub
  :chat/contact
- :<- [:contacts/contacts]
- :<- [::current-chat-id]
- (fn [[contacts chat-id]]
-   (get contacts chat-id)))
+ :<- [:chat/current]
+ (fn [chat]
+   (:contact chat)))
 
 (re-frame/reg-sub
  :chat/current-chat-ui-prop
@@ -140,11 +145,8 @@
  :<- [::get-current-chat-messages-stream]
  :<- [:contacts/contacts]
  (fn [[chats chat-id messages all-contacts]]
-   (let [{:keys [contacts chat-id] :as current-chat} (get chats chat-id)
-         public-key (or chat-id
-                        (first contacts))]
-     (cond-> (assoc current-chat :messages messages)
-       public-key (assoc :contact (contact.db/public-key->contact contacts public-key))))))
+   (let [current-chat (get chats chat-id)]
+     (assoc current-chat :messages messages))))
 
 (def ^:private map->sorted-seq (comp (partial map second) (partial sort-by first)))
 
@@ -244,3 +246,15 @@
  (fn [[{:keys [metadata]} messages contacts account]]
    (when-let [message (get messages (:responding-to-message metadata))]
      (chat.db/add-response-metadata message contacts account))))
+
+(re-frame/reg-sub
+ :chat/message-details
+ :<- [:chats/current]
+ ::current-chat-ui-props
+ (fn [[{:keys [contacts messages]} {:keys [bottom-info]}]]
+   (let [message (get messages bottom-info)]) [participants (->> participants
+                                                                 (map (fn [{:keys [identity]}]
+                                                                        [identity {:public-key identity
+                                                                                   :status     message-status}]))
+                                                                 (into {}))
+                                               statuses     (vals (merge participants user-statuses))]))
