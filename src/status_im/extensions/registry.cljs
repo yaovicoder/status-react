@@ -1,7 +1,6 @@
 (ns status-im.extensions.registry
   (:refer-clojure :exclude [list])
   (:require [clojure.string :as string]
-            [pluto.utils :as utils]
             [pluto.reader.hooks :as hooks]
             [re-frame.core :as re-frame]
             [status-im.accounts.update.core :as accounts.update]
@@ -9,11 +8,22 @@
             [status-im.utils.fx :as fx]
             [clojure.set :as set]))
 
+(defn- update-db [cofx {:keys [db]}]
+  (if db (assoc cofx :db db) cofx))
+
+(defn merge-fx
+  [cofx & fx-fns]
+  (first (reduce (fn [[fx cofx] fx-fn]
+                   (let [new-fx (fx-fn cofx)]
+                     [(merge fx new-fx) (update-db cofx new-fx)]))
+                 [{} cofx]
+                 fx-fns)))
+
 (fx/defn update-hooks
   [{:keys [db] :as cofx} hook-fn extension-key]
   (let [account (get db :account/account)
         hooks   (get-in account [:extensions extension-key :hooks])]
-    (apply utils/merge-fx cofx
+    (apply merge-fx cofx
            (mapcat (fn [[_ extension-hooks]]
                      (map (fn [[hook-id {:keys [hook-ref parsed]}]]
                             (partial hook-fn (:hook hook-ref) hook-id parsed))
