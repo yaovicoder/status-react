@@ -144,21 +144,19 @@ def pkgFilename(type, ext) {
 
 def githubNotify(apkUrl, e2eUrl, ipaUrl, dmgUrl, appUrl, changeId) {
   withCredentials([string(credentialsId: 'GIT_HUB_TOKEN', variable: 'githubToken')]) {
-    def message = (
-      "#### :white_check_mark: CI BUILD SUCCESSFUL\\n" +
-      "Jenkins job: [${currentBuild.displayName}](${currentBuild.absoluteUrl})\\n"+
-      "##### Mobile\\n" +
-      "* [Android](${apkUrl}), ([e2e](${e2eUrl}))\\n" +
-      "* [iOS](${ipaUrl})\\n")
-
-    if (dmgUrl != null && appUrl != null) {
-      message = message +
-        "##### Desktop\\n" +
-        "* [MacOS](${dmgUrl})\\n" +
-        "* [AppImage](${appUrl})"
+    def message = """
+      #### :white_check_mark: CI BUILD SUCCESSFUL [${currentBuild.displayName}](${currentBuild.absoluteUrl})
+      | | | | |
+      -----------------------------
+      | [Android](${apkUrl})([e2e](${e2eUrl})) | [iOS](${ipaUrl}) |
+    """
+    if (dmgUrl == null) {
+      message += "[MacOS](${dmgUrl}) | [AppImage](${appUrl}) |"
+    } else {
+      message += "~~MacOS~~ | ~~AppImage~~ |"
     }
     def script = (
-      "curl "+
+      "curl -i --silent "+
       "-u status-im:${githubToken} " +
       "-H 'Content-Type: application/json' " +
       "--data '{\"body\": \"${message}\"}' " +
