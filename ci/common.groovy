@@ -142,30 +142,30 @@ def pkgFilename(type, ext) {
 }
 
 
-def githubNotify(apkUrl, e2eUrl, ipaUrl, dmgUrl, appUrl, changeId) {
+def githubNotify(Map urls) {
+  def githubIssuesUrl = 'https://api.github.com/repos/status-im/status-react/issues'
   withCredentials([string(credentialsId: 'GIT_HUB_TOKEN', variable: 'githubToken')]) {
-    def message = (
-      "#### :white_check_mark: CI BUILD SUCCESSFUL\\n" +
-      "Jenkins job: [${currentBuild.displayName}](${currentBuild.absoluteUrl})\\n"+
-      "##### Mobile\\n" +
-      "* [Android](${apkUrl}), ([e2e](${e2eUrl}))\\n" +
-      "* [iOS](${ipaUrl})\\n")
-
-    if (dmgUrl != null && appUrl != null) {
-      message = message +
-        "##### Desktop\\n" +
-        "* [MacOS](${dmgUrl})\\n" +
-        "* [AppImage](${appUrl})"
+    def message = """
+      #### :white_check_mark: CI BUILD SUCCESSFUL [${currentBuild.displayName}](${currentBuild.absoluteUrl})
+      | | | | |
+      |-|-|-|-|
+      | [Android](${urls.apk})([e2e](${urls.e2e})) | [iOS](${urls.ipa}) |
+    """.trim()
+    if (dmgUrl == null) {
+      message += " [MacOS](${urls.dmg}) | [AppImage](${urls.app}) |"
+    } else {
+      message += " ~~MacOS~~ | ~~AppImage~~ |"
     }
-    def script = (
-      "curl "+
-      "-u status-im:${githubToken} " +
-      "-H 'Content-Type: application/json' " +
-      "--data '{\"body\": \"${message}\"}' " +
-      "https://api.github.com/repos/status-im/status-react/issues/${changeId}/comments"
-    )
-    def ghOutput = sh(returnStdout: true, script: script)
-    println("Result of github comment curl: " + ghOutput);
+    def msgObj = [body: message]
+    def msgJson = new JsonBuilder(msgObj).toPrettyString()
+    rval = sh """
+      curl -i --silent \
+        -u status-im:${githubToken} \
+        -H 'Content-Type: application/json' \
+        --data '${msgJson}' \
+        ${githubIssuesUrl}/${env.CHANGE_ID}/comments"
+    """.trim()
+    println(rval);
   }
 }
 
