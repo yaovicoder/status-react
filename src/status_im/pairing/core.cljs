@@ -24,6 +24,12 @@
         device-type     utils.platform/os]
     (protocol/send (transport.pairing/PairInstallation. installation-id device-type) nil cofx)))
 
+(defn has-paired-installations? [cofx]
+  (->>
+   (get-in cofx [:db :pairing/installations])
+   vals
+   (some :enabled?)))
+
 (defn send-pair-installation [cofx payload]
   (let [{:keys [web3]} (:db cofx)
         current-public-key (accounts.db/current-public-key cofx)]
@@ -125,16 +131,27 @@
  :pairing/disable-installation
  disable-installation!)
 
-(defn send-installation-message [cofx]
-  ;; The message needs to be broken up in chunks as we hit the whisper size limit
+(fx/defn send-sync-installation [cofx payload]
   (let [{:keys [web3]} (:db cofx)
-        current-public-key (accounts.db/current-public-key cofx)
-        sync-messages (sync-installation-messages cofx)]
+        current-public-key (accounts.db/current-public-key cofx)]
+
     {:shh/send-direct-message
-     (map #(hash-map :web3 web3
-                     :src current-public-key
-                     :dst current-public-key
-                     :payload %) sync-messages)}))
+     [{:web3 web3
+       :src current-public-key
+       :dst current-public-key
+       :payload payload}]}))
+
+(fx/defn send-installation-message-fx [cofx payload]
+  (let [dev-mode? (get-in cofx [:db :account/account :dev-mode?])]
+    (when (and (config/pairing-enabled? dev-mode?)
+               (has-paired-installations? cofx))
+      (protocol/send payload nil cofx))))
+
+(defn send-installation-messages [cofx]
+  ;; The message needs to be broken up in chunks as we hit the whisper size limit
+  (let [sync-messages (sync-installation-messages cofx)
+        sync-messages-fx (map send-installation-message-fx sync-messages)]
+    (apply fx/merge cofx sync-messages-fx)))
 
 (defn ensure-photo-path
   "Make sure a photo path is there, generate otherwise"
