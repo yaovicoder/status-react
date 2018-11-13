@@ -118,6 +118,8 @@ function init() {
         pip3 install conan==1.9.0
       fi
 
+      conan remote add --insert 0 status-im https://conan.status.im
+
       echo "Generating cross-toolchain profile..."
       conan install -if ./desktop/toolchain/ -g json $WINDOWS_CROSSTOOLCHAIN_PKG_NAME/5.5.0-1@status-im/stable \
         -pr ./node_modules/status-conan/profiles/status-mingw32-x86_64
