@@ -39,10 +39,11 @@ Use device with Android 7.1 or newer.
         - `--apk=StatusIm-181109-092655-009d97-e2e.apk` - name of the apk file
         - `--docker=True` - run the tests using appium docker container
         - `--docker_shared_volume=/Users/lukas/Desktop/shared` - path to the shared directory
+        - `--bugreport=True` - generate bugreport file
         
         ```
         $ cd status-react/test/appium
-        $ python3 -m pytest --apk=StatusIm-181109-092655-009d97-e2e.apk --device_ip=192.168.0.104 --docker=true --docker_shared_volume=/Users/lukas/Desktop/shared tests/atomic/transactions/test_wallet.py::TestTransactionWalletSingleDevice::test_send_eth_from_wallet_to_contact
+        $ python3 -m pytest --apk=StatusIm-181109-092655-009d97-e2e.apk --device_ip=192.168.0.104 --bugreport=True --docker=true --docker_shared_volume=/Users/lukas/Desktop/shared tests/atomic/transactions/test_wallet.py::TestTransactionWalletSingleDevice::test_send_eth_from_wallet_to_contact
         ```
     - Follow the instructions shown in the command line
 
