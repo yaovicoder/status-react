@@ -30,8 +30,7 @@ class ChatElement(BaseButton):
     def __init__(self, driver, username_part):
         super(ChatElement, self).__init__(driver)
         self.username = username_part
-        self.locator = self.Locator.xpath_selector(
-            "//*[@content-desc='chat-item'][.//*[starts-with(@text,'%s')]]" % self.username)
+        self.locator = self.Locator.text_selector(self.username)
 
     def navigate(self):
         from views.chat_view import ChatView
