@@ -4,7 +4,7 @@ pipeline {
   options {
     disableConcurrentBuilds()
     /* Prevent Jenkins jobs from running forever */
-    timeout(time: 30, unit: 'MINUTES')
+    timeout(time: 35, unit: 'MINUTES')
     /* Limit builds retained */
     buildDiscarder(logRotator(
       numToKeepStr: '10',
@@ -68,7 +68,6 @@ pipeline {
       steps { script {
         e2eUrl = cmn.uploadArtifact(cmn.pkgFind('e2e.apk'))
         apkUrl = cmn.uploadArtifact(cmn.pkgFind("${btype}.apk"))
-
         if (btype != 'release') {
           dmgUrl = cmn.uploadArtifact(cmn.pkgFind('dmg'))
           appUrl = cmn.uploadArtifact(cmn.pkgFind('AppImage'))
@@ -80,7 +79,7 @@ pipeline {
         ipaUrl = ios.getBuildVariables().get('DIAWI_URL')
         /* add URLs to the build description */
         cmn.setBuildDesc(
-          Apk: apkUrl, e2e: e2eUrl, iOS: ipaUrl, App: appUrl, Mac: dmgUrl,
+          Apk: apkUrl, e2e: e2eUrl, iOS: ipaUrl, App: appUrl, Mac: dmgUrl
         )
         /* Create latest.json with newest nightly URLs */
         if (btype == 'nightly') {
@@ -94,8 +93,7 @@ pipeline {
       steps { script {
         if (env.CHANGE_ID != null) {
           cmn.githubNotify(
-            apkUrl, e2eUrl, ipaUrl, dmgUrl, appUrl,
-            env.CHANGE_ID
+            apk: apkUrl, e2e: e2eUrl, ipa: ipaUrl, app: appUrl, dmg: dmgUrl
           )
         }
       } }
@@ -121,10 +119,10 @@ pipeline {
       when { expression { btype == 'nightly' } }
       steps { script {
         e2eApk = e2e.getBuildVariables().get('SAUCE_URL')
-          build(
-            job: 'end-to-end-tests/status-app-nightly', wait: false,
-            parameters: [string(name: 'apk', value: "--apk=${e2eApk}")]
-          )
+        build(
+          job: 'end-to-end-tests/status-app-nightly', wait: false,
+          parameters: [string(name: 'apk', value: "--apk=${e2eApk}")]
+        )
       } }
     }
   }
