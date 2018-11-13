@@ -145,11 +145,6 @@ logger_settings.ini
 
 # Conan
 conan*.txt
-conanbuildinfo.cmake
+conanbuildinfo.*
 conan.cmake
 /.conan_*/
-/.conan-lib
-/conan-*.py
-/conan-bin
-/envwrap.py
-/conanenv.json

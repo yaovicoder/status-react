@@ -31,18 +31,17 @@ if(WIN32)
 
   include(${CMAKE_BINARY_DIR}/conan.cmake)
 
-  conan_check(CONAN_CMD conan-bin)
+  conan_check()
 
   if(USE_QTWEBKIT)
     set(_QT_PACKAGE_OPTIONS "qt5-mxe:webkit=True")
   endif()
-  conan_cmake_run(CONAN_COMMAND conan-bin
-                  REQUIRES qt5-mxe/5.11.2@status-im/stable
-                  PROFILE ../node_modules/status-conan/profiles/status-mxe-mingw32-x86_64-gcc55-libstdcxx
+  conan_cmake_run(REQUIRES qt5-mxe/5.11.2@status-im/stable
+                  PROFILE ../node_modules/status-conan/profiles/status-mingw32-x86_64
                   BASIC_SETUP
                   SETTINGS "qt5-mxe:os=Windows qt5-mxe:arch=x86_64"
                   OPTIONS ${_QT_PACKAGE_OPTIONS}
-                  BUILD missing)
+                  BUILD never)
 
   set(QTROOT "${CONAN_QT5-MXE_ROOT}")
 else(WIN32)

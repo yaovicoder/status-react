@@ -107,22 +107,24 @@ function init() {
         exit 1
       fi
 
-      [ -f ./node_modules/status-conan/profiles/status-mxe-mingw32-x86_64-gcc55-libstdcxx ] || rm -f ./conan* # Clean up an incomplete Conan installation
-
       export PATH=$STATUSREACTPATH:$PATH
-      if ! program_exists 'conan-bin'; then
+      if ! program_exists 'conan'; then
         if ! program_exists 'pip3'; then
           echo "${RED}pip3 package manager not found. Exiting.${NC}"
           exit 1
         fi
 
         echo "${RED}Conan package manager not found. Installing...${NC}"
-        rm -rf ./conan-*.py ./.conan-lib ./.conan_*
-        python3 ./node_modules/status-conan/profiles/conan_init.py -ibv -p status-mingw32-x86_64 --no-password
+        pip3 install conan==1.9.0
       fi
 
+      echo "Generating cross-toolchain profile..."
+      conan install -if ./desktop/toolchain/ -g json $WINDOWS_CROSSTOOLCHAIN_PKG_NAME/5.5.0-1@status-im/stable \
+        -pr ./node_modules/status-conan/profiles/status-mingw32-x86_64
+      python3 ./node_modules/status-conan/profiles/generate-profiles.py ./node_modules/status-conan/profiles ./desktop/toolchain/conanbuildinfo.json
       echo "Installing cross-toolchain..."
-      conan-bin install -if ./desktop/toolchain/ -g cmake -pr ./node_modules/status-conan/profiles/status-mxe-mingw32-x86_64-gcc55-libstdcxx $WINDOWS_CROSSTOOLCHAIN_PKG_NAME/5.5.0-1@status-im/stable
+      conan install -if ./desktop/toolchain/ -g json -g cmake $WINDOWS_CROSSTOOLCHAIN_PKG_NAME/5.5.0-1@status-im/stable \
+        -pr ./node_modules/status-conan/profiles/status-mxe-mingw32-x86_64-gcc55-libstdcxx
     fi
   fi
 }
@@ -173,18 +175,23 @@ function compile() {
     DESKTOP_FONTS="$(joinStrings ${external_fonts[@]})"
     JS_BUNDLE_PATH="$WORKFOLDER/Status.jsbundle"
     if is_windows_target; then
-      # Get the toolchain bin folder from toolchain/conanbuildinfo.txt
-      bin=$(sed -nr "/^\[bindirs_$WINDOWS_CROSSTOOLCHAIN_PKG_NAME\]/ { :l /^\s*[^#].*/ p; n; /^\[/ q; b l; }" toolchain/conanbuildinfo.txt | sed -n 2p)
-      if [ ! -d $bin ]; then
-        echo -e "${RED}Could not find valid bindirs_$WINDOWS_CROSSTOOLCHAIN_PKG_NAME value in 'toolchain/conanbuildinfo.txt', aborting${NC}"
-        exit 1
-      fi
-      export PATH=$bin:$STATUSREACTPATH:$PATH
+      export PATH=$STATUSREACTPATH:$PATH
+
+      # Get the toolchain bin folder from toolchain/conanbuildinfo.json
+      bin_dirs=$(jq -r '.dependencies[0].bin_paths | .[]' toolchain/conanbuildinfo.json)
+      while read -r bin_dir; do
+        if [ ! -d $bin ]; then
+          echo -e "${RED}Could not find $bin_dir directory from 'toolchain/conanbuildinfo.json', aborting${NC}"
+          exit 1
+        fi
+        export PATH=$bin_dir:$PATH
+      done <<< "$bin_dirs"
+      echo $PATH
       cmake -Wno-dev \
             -DCMAKE_TOOLCHAIN_FILE='Toolchain-Ubuntu-mingw64.cmake' \
-            -DCMAKE_C_COMPILER="$bin/x86_64-w64-mingw32.shared-gcc" \
-            -DCMAKE_CXX_COMPILER="$bin/x86_64-w64-mingw32.shared-g++" \
-            -DCMAKE_RC_COMPILER="$bin/x86_64-w64-mingw32.shared-windres" \
+            -DCMAKE_C_COMPILER="x86_64-w64-mingw32.shared-gcc" \
+            -DCMAKE_CXX_COMPILER="x86_64-w64-mingw32.shared-g++" \
+            -DCMAKE_RC_COMPILER="x86_64-w64-mingw32.shared-windres" \
             -DCMAKE_BUILD_TYPE=Release \
             -DEXTERNAL_MODULES_DIR="$EXTERNAL_MODULES_DIR" \
             -DDESKTOP_FONTS="$DESKTOP_FONTS" \
