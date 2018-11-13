@@ -199,3 +199,11 @@
       (testing "not from us"
         (let [new-installation {:identity "not-us" :installationID "does-not-matter"}]
           (is (not (pairing/handle-bundles-added cofx new-installation))))))))
+
+(deftest has-paired-installations-test
+  (testing "no paired devices"
+    (is (not (pairing/has-paired-installations? {:db {:pairing/installations {"1" {}
+                                                                              "2" {}}}}))))
+  (testing "has paired devices"
+    (is (pairing/has-paired-installations? {:db {:pairing/installations {"1" {}
+                                                                         "2" {:enabled? true}}}}))))
