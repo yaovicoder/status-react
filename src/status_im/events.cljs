@@ -767,6 +767,11 @@
    (hardwallet/on-initialization-completed cofx)))
 
 (handlers/register-handler-fx
+ :hardwallet.callback/on-pairing-completed
+ (fn [cofx _]
+   (hardwallet/on-pairing-completed cofx)))
+
+(handlers/register-handler-fx
  :hardwallet/unregister-tag-event
  (fn [_ _]
    {:hardwallet/unregister-tag-event nil}))
@@ -854,7 +859,7 @@
 (handlers/register-handler-fx
  :hardwallet.ui/secret-keys-dialog-confirm-pressed
  (fn [{:keys [db]} _]
-   {:db (assoc-in db [:hardwallet :setup-step] :complete)}))
+   {:db (assoc-in db [:hardwallet :setup-step] :pairing)}))
 
 (handlers/register-handler-fx
  :hardwallet.ui/success-button-pressed
