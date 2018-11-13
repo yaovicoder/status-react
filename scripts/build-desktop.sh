@@ -116,6 +116,7 @@ function init() {
 
         echo "${RED}Conan package manager not found. Installing...${NC}"
         pip3 install conan==1.9.0
+        conan remote add --insert 0 status-im https://conan.status.im
       fi
 
       echo "Generating cross-toolchain profile..."
