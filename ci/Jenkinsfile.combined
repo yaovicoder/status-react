@@ -68,7 +68,6 @@ pipeline {
       steps { script {
         e2eUrl = cmn.uploadArtifact(cmn.pkgFind('e2e.apk'))
         apkUrl = cmn.uploadArtifact(cmn.pkgFind("${btype}.apk"))
-
         if (btype != 'release') {
           dmgUrl = cmn.uploadArtifact(cmn.pkgFind('dmg'))
           appUrl = cmn.uploadArtifact(cmn.pkgFind('AppImage'))
@@ -93,10 +92,7 @@ pipeline {
     stage('Notify') {
       steps { script {
         if (env.CHANGE_ID != null) {
-          cmn.githubNotify(
-            apkUrl, e2eUrl, ipaUrl, dmgUrl, appUrl,
-            env.CHANGE_ID
-          )
+          cmn.githubNotify(apkUrl, e2eUrl, ipaUrl, dmgUrl, appUrl, env.CHANGE_ID)
         }
       } }
     }
@@ -127,10 +123,10 @@ pipeline {
       when { expression { btype == 'nightly' } }
       steps { script {
         e2eApk = e2e.getBuildVariables().get('SAUCE_URL')
-          build(
-            job: 'end-to-end-tests/status-app-nightly', wait: false,
-            parameters: [string(name: 'apk', value: "--apk=${e2eApk}")]
-          )
+        build(
+          job: 'end-to-end-tests/status-app-nightly', wait: false,
+          parameters: [string(name: 'apk', value: "--apk=${e2eApk}")]
+        )
       } }
     }
   }
