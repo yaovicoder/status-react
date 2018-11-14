@@ -107,17 +107,25 @@
    (let [members (clojure.set/union (get-in cofx [:db :chats chat-id :contacts])
                                     removed-members)
          {:keys [web3]} (:db cofx)
-         current-public-key (accounts.db/current-public-key cofx)]
-     (fx/merge
-      cofx
-      {:shh/send-group-message {:web3          web3
-                                :src           current-public-key
-                                :dsts          members
-                                :success-event [:transport/message-sent
-                                                chat-id
-                                                (transport.utils/message-id (:message payload))
-                                                :group-user-message]
-                                :payload       payload}}))))
+         current-public-key (accounts.db/current-public-key cofx)
+         success-event [:transport/message-sent
+                        chat-id
+                        (transport.utils/message-id (:message payload))
+                        :group-user-message]]
+     (if config/pfs-encryption-enabled?
+       (fx/merge
+        cofx
+        {:shh/send-group-message {:web3          web3
+                                  :src           current-public-key
+                                  :dsts          members
+                                  :success-event success-event
+                                  :payload       payload}})
+
+       (let [send-fxs (map #(protocol/send-with-pubkey {:payload payload
+                                                        :success-event success-event
+                                                        :chat-id %})
+                           members)]
+         (apply fx/merge cofx send-fxs))))))
 
 (fx/defn handle-membership-update-received
   "Extract signatures in status-go and act if successful"
