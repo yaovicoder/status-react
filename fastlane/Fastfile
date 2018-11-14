@@ -53,6 +53,7 @@ end
 
 # builds an ios app with ad-hoc configuration and put it
 # to "status-adhoc" output folder
+# readonly: only fetch existing certificates and profiles, don't generate new ones from AppStore
 def build_ios_adhoc(readonly)
     match(
         type: "adhoc",
