@@ -9,7 +9,7 @@
 (s/def :chat/animations (s/nilable map?))                         ; {id (string) props (map)}
 (s/def :chat/chat-ui-props (s/nilable map?))                      ; {id (string) props (map)}
 (s/def :chat/chat-list-ui-props (s/nilable map?))
-(s/def :chat/layout-height (s/nilable number?))                   ; height of chat's view layout 
+(s/def :chat/layout-height (s/nilable number?))                   ; height of chat's view layout
 (s/def :chat/selected-participants (s/nilable set?))
 (s/def :chat/public-group-topic (s/nilable string?))
 (s/def :chat/public-group-topic-error (s/nilable string?))
@@ -26,3 +26,4 @@
 (s/def :chat/cooldown-enabled? (s/nilable boolean?))
 (s/def :chat/last-outgoing-message-sent-at (s/nilable number?))
 (s/def :chat/spam-messages-frequency (s/nilable number?))         ; number of consecutive spam messages sent
+(s/def :chats/loading? (s/nilable boolean?))
