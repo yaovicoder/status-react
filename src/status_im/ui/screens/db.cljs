@@ -64,7 +64,8 @@
                                                   :nfc-enabled?   false
                                                   :pin            {:original     []
                                                                    :confirmation []
-                                                                   :enter-step   :original}}})
+                                                                   :enter-step   :original}}
+             :chats/loading?                     true})
 
 ;;;;GLOBAL
 
@@ -239,7 +240,8 @@
                                 :dapps/permissions
                                 :ui/contact
                                 :ui/search
-                                :ui/chat]
+                                :ui/chat
+                                :chats/loading?]
                           :opt-un [::modal
                                    ::was-modal?
                                    ::rpc-url
