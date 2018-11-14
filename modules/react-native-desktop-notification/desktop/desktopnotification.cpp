@@ -69,6 +69,7 @@ DesktopNotification::DesktopNotification(QObject *parent)
                                        Snore::Icon::defaultIcon());
   d_ptr->snoreApp.addAlert(
       Snore::Alert(NewMessageAlert, Snore::Icon::defaultIcon()));
+  d_ptr->snoreApp.hints().setValue("use-markup", true);
 
   if (Snore::SnoreCore::instance().pluginNames().isEmpty()) {
     Snore::SnoreCore::instance().loadPlugins(Snore::SnorePlugin::Backend);
@@ -101,7 +102,7 @@ QList<ModuleMethod *> DesktopNotification::methodsToExport() {
 
 QVariantMap DesktopNotification::constantsToExport() { return QVariantMap(); }
 
-void DesktopNotification::sendNotification(QString text) {
+void DesktopNotification::sendNotification(QString title, QString body, bool prioritary) {
   Q_D(DesktopNotification);
   qCDebug(NOTIFICATION) << "::sendNotification";
 
@@ -111,8 +112,9 @@ void DesktopNotification::sendNotification(QString text) {
   }
 
   Snore::Notification notification(
-      d_ptr->snoreApp, d_ptr->snoreApp.alerts()[NewMessageAlert], "New message",
-      text, Snore::Icon::defaultIcon());
+      d_ptr->snoreApp, d_ptr->snoreApp.alerts()[NewMessageAlert], title,
+      body, Snore::Icon::defaultIcon(),
+      prioritary ? Prioritys::High : Prioritys::Normal);
   Snore::SnoreCore::instance().broadcastNotification(notification);
 }
 
