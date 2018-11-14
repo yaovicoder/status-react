@@ -52,35 +52,56 @@
               (filter #(not (contains? message-id->messages %))))
         (vals message-id->messages)))
 
+(fx/defn heavy-chats-stuff
+  [{:keys [db stored-deduplication-ids stored-message-ids get-stored-messages
+           get-stored-user-statuses get-referenced-messages]
+    :as cofx}]
+  (let [chats (:chats db)]
+    (fx/merge
+     cofx
+     {:db (assoc
+           db :chats
+           (reduce
+            (fn [chats chat-id]
+              (let [chat-messages (index-messages (get-stored-messages chat-id))
+                    message-ids   (keys chat-messages)
+                    messages      (get-in chats [chat-id :messages])]
+                (update
+                 chats
+                 chat-id
+                 assoc
+                 :deduplication-ids
+                 (get stored-deduplication-ids chat-id)
+
+                 :not-loaded-message-ids
+                 (set/difference (get stored-message-ids chat-id)
+                                 (set messages))
+
+                 :messages chat-messages
+                 :message-statuses (get-stored-user-statuses chat-id message-ids)
+                 :referenced-messages (index-messages
+                                       (get-referenced-messages
+                                        chat-id
+                                        (get-referenced-ids chat-messages))))))
+            chats
+            (keys chats)))}
+     (group-messages))))
+
 (fx/defn initialize-chats
   "Initialize all persisted chats on startup"
-  [{:keys [db default-dapps all-stored-chats get-stored-messages get-stored-user-statuses
-           get-stored-unviewed-messages get-referenced-messages stored-message-ids
-           stored-deduplication-ids] :as cofx}]
+  [{:keys [db default-dapps all-stored-chats get-stored-unviewed-messages] :as cofx}]
   (let [stored-unviewed-messages (get-stored-unviewed-messages (accounts.db/current-public-key cofx))
         chats (reduce (fn [acc {:keys [chat-id] :as chat}]
-                        (let [chat-messages (index-messages (get-stored-messages chat-id))
-                              message-ids   (keys chat-messages)
-                              unviewed-ids  (get stored-unviewed-messages chat-id)]
+                        (let [unviewed-ids  (get stored-unviewed-messages chat-id)]
                           (assoc acc chat-id
-                                 (assoc chat
-                                        :unviewed-messages unviewed-ids
-                                        :messages chat-messages
-                                        :message-statuses (get-stored-user-statuses chat-id message-ids)
-                                        :deduplication-ids (get stored-deduplication-ids chat-id)
-                                        :not-loaded-message-ids (set/difference (get stored-message-ids chat-id)
-                                                                                (set message-ids))
-                                        :referenced-messages (index-messages
-                                                              (get-referenced-messages
-                                                               chat-id
-                                                               (get-referenced-ids chat-messages)))))))
+                                 (assoc chat :unviewed-messages unviewed-ids))))
                       {}
                       all-stored-chats)]
     (fx/merge cofx
-              {:db (assoc db
-                          :chats          chats
-                          :contacts/dapps default-dapps)}
-              (group-messages)
+              {:db         (assoc db
+                                  :chats chats
+                                  :contacts/dapps default-dapps)
+               :dispatch-n [[:heavy-chats-stuff]]}
               (commands/load-commands commands/register))))
 
 (fx/defn initialize-pending-messages
