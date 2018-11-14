@@ -7,6 +7,7 @@
             [status-im.i18n :as i18n]
             [status-im.utils.core :as utils]
             [status-im.utils.config :as config]
+            [status-im.utils.contacts :as utils.contacts]
             [status-im.utils.ethereum.core :as ethereum]
             [status-im.utils.datetime :as time]
             [status-im.transport.message.group-chat :as message.group-chat]
@@ -90,6 +91,20 @@
   (assoc message :outgoing (and (= from current-public-key)
                                 (not (system-message? message)))))
 
+(defn build-desktop-notification [{:keys [db] :as cofx} {:keys [chat-id timestamp content from] :as message}]
+  (let [chat-name           (get-in db [:chats chat-id :name])
+        contact-name'       (if-let [contact-name (get-in db [:contacts/contacts from :name])]
+                              contact-name
+                              (:name (utils.contacts/public-key->new-contact from)))
+        shown-contact-name  (when-not (= chat-name contact-name') contact-name') ; No point in repeating contact name if the chat name already contains the same name
+        timestamp'          (when-not (< (time/seconds-ago (time/to-date timestamp)) 15)
+                              (str " @ " (time/to-short-str timestamp)))
+        body-first-line     (when (or shown-contact-name timestamp')
+                              (str shown-contact-name timestamp' ":\n"))
+        public-chat?        (chat-model/public-chat? cofx chat-id)]
+    {:title (if public-chat? (str "#" chat-name) chat-name) ; Prefix with # if this is a public chat
+     :body  (str body-first-line (:text content))}))
+
 (fx/defn add-message
   [{:keys [db] :as cofx} batch? {:keys [chat-id message-id clock-value timestamp content from] :as message} current-chat?]
   (let [current-public-key (accounts.db/current-public-key cofx)
@@ -100,7 +115,8 @@
                (not= from current-public-key)
                (get-in db [:account/account :desktop-notifications?])
                (< (time/seconds-ago (time/to-date timestamp)) constants/one-earth-day))
-      (.sendNotification react/desktop-notification (:text content)))
+      (let [{:keys [title body]} (build-desktop-notification db message)]
+        (.sendNotification react/desktop-notification title body)))
     (fx/merge cofx
               {:db            (cond->
                                (-> db

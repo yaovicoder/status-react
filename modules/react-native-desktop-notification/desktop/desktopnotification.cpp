@@ -101,7 +101,7 @@ QList<ModuleMethod *> DesktopNotification::methodsToExport() {
 
 QVariantMap DesktopNotification::constantsToExport() { return QVariantMap(); }
 
-void DesktopNotification::sendNotification(QString text) {
+void DesktopNotification::sendNotification(QString title, QString body) {
   Q_D(DesktopNotification);
   qCDebug(NOTIFICATION) << "::sendNotification";
 
@@ -111,8 +111,8 @@ void DesktopNotification::sendNotification(QString text) {
   }
 
   Snore::Notification notification(
-      d_ptr->snoreApp, d_ptr->snoreApp.alerts()[NewMessageAlert], "New message",
-      text, Snore::Icon::defaultIcon());
+      d_ptr->snoreApp, d_ptr->snoreApp.alerts()[NewMessageAlert], title,
+      body, Snore::Icon::defaultIcon());
   Snore::SnoreCore::instance().broadcastNotification(notification);
 }
 
