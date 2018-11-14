@@ -207,15 +207,13 @@
              :web3/fetch-node-version     [web3
                                            #(re-frame/dispatch
                                              [:web3/fetch-node-version-callback %])]
-             :notifications/get-fcm-token nil}
+             :notifications/get-fcm-token nil
+             :dispatch-n                  [[:init-chats address]]}
             (initialize-account-db address)
-            (protocol/initialize-protocol address)
             (contact/load-contacts)
             (pairing/load-installations)
             #(when (dev-mode? %)
                (models.dev-server/start))
-            (chat-loading/initialize-chats)
-            (chat-loading/initialize-pending-messages)
             (browser/initialize-browsers)
             (browser/initialize-dapp-permissions)
             (extensions.registry/initialize)
