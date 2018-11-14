@@ -100,7 +100,19 @@
                (not= from current-public-key)
                (get-in db [:account/account :desktop-notifications?])
                (< (time/seconds-ago (time/to-date timestamp)) constants/one-earth-day))
-      (.sendNotification react/desktop-notification (:text content)))
+      (let [chat-name         (get-in db [:chats chat-id :name])
+            contact-name      (get-in db [:contacts/contacts from :name])
+            public-chat?      (chat-model/public-chat? cofx chat-id)
+            multi-user-chat?  (chat-model/multi-user-chat? cofx chat-id)
+            chat-name-str     (if public-chat? (str "#" chat-name) chat-name) ; Prefix with # if this is a public chat
+            contact-name-str  (when multi-user-chat? contact-name) ; No point in repeating contact name if the chat name already contains the same name
+            content-text-str  (:text content)
+            timestamp-str     (when-not (< (time/seconds-ago (time/to-date timestamp)) 15)
+                                (str " @ " (time/to-short-str timestamp)))
+            header-str        (when (or contact-name-str timestamp-str)
+                                (str contact-name-str timestamp-str "\n"))
+            body-str          (str header-str content-text-str)]
+        (.sendNotification react/desktop-notification chat-name-str body-str)))
     (fx/merge cofx
               {:db            (cond->
                                (-> db
