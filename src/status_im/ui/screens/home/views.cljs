@@ -11,7 +11,9 @@
             [status-im.utils.platform :as platform]
             [status-im.react-native.resources :as resources]
             [status-im.ui.components.common.common :as components.common]
-            [status-im.ui.components.icons.vector-icons :as icons]))
+            [status-im.ui.components.icons.vector-icons :as icons]
+            [status-im.utils.datetime :as time]
+            [status-im.ui.components.react :as components]))
 
 (defn- toolbar [show-welcome? show-sync-state sync-state latest-block-number]
   (when-not (and show-welcome?
@@ -80,11 +82,17 @@
                   view-id [:get :view-id]
                   sync-state [:chain-sync-state]
                   latest-block-number [:latest-block-number]
-                  rpc-network? [:current-network-uses-rpc?]]
+                  rpc-network? [:current-network-uses-rpc?]
+                  loading? [:get :chats/loading?]]
     [react/view styles/container
      [toolbar show-welcome? (not rpc-network?) sync-state latest-block-number]
      (cond show-welcome?
            [welcome view-id]
+           loading?
+           [react/view {:style {:flex            1
+                                :justify-content :center
+                                :align-items     :center}}
+            [components/activity-indicator {:animating true}]]
            (empty? home-items)
            [react/view styles/no-chats
             [react/i18n-text {:style styles/no-chats-text :key :no-recent-chats}]]
