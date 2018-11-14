@@ -7,6 +7,7 @@
             [status-im.i18n :as i18n]
             [status-im.utils.core :as utils]
             [status-im.utils.config :as config]
+            [status-im.utils.contacts :as utils.contacts]
             [status-im.utils.ethereum.core :as ethereum]
             [status-im.utils.datetime :as time]
             [status-im.transport.message.group-chat :as message.group-chat]
@@ -100,7 +101,20 @@
                (not= from current-public-key)
                (get-in db [:account/account :desktop-notifications?])
                (< (time/seconds-ago (time/to-date timestamp)) constants/one-earth-day))
-      (.sendNotification react/desktop-notification (:text content)))
+      (let [chat-name             (get-in db [:chats chat-id :name])
+            chat-name-str         (if chat-name chat-name (utils.contacts/public-key->new-contact chat-id))
+            contact-name-str      (if-let [contact-name (get-in db [:contacts/contacts from :name])]
+                                    contact-name
+                                    (utils.contacts/public-key->new-contact from))
+            shown-contact-name    (when-not (= chat-name-str contact-name-str) contact-name-str) ; No point in repeating contact name if the chat name already contains the same name
+            timestamp-str         (when-not (< (time/seconds-ago (time/to-date timestamp)) 15)
+                                    (str " @ " (time/to-short-str timestamp)))
+            body-first-line       (when (or shown-contact-name timestamp-str)
+                                    (str shown-contact-name timestamp-str ":\n"))
+            public-chat?          (chat-model/public-chat? cofx chat-id)
+            title                 (if public-chat? (str "#" chat-name-str) chat-name-str) ; Prefix with # if this is a public chat
+            body                  (str body-first-line (:text content))]
+        (.sendNotification react/desktop-notification title body)))
     (fx/merge cofx
               {:db            (cond->
                                (-> db
