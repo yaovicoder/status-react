@@ -181,7 +181,7 @@
             (chat-loading/group-chat-messages chat-id (get chat->message chat-id))))
 
 (defn- add-to-chat?
-  [{:keys [db]} {:keys [chat-id clock-value message-id from] :as message}]
+  [{:keys [db]} {:keys [chat-id clock-value message-id from]}]
   (let [deduplication-id (messages-store/deduplication-id from chat-id clock-value)
         {:keys [deleted-at-clock-value messages not-loaded-message-ids deduplication-ids]}
         (get-in db [:chats chat-id])]
