@@ -59,22 +59,20 @@
                         :active? true}
         new-extensions (assoc (:extensions account) (:url extension) extension)]
     (fx/merge cofx
-              {:ui/show-confirmation {:title     (i18n/label :t/success)
+              {:utils/show-popup {:title     (i18n/label :t/success)
                                       :content   (i18n/label :t/extension-installed)
-                                      :on-accept #(re-frame/dispatch [:navigate-to-clean :my-profile])
-                                      :on-cancel nil}}
+                                      :on-dismiss #(re-frame/dispatch [:navigate-to-clean :my-profile])}}
               (accounts.update/account-update {:extensions new-extensions} {})
               (add-to-registry (:value url) extension-data true))))
+
 
 (fx/defn uninstall
   [{:keys [db] :as cofx} extension-key]
   (let [{:account/keys [account]} db
         new-extensions (dissoc (:extensions account) extension-key)]
     (fx/merge cofx
-              {:ui/show-confirmation {:title     (i18n/label :t/success)
-                                      :content   (i18n/label :t/extension-uninstalled)
-                                      :on-accept nil
-                                      :on-cancel nil}}
+              {:utils/show-popup {:title     (i18n/label :t/success)
+                                      :content   (i18n/label :t/extension-uninstalled)}}
               (remove-from-registry extension-key)
               (accounts.update/account-update {:extensions new-extensions} {}))))
 
