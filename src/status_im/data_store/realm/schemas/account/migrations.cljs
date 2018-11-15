@@ -1,7 +1,9 @@
 (ns status-im.data-store.realm.schemas.account.migrations
   (:require [taoensso.timbre :as log]
             [cljs.reader :as reader]
-            [status-im.chat.models.message-content :as message-content]))
+            [status-im.chat.models.message-content :as message-content]
+            [status-im.transport.utils :as transport.utils]
+            [cljs.tools.reader.edn :as edn]))
 
 (defn v1 [old-realm new-realm]
   (log/debug "migrating v1 account database: " old-realm new-realm))
@@ -156,3 +158,39 @@
 
 (defn v24 [old-realm new-realm]
   (log/debug "migrating v24 account database"))
+
+(defn v25 [old-realm new-realm]
+  (log/debug "migrating v25 account database")
+  (let [new-messages (.objects new-realm "message")
+        user-statuses (.objects new-realm "user-status")
+        old-ids->new-ids (volatile! {})]
+    (dotimes [i (.-length new-messages)]
+      (let [message (aget new-messages i)
+            message-id (aget message "message-id")
+            from (aget message "from")
+            chat-id (aget message "chat-id")
+            clock-value (aget message "clock-value")
+            new-message-id (transport.utils/message-id
+                            {:from        from
+                             :chat-id     chat-id
+                             :clock-value clock-value})]
+        (vswap! old-ids->new-ids assoc message-id new-message-id)
+        (aset message "message-id" new-message-id)))
+
+    (dotimes [i (.-length new-messages)]
+      (let [message (aget new-messages i)
+            content (edn/read-string (aget message "content"))
+            response-to (:response-to content)]
+        (when (and response-to (get @old-ids->new-ids response-to))
+          (let [new-content (assoc content :response-to
+                                   (get @old-ids->new-ids response-to))]
+            (aset message "content" (prn-str new-content))))))
+
+    (dotimes [i (.-length user-statuses)]
+      (let [user-status (aget user-statuses i)
+            message-id     (aget user-status "message-id")
+            new-message-id (get @old-ids->new-ids message-id)
+            whisper-id     (aget user-status "whisper-identity")
+            new-status-id (str new-message-id "-" whisper-id)]
+        (aset user-status "status-id" new-status-id)
+        (aset user-status "message-id" new-message-id)))))
