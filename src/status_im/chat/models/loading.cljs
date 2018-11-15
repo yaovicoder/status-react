@@ -96,11 +96,9 @@
                       {}
                       all-stored-chats)]
     (fx/merge cofx
-              {:db         (assoc db
-                                  :chats chats
-                                  :contacts/dapps default-dapps)
-               :dispatch-later              [{:ms 100
-                                              :dispatch [:heavy-chats-stuff]}]}
+              {:db (assoc db
+                          :chats chats
+                          :contacts/dapps default-dapps)}
               (commands/load-commands commands/register))))
 
 (fx/defn initialize-pending-messages
