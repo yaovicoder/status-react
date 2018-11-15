@@ -76,14 +76,25 @@
       [react/i18n-text {:style styles/welcome-text-description
                         :key   :welcome-to-status-description}]]]))
 
-(views/defview home []
+(views/defview home [loading?]
   (views/letsubs [home-items [:home-items]
                   show-welcome? [:get-in [:accounts/create :show-welcome?]]
                   view-id [:get :view-id]
                   sync-state [:chain-sync-state]
                   latest-block-number [:latest-block-number]
-                  rpc-network? [:current-network-uses-rpc?]
-                  loading? [:get :chats/loading?]]
+                  rpc-network? [:current-network-uses-rpc?]]
+    {:component-did-mount
+     (fn [this]
+       (let [[_ loading?] (.. this -props -argv)]
+         (when loading?
+           (re-frame/dispatch [:init-chats]))))
+
+     :component-did-update
+     (fn [this [_ old-loading?]]
+       (let [[_ loading?] (.. this -props -argv)]
+         (if (and (false? loading?)
+                  (true? old-loading?))
+           (re-frame/dispatch [:heavy-chats-stuff]))))}
     [react/view styles/container
      [toolbar show-welcome? (not rpc-network?) sync-state latest-block-number]
      (cond show-welcome?
@@ -105,3 +116,7 @@
        [home-action-button])
      (when-not show-welcome?
        [connectivity/error-view])]))
+
+(views/defview home-wrapper []
+  (views/letsubs [loading? [:get :chats/loading?]]
+    [home loading?]))
