@@ -53,7 +53,7 @@
         (vals message-id->messages)))
 
 (fx/defn heavy-chats-stuff
-  [{:keys [db stored-deduplication-ids stored-message-ids get-stored-messages
+  [{:keys [db stored-message-ids get-stored-messages
            get-stored-user-statuses get-referenced-messages]
     :as cofx}]
   (let [chats (:chats db)]
@@ -70,8 +70,6 @@
                  chats
                  chat-id
                  assoc
-                 :deduplication-ids
-                 (get stored-deduplication-ids chat-id)
 
                  :not-loaded-message-ids
                  (set/difference (get stored-message-ids chat-id)
