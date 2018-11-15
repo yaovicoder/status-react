@@ -199,12 +199,10 @@
 
 (defn- add-to-chat?
   [{:keys [db]} {:keys [chat-id clock-value message-id from]}]
-  (let [deduplication-id (messages-store/deduplication-id from chat-id clock-value)
-        {:keys [deleted-at-clock-value messages not-loaded-message-ids deduplication-ids]}
+  (let [{:keys [deleted-at-clock-value messages not-loaded-message-ids]}
         (get-in db [:chats chat-id])]
     (not (or (get messages message-id)
              (get not-loaded-message-ids message-id)
-             (get deduplication-ids deduplication-id)
              (>= deleted-at-clock-value clock-value)))))
 
 (defn- filter-messages [cofx messages]
