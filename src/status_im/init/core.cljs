@@ -206,9 +206,7 @@
              :web3/fetch-node-version     [web3
                                            #(re-frame/dispatch
                                              [:web3/fetch-node-version-callback %])]
-             :notifications/get-fcm-token nil
-             :dispatch-later              [{:ms 100
-                                            :dispatch [:init-chats address]}]}
+             :notifications/get-fcm-token nil}
             (initialize-account-db address)
             (contact/load-contacts)
             (pairing/load-installations)
