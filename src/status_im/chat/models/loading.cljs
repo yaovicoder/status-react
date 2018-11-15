@@ -101,7 +101,8 @@
               {:db         (assoc db
                                   :chats chats
                                   :contacts/dapps default-dapps)
-               :dispatch-n [[:heavy-chats-stuff]]}
+               :dispatch-later              [{:ms 100
+                                              :dispatch [:heavy-chats-stuff]}]}
               (commands/load-commands commands/register))))
 
 (fx/defn initialize-pending-messages
