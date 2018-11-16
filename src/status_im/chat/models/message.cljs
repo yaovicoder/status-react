@@ -27,7 +27,8 @@
             [status-im.utils.platform :as platform]
             [status-im.ui.components.react :as react]
             [status-im.utils.fx :as fx]
-            [taoensso.timbre :as log]))
+            [taoensso.timbre :as log]
+            [status-im.data-store.messages :as messages-store]))
 
 (defn- wrap-group-message
   "Wrap a group message in a membership update"
@@ -203,7 +204,8 @@
         (get-in db [:chats chat-id])]
     (not (or (get messages message-id)
              (get not-loaded-message-ids message-id)
-             (>= deleted-at-clock-value clock-value)))))
+             (>= deleted-at-clock-value clock-value)
+             (messages-store/message-exists? chat-id)))))
 
 (defn- filter-messages [cofx messages]
   (:accumulated (reduce (fn [{:keys [seen-ids] :as acc}

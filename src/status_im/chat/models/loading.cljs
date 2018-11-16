@@ -53,8 +53,8 @@
         (vals message-id->messages)))
 
 (fx/defn heavy-chats-stuff
-  [{:keys [db stored-message-ids get-stored-messages
-           get-stored-user-statuses get-referenced-messages]
+  [{:keys [db get-stored-messages get-stored-user-statuses
+           get-referenced-messages]
     :as cofx}]
   (let [chats (:chats db)]
     (fx/merge
@@ -64,16 +64,11 @@
            (reduce
             (fn [chats chat-id]
               (let [chat-messages (index-messages (get-stored-messages chat-id))
-                    message-ids   (keys chat-messages)
-                    messages      (get-in chats [chat-id :messages])]
+                    message-ids   (keys chat-messages)]
                 (update
                  chats
                  chat-id
                  assoc
-
-                 :not-loaded-message-ids
-                 (set/difference (get stored-message-ids chat-id)
-                                 (set messages))
 
                  :messages chat-messages
                  :message-statuses (get-stored-user-statuses chat-id message-ids)
@@ -92,7 +87,9 @@
         chats (reduce (fn [acc {:keys [chat-id] :as chat}]
                         (let [unviewed-ids  (get stored-unviewed-messages chat-id)]
                           (assoc acc chat-id
-                                 (assoc chat :unviewed-messages unviewed-ids))))
+                                 (assoc chat
+                                        :unviewed-messages unviewed-ids
+                                        :not-loaded-message-ids #{}))))
                       {}
                       all-stored-chats)]
     (fx/merge cofx
