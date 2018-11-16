@@ -212,19 +212,17 @@ def pytest_runtest_makereport(item, call):
 
             build_name = pytest.config.getoption('apk')
             # Find type of tests that are run on the device
-            if 'device_nightly' in item.keywords._markers:
-                test_group = 'nightly'
-            elif 'device_pr' in item.keywords._markers:
-                test_group = 'pr'
+            if 'battery_consumption' in item.keywords._markers:
+                test_group = 'battery_consumption'
             else:
                 test_group = None
 
             device_stats_db = DeviceStatsDB(
-                pytest.config.getoption('stats_db_host'),
-                pytest.config.getoption('stats_db_port'),
-                pytest.config.getoption('stats_db_username'),
-                pytest.config.getoption('stats_db_password'),
-                pytest.config.getoption('stats_db_database'),
+                item.config.getoption('stats_db_host'),
+                item.config.getoption('stats_db_port'),
+                item.config.getoption('stats_db_username'),
+                item.config.getoption('stats_db_password'),
+                item.config.getoption('stats_db_database'),
             )
             device_stats_db.save_stats(build_name, item.name, test_group, not report.failed, device_stats)
 
