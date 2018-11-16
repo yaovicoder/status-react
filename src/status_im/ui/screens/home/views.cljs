@@ -76,9 +76,18 @@
       [react/i18n-text {:style styles/welcome-text-description
                         :key   :welcome-to-status-description}]]]))
 
+(views/defview chats-list []
+  (views/letsubs [home-items [:home-items]]
+    (if (empty? home-items)
+      [react/view styles/no-chats
+       [react/i18n-text {:style styles/no-chats-text :key :no-recent-chats}]]
+      [list/flat-list {:data      home-items
+                       :key-fn    first
+                       :render-fn (fn [home-item]
+                                    [home-list-item home-item])}])))
+
 (views/defview home [loading?]
-  (views/letsubs [home-items [:home-items]
-                  show-welcome? [:get-in [:accounts/create :show-welcome?]]
+  (views/letsubs [show-welcome? [:get-in [:accounts/create :show-welcome?]]
                   view-id [:get :view-id]
                   sync-state [:chain-sync-state]
                   latest-block-number [:latest-block-number]
@@ -104,14 +113,8 @@
                                 :justify-content :center
                                 :align-items     :center}}
             [components/activity-indicator {:animating true}]]
-           (empty? home-items)
-           [react/view styles/no-chats
-            [react/i18n-text {:style styles/no-chats-text :key :no-recent-chats}]]
            :else
-           [list/flat-list {:data      home-items
-                            :key-fn    first
-                            :render-fn (fn [home-item]
-                                         [home-list-item home-item])}])
+           [chats-list])
      (when platform/android?
        [home-action-button])
      (when-not show-welcome?
