@@ -39,20 +39,6 @@
  (fn [cofx _]
    (assoc cofx :get-stored-messages get-by-chat-id)))
 
-(re-frame/reg-cofx
- :data-store/message-ids
- (fn [cofx _]
-   (assoc cofx :stored-message-ids (let [chat-id->message-id (volatile! {})]
-                                     (-> @core/account-realm
-                                         (.objects "message")
-                                         (.map (fn [msg _ _]
-                                                 (vswap! chat-id->message-id
-                                                         #(update %
-                                                                  (aget msg "chat-id")
-                                                                  (fnil conj #{})
-                                                                  (aget msg "message-id"))))))
-                                     @chat-id->message-id))))
-
 (defn- sha3 [s]
   (.sha3 dependencies/Web3.prototype s))
 
@@ -112,3 +98,8 @@
   (fn [realm]
     (core/delete realm (core/get-by-field realm :message :chat-id chat-id))
     (core/delete realm (core/get-by-field realm :user-status :chat-id chat-id))))
+
+(defn message-exists? [message-id]
+  (if @core/account-realm
+    (not (nil? (.objectForPrimaryKey @core/account-realm "message" message-id)))
+    false))
