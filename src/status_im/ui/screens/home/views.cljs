@@ -13,7 +13,8 @@
             [status-im.ui.components.common.common :as components.common]
             [status-im.ui.components.icons.vector-icons :as icons]
             [status-im.utils.datetime :as time]
-            [status-im.ui.components.react :as components]))
+            [status-im.ui.components.react :as components]
+            [status-im.utils.utils :as utils]))
 
 (defn- toolbar [show-welcome? show-sync-state sync-state latest-block-number]
   (when-not (and show-welcome?
@@ -96,7 +97,9 @@
      (fn [this]
        (let [[_ loading?] (.. this -props -argv)]
          (when loading?
-           (re-frame/dispatch [:init-chats]))))
+           (utils/set-timeout
+            #(re-frame/dispatch [:init-chats])
+            100))))
 
      :component-did-update
      (fn [this [_ old-loading?]]
