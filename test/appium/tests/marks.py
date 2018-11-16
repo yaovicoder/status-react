@@ -22,4 +22,4 @@ sign_in = pytest.mark.sign_in
 skip = pytest.mark.skip
 logcat = pytest.mark.logcat
 
-device_nightly = pytest.mark.device_nightly
+battery_consumption = pytest.mark.battery_consumption

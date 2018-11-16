@@ -474,7 +474,7 @@ class TestMessagesOneToOneChatSingle(SingleDeviceTestCase):
 
     @marks.testrail_id(5328)
     @marks.critical
-    @marks.device_nightly
+    @marks.battery_consumption
     def test_send_emoji(self):
         sign_in = SignInView(self.driver)
         home = sign_in.create_user()
