@@ -38,8 +38,8 @@ static QStringList consoleOutputStrings;
 static QMutex consoleOutputMutex;
 
 #ifdef BUILD_FOR_BUNDLE
-bool ubuntuServerStarted = false;
-QProcess *g_ubuntuServerProcess = nullptr;
+bool nodeJsServerStarted = false;
+QProcess *g_nodeJsServerProcess = nullptr;
 #endif
 
 const int MAIN_WINDOW_WIDTH = 1024;
@@ -155,7 +155,8 @@ void writeSingleLineLogFromJSServer(const QString &msg);
 
 #ifdef BUILD_FOR_BUNDLE
 
-void runUbuntuServer();
+void killZombieJsServer();
+void runNodeJsServer();
 
 #endif
 
@@ -173,8 +174,8 @@ void loadFontsFromResources() {
 
 void exceptionPostHandledCallback() {
 #ifdef BUILD_FOR_BUNDLE
-  if (g_ubuntuServerProcess) {
-    g_ubuntuServerProcess->kill();
+  if (g_nodeJsServerProcess) {
+    g_nodeJsServerProcess->kill();
   }
 #endif
 }
@@ -199,7 +200,6 @@ QString getDataStoragePath() {
 }
 
 int main(int argc, char **argv) {
-
   QGuiApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
   QGuiApplication app(argc, argv);
 
@@ -210,6 +210,8 @@ int main(int argc, char **argv) {
 #ifndef BUILD_FOR_BUNDLE
   appPath.append(CRASH_REPORT_EXECUTABLE_RELATIVE_PATH);
   dataStoragePath = "";
+
+  killZombieJsServer();
 #endif
 
   ExceptionGlobalHandler exceptionHandler(
@@ -227,7 +229,7 @@ int main(int argc, char **argv) {
   }
 
 #ifdef BUILD_FOR_BUNDLE
-  runUbuntuServer();
+  runNodeJsServer();
 
   app.setWindowIcon(QIcon(":/icon.png"));
 #endif
@@ -310,44 +312,60 @@ void writeLogsToFile() {
 }
 
 #ifdef BUILD_FOR_BUNDLE
-void runUbuntuServer() {
-  g_ubuntuServerProcess = new QProcess();
-  g_ubuntuServerProcess->setWorkingDirectory(getDataStoragePath());
-  g_ubuntuServerProcess->setProgram(QGuiApplication::applicationDirPath() +
-                                    "/ubuntu-server");
-  QObject::connect(g_ubuntuServerProcess, &QProcess::errorOccurred,
+void killZombieJsServer() {
+  // Ensure that a zombie ubuntu-server is not still running in the background before we spawn a new one 
+  const char* cmd = NULL;
+#ifdef Q_OS_LINUX
+  cmd = "pkill -f ubuntu-server";
+#elif defined(Q_OS_MAC)
+  cmd = "killall -9 ubuntu-server";
+#elif defined(Q_OS_WIN)
+  cmd = "taskkill /IM \"ubuntu-server.exe\"";
+#endif
+
+  if (cmd != nullptr) {
+    qCDebug(STATUS) << "Running " << cmd;
+    system(cmd);
+  }
+}
+
+void runNodeJsServer() {
+  g_nodeJsServerProcess = new QProcess();
+  g_nodeJsServerProcess->setWorkingDirectory(getDataStoragePath());
+  g_nodeJsServerProcess->setProgram(QGuiApplication::applicationDirPath() + QDir::separator() + "ubuntu-server");
+  QObject::connect(g_nodeJsServerProcess, &QProcess::errorOccurred,
                    [=](QProcess::ProcessError) {
                      qCWarning(JSSERVER) << "process name: "
-                                         << qUtf8Printable(g_ubuntuServerProcess->program());
+                                         << qUtf8Printable(g_nodeJsServerProcess->program());
                      qCWarning(JSSERVER) << "process error: "
-                                         << qUtf8Printable(g_ubuntuServerProcess->errorString());
+                                         << qUtf8Printable(g_nodeJsServerProcess->errorString());
                    });
 
   QObject::connect(
-      g_ubuntuServerProcess, &QProcess::readyReadStandardOutput, [=] {
-        writeLogFromJSServer(g_ubuntuServerProcess->readAllStandardOutput().trimmed());
+      g_nodeJsServerProcess, &QProcess::readyReadStandardOutput, [=] {
+        writeLogFromJSServer(g_nodeJsServerProcess->readAllStandardOutput().trimmed());
       });
   QObject::connect(
-      g_ubuntuServerProcess, &QProcess::readyReadStandardError, [=] {
+      g_nodeJsServerProcess, &QProcess::readyReadStandardError, [=] {
         QString output =
-            g_ubuntuServerProcess->readAllStandardError().trimmed();
+            g_nodeJsServerProcess->readAllStandardError().trimmed();
         writeLogFromJSServer(output);
         if (output.contains("Server starting")) {
-          ubuntuServerStarted = true;
+          nodeJsServerStarted = true;
         }
       });
 
   QObject::connect(QGuiApplication::instance(), &QCoreApplication::aboutToQuit,
                    [=]() {
-                     qCDebug(STATUS) << "Kill ubuntu server";
-                     g_ubuntuServerProcess->kill();
+                     qCDebug(STATUS) << "Kill node.js server process";
+                     g_nodeJsServerProcess->kill();
                    });
 
-  qCDebug(STATUS) << "starting ubuntu server...";
-  g_ubuntuServerProcess->start();
+  qCDebug(STATUS) << "starting node.js server process...";
+  g_nodeJsServerProcess->start();
   qCDebug(STATUS) << "wait for started...";
 
-  while (!ubuntuServerStarted) {
+  while (!nodeJsServerStarted) {
     QGuiApplication::processEvents();
   }
 
