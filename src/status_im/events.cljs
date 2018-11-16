@@ -88,8 +88,7 @@
  :heavy-chats-stuff
  [(re-frame/inject-cofx :data-store/get-messages)
   (re-frame/inject-cofx :data-store/get-referenced-messages)
-  (re-frame/inject-cofx :data-store/get-user-statuses)
-  (re-frame/inject-cofx :data-store/message-ids)]
+  (re-frame/inject-cofx :data-store/get-user-statuses)]
  (fn [cofx]
    (chat-loading/heavy-chats-stuff cofx)))
 
