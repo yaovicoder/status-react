@@ -290,8 +290,9 @@
 
 (fx/defn upsert-and-send [{:keys [now] :as cofx} {:keys [chat-id] :as message}]
   (let [send-record     (protocol/map->Message (select-keys message transport-keys))
-        message-id      (transport.utils/message-id send-record)
+        message-id      (transport.utils/message-id message)
         message-with-id (assoc message :message-id message-id)]
+
     (fx/merge cofx
               (chat-model/upsert-chat {:chat-id chat-id
                                        :timestamp now})
