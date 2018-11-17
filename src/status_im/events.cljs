@@ -120,8 +120,8 @@
 
 (handlers/register-handler-fx
  :init.callback/account-change-error
- (fn [cofx _]
-   (init/handle-change-account-error cofx)))
+ (fn [cofx [_ error]]
+   (init/handle-change-account-error cofx error)))
 
 (handlers/register-handler-fx
  :init.callback/keychain-reset
