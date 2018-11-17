@@ -312,6 +312,41 @@ void writeLogsToFile() {
 }
 
 #ifdef BUILD_FOR_BUNDLE
+#ifdef Q_OS_WIN
+#include <shellapi.h>
+#include <combaseapi.h>
+
+#include <cstdio>
+#include <windows.h>
+#include <tlhelp32.h>
+
+/*!
+\brief Check if a process is running
+\param [in] processName Name of process to check if is running
+\returns \c True if the process is running, or \c False if the process is not running
+*/
+bool IsProcessRunning(const wchar_t *processName) {
+    bool exists = false;
+    PROCESSENTRY32 entry;
+    entry.dwSize = sizeof(PROCESSENTRY32);
+
+    HANDLE snapshot = ::CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+    if (snapshot != NULL) {
+      if (::Process32First(snapshot, &entry)) {
+          do {
+              if (!wcsicmp(entry.szExeFile, processName)) {
+                exists = true;
+                break;
+              }
+          } while (::Process32Next(snapshot, &entry));
+      }
+
+      ::CloseHandle(snapshot);
+    }
+    return exists;
+}
+
+#endif
 void killZombieJsServer() {
   // Ensure that a zombie ubuntu-server is not still running in the background before we spawn a new one 
   const char* cmd = NULL;
@@ -320,11 +355,18 @@ void killZombieJsServer() {
 #elif defined(Q_OS_MAC)
   cmd = "killall -9 ubuntu-server";
 #elif defined(Q_OS_WIN)
-  cmd = "taskkill /IM \"ubuntu-server.exe\"";
+  if (IsProcessRunning(L"ubuntu-server.exe")) {
+    qCDebug(STATUS) << "ubuntu-server is running, killing it";
+    ::CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
+    ::ShellExecute(NULL, NULL, L"taskkill", L"/IM \"ubuntu-server.exe\"", NULL, SW_HIDE);
+  } else {
+    qCDebug(STATUS) << "ubuntu-server is not running";
+  }
 #endif
 
   if (cmd != nullptr) {
     qCDebug(STATUS) << "Running " << cmd;
+    //QDesktopServices::openUrl(QUrl::fromLocalFile(cmd));
     system(cmd);
   }
 }
