@@ -165,7 +165,9 @@
         user-statuses (.objects new-realm "user-status")
         old-ids->new-ids (volatile! {})
         updated-messages-ids (volatile! #{})
-        updated-message-statuses-ids (volatile! #{})]
+        updated-message-statuses-ids (volatile! #{})
+        messages-to-be-deleted (volatile! [])
+        statuses-to-be-deleted (volatile! [])]
     (dotimes [i (.-length new-messages)]
       (let [message (aget new-messages i)
             message-id (aget message "message-id")
@@ -185,7 +187,7 @@
             response-to (:response-to content)
             new-message-id (get @old-ids->new-ids old-message-id)]
         (if (contains? @updated-messages-ids new-message-id)
-          (.delete new-realm message)
+          (vswap! messages-to-be-deleted conj message)
           (do
             (vswap! updated-messages-ids conj new-message-id)
             (aset message "message-id" new-message-id)
@@ -194,6 +196,9 @@
                                        (get @old-ids->new-ids response-to))]
                 (aset message "content" (prn-str new-content))))))))
 
+    (doseq [message @messages-to-be-deleted]
+      (.delete new-realm message))
+
     (dotimes [i (.-length user-statuses)]
       (let [user-status (aget user-statuses i)
             message-id     (aget user-status "message-id")
@@ -201,8 +206,11 @@
             whisper-id     (aget user-status "whisper-identity")
             new-status-id (str new-message-id "-" whisper-id)]
         (if (contains? @updated-message-statuses-ids new-status-id)
-          (.delete new-realm user-status)
+          (vswap! statuses-to-be-deleted conj user-status)
           (do
             (vswap! updated-message-statuses-ids conj new-status-id)
             (aset user-status "status-id" new-status-id)
-            (aset user-status "message-id" new-message-id)))))))
+            (aset user-status "message-id" new-message-id)))))
+
+    (doseq [status @statuses-to-be-deleted]
+      (.delete new-realm status))))
