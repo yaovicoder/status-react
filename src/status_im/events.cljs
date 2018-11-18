@@ -86,7 +86,8 @@
 
 (handlers/register-handler-fx
  :load-chats-messages
- [(re-frame/inject-cofx :data-store/get-messages)
+ [(re-frame/inject-cofx :data-store/get-unviewed-messages)
+  (re-frame/inject-cofx :data-store/get-messages)
   (re-frame/inject-cofx :data-store/get-referenced-messages)
   (re-frame/inject-cofx :data-store/get-user-statuses)]
  (fn [cofx]
@@ -97,7 +98,6 @@
  [(re-frame/inject-cofx :web3/get-web3)
   (re-frame/inject-cofx :get-default-dapps)
   (re-frame/inject-cofx :data-store/all-chats)
-  (re-frame/inject-cofx :data-store/get-unviewed-messages)
   (re-frame/inject-cofx :data-store/get-all-mailservers)
   (re-frame/inject-cofx :data-store/transport)
   (re-frame/inject-cofx :data-store/mailserver-topics)]
