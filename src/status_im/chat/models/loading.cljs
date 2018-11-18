@@ -52,9 +52,9 @@
               (filter #(not (contains? message-id->messages %))))
         (vals message-id->messages)))
 
-(fx/defn heavy-chats-stuff
+(fx/defn load-chats-messages
   [{:keys [db get-stored-messages get-stored-user-statuses
-           get-referenced-messages]
+           get-referenced-messages get-stored-unviewed-messages]
     :as cofx}]
   (let [chats (:chats db)]
     (fx/merge
@@ -63,7 +63,8 @@
            db :chats
            (reduce
             (fn [chats chat-id]
-              (let [chat-messages (index-messages (get-stored-messages chat-id))
+              (let [stored-unviewed-messages (get-stored-unviewed-messages (accounts.db/current-public-key cofx))
+                    chat-messages (index-messages (get-stored-messages chat-id))
                     message-ids   (keys chat-messages)]
                 (update
                  chats
@@ -72,6 +73,7 @@
 
                  :messages chat-messages
                  :message-statuses (get-stored-user-statuses chat-id message-ids)
+                 :unviewed-messages stored-unviewed-messages
                  :referenced-messages (index-messages
                                        (get-referenced-messages
                                         chat-id
@@ -82,14 +84,10 @@
 
 (fx/defn initialize-chats
   "Initialize all persisted chats on startup"
-  [{:keys [db default-dapps all-stored-chats get-stored-unviewed-messages] :as cofx}]
-  (let [stored-unviewed-messages (get-stored-unviewed-messages (accounts.db/current-public-key cofx))
-        chats (reduce (fn [acc {:keys [chat-id] :as chat}]
-                        (let [unviewed-ids  (get stored-unviewed-messages chat-id)]
-                          (assoc acc chat-id
-                                 (assoc chat
-                                        :unviewed-messages unviewed-ids
-                                        :not-loaded-message-ids #{}))))
+  [{:keys [db default-dapps all-stored-chats] :as cofx}]
+  (let [chats (reduce (fn [acc {:keys [chat-id] :as chat}]
+                        (assoc acc chat-id
+                               (assoc chat :not-loaded-message-ids #{})))
                       {}
                       all-stored-chats)]
     (fx/merge cofx

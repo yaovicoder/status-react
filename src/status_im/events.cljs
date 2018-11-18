@@ -85,12 +85,12 @@
    (init/handle-init-store-error cofx encryption-key)))
 
 (handlers/register-handler-fx
- :heavy-chats-stuff
+ :load-chats-messages
  [(re-frame/inject-cofx :data-store/get-messages)
   (re-frame/inject-cofx :data-store/get-referenced-messages)
   (re-frame/inject-cofx :data-store/get-user-statuses)]
  (fn [cofx]
-   (chat-loading/heavy-chats-stuff cofx)))
+   (chat-loading/load-chats-messages cofx)))
 
 (handlers/register-handler-fx
  :init-chats

@@ -106,7 +106,7 @@
        (let [[_ loading?] (.. this -props -argv)]
          (if (and (false? loading?)
                   (true? old-loading?))
-           (re-frame/dispatch [:heavy-chats-stuff]))))}
+           (re-frame/dispatch [:load-chats-messages]))))}
     [react/view styles/container
      [toolbar show-welcome? (not rpc-network?) sync-state latest-block-number]
      (cond show-welcome?

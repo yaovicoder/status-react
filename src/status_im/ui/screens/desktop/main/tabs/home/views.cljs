@@ -115,7 +115,7 @@
        (let [[_ loading?] (.. this -props -argv)]
          (when (and (false? loading?)
                     (true? old-loading?))
-           (re-frame/dispatch [:heavy-chats-stuff]))))}
+           (re-frame/dispatch [:load-chats-messages]))))}
     [react/view {:style styles/chat-list-view}
      [react/view {:style styles/chat-list-header}
       [search-input search-filter]
