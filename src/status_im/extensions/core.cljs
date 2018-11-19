@@ -290,7 +290,7 @@
 
 (defn parse [{:keys [data]} id]
   (try
-    (reader/parse {:capacities capacities :context {:id id}} data)
+    (reader/parse {:capacities capacities :env {:id id}} data)
     (catch :default e {:errors [{:value (str e)}]})))
 
 (defn parse-extension [{:keys [type value]} id]
