@@ -27,8 +27,8 @@
 
 (views/defview toolbar-chat-view [{:keys [chat-id color public-key public? group-chat]
                                    :as current-chat}]
-  (views/letsubs [chat-name         [:get-current-chat-name]
-                  {:keys [pending? public-key photo-path]} [:get-current-chat-contact]]
+  (views/letsubs [chat-name         [:chats/current-chat-name]
+                  {:keys [pending? public-key photo-path]} [:chats/current-chat-contact]]
     [react/view {:style styles/toolbar-chat-view}
      [react/view {:style {:flex-direction :row
                           :flex 1}}
@@ -69,14 +69,14 @@
        (i18n/label :t/delete-chat)]]]))
 
 (views/defview message-author-name [{:keys [from]}]
-  (views/letsubs [incoming-name   [:get-contact-name-by-identity from]]
+  (views/letsubs [incoming-name   [:contacts/contact-name-by-identity from]]
     (let [name (chat-utils/format-author from incoming-name)]
       [react/touchable-highlight {:on-press #(re-frame/dispatch [:show-contact-dialog from name (boolean incoming-name)])}
        [react/text {:style styles/author :font :medium} name]])))
 
 (views/defview member-photo [from]
   (views/letsubs [current-public-key [:account/public-key]
-                  photo-path [:get-photo-path from]]
+                  photo-path [:chats/photo-path from]]
     [react/view {:style {:width 40 :margin-horizontal 16}}
      [react/view {:style {:position :absolute}}
       [react/touchable-highlight {:on-press #(when-not (= current-public-key from)
@@ -88,7 +88,7 @@
                       :style  styles/photo-style}]]]]]))
 
 (views/defview quoted-message [{:keys [from text]} outgoing current-public-key]
-  (views/letsubs [username [:get-contact-name-by-identity from]]
+  (views/letsubs [username [:contacts/contact-name-by-identity from]]
     [react/view {:style styles/quoted-message-container}
      [react/view {:style styles/quoted-message-author-container}
       [icons/icon :icons/reply {:style           (styles/reply-icon outgoing)
@@ -206,7 +206,7 @@
     (reset! messages-to-load next-count)))
 
 (views/defview messages-view [{:keys [chat-id group-chat]}]
-  (views/letsubs [messages [:get-current-chat-messages-stream]
+  (views/letsubs [messages [:chats/current-chat-messages-stream]
                   current-public-key [:account/public-key]
                   messages-to-load (reagent/atom load-step)
                   chat-id* (reagent/atom nil)]
@@ -258,7 +258,7 @@
         [icons/icon :icons/arrow-left {:style (styles/send-icon-arrow inactive?)}]]])))
 
 (views/defview reply-message [from message-text]
-  (views/letsubs [username           [:get-contact-name-by-identity from]
+  (views/letsubs [username           [:contacts/contact-name-by-identity from]
                   current-public-key [:account/public-key]]
     [react/view {:style styles/reply-content-container}
      [react/text {:style styles/reply-content-author}
@@ -266,14 +266,14 @@
      [react/text {:style styles/reply-content-message} message-text]]))
 
 (views/defview reply-member-photo [from]
-  (views/letsubs [photo-path [:get-photo-path from]]
+  (views/letsubs [photo-path [:chats/photo-path from]]
     [react/image {:source {:uri (if (string/blank? photo-path)
                                   (identicon/identicon from)
                                   photo-path)}
                   :style  styles/reply-photo-style}]))
 
 (views/defview reply-message-view []
-  (views/letsubs [{:keys [content from] :as message} [:get-reply-message]]
+  (views/letsubs [{:keys [content from] :as message} [:chats/reply-message]]
     (when message
       [react/view {:style styles/reply-wrapper}
        [react/view {:style styles/reply-container}
@@ -330,8 +330,8 @@
      [chat-text-input chat-id input-text]]))
 
 (views/defview chat-profile []
-  (views/letsubs [identity        [:get-current-contact-identity]
-                  maybe-contact   [:get-current-contact]]
+  (views/letsubs [identity        [:contacts/current-contact-identity]
+                  maybe-contact   [:contacts/current-contact]]
     (let [contact (or maybe-contact (contact.db/public-key->new-contact identity))
           {:keys [pending? public-key]} contact]
       [react/view {:style styles/chat-profile-body}

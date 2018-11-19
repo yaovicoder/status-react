@@ -41,14 +41,14 @@
                                                                     (get content :command-ref))
     content]])
 
-; We can't use CSS as nested Text element don't accept margins nor padding
-; so we pad the invisible placeholder with some spaces to avoid having too
-; close to the text.
+                                        ; We can't use CSS as nested Text element don't accept margins nor padding
+                                        ; so we pad the invisible placeholder with some spaces to avoid having too
+                                        ; close to the text.
 (defn timestamp-with-padding [t]
   (str "   " t))
 
 (defview quoted-message [{:keys [from text]} outgoing current-public-key]
-  (letsubs [username [:get-contact-name-by-identity from]]
+  (letsubs [username [:contacts/contact-name-by-identity from]]
     [react/view {:style (style/quoted-message-container outgoing)}
      [react/view {:style style/quoted-message-author-container}
       [vector-icons/icon :icons/reply {:color (if outgoing colors/wild-blue-yonder colors/gray)}]
@@ -210,7 +210,7 @@
                 [text-status status]))))))))
 
 (defview message-author-name [from message-username]
-  (letsubs [username [:get-contact-name-by-identity from]]
+  (letsubs [username [:contacts/contact-name-by-identity from]]
     [react/text {:style style/message-author-name}
      (chat.utils/format-author from (or username message-username))]))
 

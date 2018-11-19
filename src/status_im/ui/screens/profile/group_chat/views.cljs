@@ -72,7 +72,7 @@
                             #(re-frame/dispatch [(if platform/desktop? :show-profile-desktop :chat.ui/show-profile) public-key]))}]])
 
 (defview chat-group-members-view [chat-id admin? current-user-identity]
-  (letsubs [members [:get-current-chat-contacts]]
+  (letsubs [members [:contacts/current-chat-contacts]]
     (when (seq members)
       [react/view
        [list/flat-list {:data      members
