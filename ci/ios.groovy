@@ -1,23 +1,24 @@
-common = load('ci/common.groovy')
+cmn = load('ci/common.groovy')
 
 def plutil(name, value) {
   sh "plutil -replace ${name} -string ${value} ios/StatusIm/Info.plist"
 }
 
 def compile(type = 'nightly') {
-  def target = 'nightly'
-
-  if (type == 'release') {
-      target = 'adhoc'
+  def target
+  switch (type) {
+    case 'release':
+      target = 'adhoc'; break;
+    case 'testflight':
+      target = 'release'; break;
+    case 'e2e':
+      target = 'e2e'; break;
+    default:
+      target = 'nightly'
   }
-  
-  if (type == 'testflight') {
-      target = 'release'
-  }
-
   /* configure build metadata */
-  plutil('CFBundleShortVersionString', common.version())
-  plutil('CFBundleVersion', common.tagBuild())
+  plutil('CFBundleShortVersionString', cmn.version())
+  plutil('CFBundleVersion', cmn.tagBuild())
   plutil('CFBundleBuildUrl', currentBuild.absoluteUrl)
   /* build the actual app */
   withCredentials([
@@ -30,7 +31,7 @@ def compile(type = 'nightly') {
     sh "bundle exec fastlane ios ${target}"
   }
   if (type != 'testflight') {
-      def pkg = common.pkgFilename(type, 'ipa')
+      def pkg = cmn.pkgFilename(type, 'ipa')
       sh "cp status-adhoc/StatusIm.ipa ${pkg}"
       return pkg
   }
@@ -45,6 +46,22 @@ def uploadToDiawi() {
   }
   diawiUrl = readFile "${env.WORKSPACE}/fastlane/diawi.out"
   return diawiUrl
+}
+
+def uploadToSauceLabs() {
+  def changeId = cmn.getParentRunEnv('CHANGE_ID')
+  if (changeId != null) {
+    env.SAUCE_LABS_APK = "${changeId}.apk"
+  } else {
+    env.SAUCE_LABS_APK = "im.status.ethereum-e2e-${cmn.gitCommit()}.app"
+  }
+  withCredentials([
+    string(credentialsId: 'SAUCE_ACCESS_KEY', variable: 'SAUCE_ACCESS_KEY'),
+    string(credentialsId: 'SAUCE_USERNAME', variable: 'SAUCE_USERNAME'),
+  ]) {
+    sh 'bundle exec fastlane ios saucelabs'
+  }
+  return env.SAUCE_LABS_APK
 }
 
 return this
