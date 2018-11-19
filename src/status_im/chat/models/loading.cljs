@@ -73,7 +73,7 @@
 
                  :messages chat-messages
                  :message-statuses (get-stored-user-statuses chat-id message-ids)
-                 :unviewed-messages stored-unviewed-messages
+                 :unviewed-messages (get stored-unviewed-messages chat-id)
                  :referenced-messages (index-messages
                                        (get-referenced-messages
                                         chat-id
