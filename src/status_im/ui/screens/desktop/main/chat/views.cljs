@@ -175,29 +175,17 @@
 (defmethod message :default
   [text me? {:keys [message-id chat-id message-status user-statuses from
                     current-public-key content-type outgoing type value] :as message}]
-  (when (nil? message-id)
-    (log/debug "nil?" message))
   (if (= type :datemark)
     ^{:key (str "datemark" message-id)}
     [message.datemark/chat-datemark value]
     (when (contains? constants/desktop-content-types content-type)
-      (reagent.core/create-class
-       {:component-did-mount
-        #(when (and message-id
-                    chat-id
-                    (not outgoing)
-                    (not= :seen message-status)
-                    (not= :seen (keyword (get-in user-statuses [current-public-key :status]))))
-           (re-frame/dispatch [:send-seen! {:chat-id    chat-id
-                                            :from       from
-                                            :message-id message-id}]))
-        :reagent-render
-        (fn []
-          ^{:key (str "message" message-id)}
-          [react/view
-           [message-with-name-and-avatar text message]
-           [react/view {:style (message.style/delivery-status outgoing)}
-            [message/message-delivery-status message]]])}))))
+      (when (nil? message-id)
+        (log/debug "nil?" message))
+      ^{:key (str "message" message-id)}
+      [react/view
+       [message-with-name-and-avatar text message]
+       [react/view {:style (message.style/delivery-status outgoing)}
+        [message/message-delivery-status message]]])))
 
 (def load-step 5)
 
@@ -273,12 +261,12 @@
                   :style  styles/reply-photo-style}]))
 
 (views/defview reply-message-view []
-  (views/letsubs [{:keys [content from] :as message} [:chats/reply-message]]
+  (views/letsubs [{:keys [text from] :as message} [:chats/reply-message]]
     (when message
       [react/view {:style styles/reply-wrapper}
        [react/view {:style styles/reply-container}
         [reply-member-photo from]
-        [reply-message from (:text content)]]
+        [reply-message from text]]
        [react/touchable-highlight
         {:style               styles/reply-close-highlight
          :on-press            #(re-frame/dispatch [:chat.ui/cancel-message-reply])
