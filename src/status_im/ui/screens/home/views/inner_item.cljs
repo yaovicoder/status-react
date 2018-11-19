@@ -22,7 +22,7 @@
             [status-im.browser.core :as browser]))
 
 (defview command-short-preview [message]
-  (letsubs [id->command [:chats/get-id->command]]
+  (letsubs [id->command [:chats/id->command]]
     (when-let [command (commands-receiving/lookup-command-by-ref message id->command)]
       (commands/generate-short-preview command message))))
 
