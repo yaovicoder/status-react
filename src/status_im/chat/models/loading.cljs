@@ -63,8 +63,7 @@
            db :chats
            (reduce
             (fn [chats chat-id]
-              (let [stored-unviewed-messages (get-stored-unviewed-messages (accounts.db/current-public-key cofx))
-                    chat-messages (index-messages (get-stored-messages chat-id))
+              (let [chat-messages (index-messages (get-stored-messages chat-id))
                     message-ids   (keys chat-messages)]
                 (update
                  chats
@@ -73,7 +72,9 @@
 
                  :messages chat-messages
                  :message-statuses (get-stored-user-statuses chat-id message-ids)
-                 :unviewed-messages (get stored-unviewed-messages chat-id)
+                 :unviewed-messages (get-stored-unviewed-messages
+                                     (accounts.db/current-public-key cofx)
+                                     chat-id)
                  :referenced-messages (into {}
                                             (map (juxt :message-id identity)
                                                  (get-referenced-messages

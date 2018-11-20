@@ -43,17 +43,19 @@
   (.sha3 dependencies/Web3.prototype s))
 
 (defn- get-unviewed-messages
-  [public-key]
-  (into {}
-        (map (fn [[chat-id user-statuses]]
-               [chat-id (into #{} (map :message-id) user-statuses)]))
-        (group-by :chat-id
-                  (-> @core/account-realm
-                      (core/get-by-fields
-                       :user-status
-                       :and {:public-key public-key
-                             :status     "received"})
-                      (core/all-clj :user-status)))))
+  ([public-key chat-id]
+   (get-unviewed-messages public-key chat-id 0))
+  ([public-key chat-id from]
+   (into #{}
+         (-> @core/account-realm
+             (core/get-by-fields
+              :user-status
+              :and {:chat-id    chat-id
+                    :public-key public-key
+                    :status     "received"})
+             (core/page from (+ from constants/default-number-of-messages))
+             (.map (fn [status _ _] (aget status "message-id")))
+             js->clj))))
 
 (re-frame/reg-cofx
  :data-store/get-unviewed-messages
