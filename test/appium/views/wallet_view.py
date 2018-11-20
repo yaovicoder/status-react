@@ -129,7 +129,7 @@ class SetUpButton(BaseButton):
 class SignInPhraseText(BaseText):
     def __init__(self, driver):
         super(SignInPhraseText, self).__init__(driver)
-        self.locator = self.Locator.accessibility_id("signing-phrase")
+        self.locator = self.Locator.xpath_selector('//*[@content-desc="signing-phrase"]//android.widget.TextView')
 
     @property
     def list(self):
