@@ -286,7 +286,7 @@
                                :params?    :vector
                                :outputs?   :vector
                                :on-result  :event}}}
-   :hooks      {:commands commands/command-hook}})
+   :hooks      {:chat.command commands/command-hook}})
 
 (defn parse [{:keys [data]} id]
   (try
