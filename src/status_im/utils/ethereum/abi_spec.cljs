@@ -38,7 +38,9 @@
   (.hexToUtf8 utils (str "0x" x)))
 
 (defn hex-to-number [x]
-  (.hexToNumber utils (str "0x" x)))
+  (try
+    (.hexToNumber utils (str "0x" x))
+    (catch :default _ nil)))
 
 (defn sha3 [s]
   (.sha3 utils (str s)))
@@ -59,21 +61,20 @@
 ;; higher-order (left) side with 0xff for negative X and with zero bytes for
 ;; positive X such that the length is 32 bytes.
 (defmethod enc :int
-  [{:keys [value]
-    :or {size 256}}]
+  [{:keys [value]}]
   (to-two-complement value))
 
 ;; uint<M>: enc(X) is the big-endian encoding of X, padded on the
 ;; higher-order (left) side with zero-bytes such that the length is 32 bytes.
 (defmethod enc :uint
-  [{:keys [value]
-    :or {size 256}}]
+  [{:keys [value]}]
   (left-pad (number-to-hex value)))
 
 ;; address: as in the uint160 case
 (defmethod enc :address
   [{:keys [value]}]
-  (right-pad value))
+  (when value
+    (left-pad (string/replace value "0x" ""))))
 
 ;; bytes, of length k (which is assumed to be of type uint256):
 ;; enc(X) = enc(k) pad_right(X), i.e. the number of bytes is encoded as a
@@ -349,7 +350,7 @@
     (str/starts-with? type "address") (str "0x" (subs hex (- (count hex) 40)))
     (str/starts-with? type "bytes") (hex-to-bytesM hex type)))
 
-(defn dec-type [bytes]
+(defn dec-type []
   (fn [offset type]
     (cond
       (is-arr? type)
