@@ -14,13 +14,6 @@
             [status-im.utils.utils :as utils]
             [status-im.ui.components.react :as components]))
 
-(views/defview unviewed-indicator [chat-id]
-  (let [unviewed-messages-count (re-frame/subscribe [:unviewed-messages-count chat-id])]
-    (when (pos? @unviewed-messages-count)
-      [react/view
-       [react/text {:font  :medium}
-        @unviewed-messages-count]])))
-
 (views/defview chat-list-item-inner-view [{:keys [chat-id name group-chat color public? public-key] :as chat-item}]
   (letsubs [photo-path                         [:get-chat-photo chat-id]
             unviewed-messages-count            [:unviewed-messages-count chat-id]
