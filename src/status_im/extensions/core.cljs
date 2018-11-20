@@ -134,6 +134,11 @@
                           (when timeout
                             {:timeout-ms timeout}))}))
 
+(handlers/register-handler-fx
+ :extensions/select-suggestion
+ (fn [_ [_ _ {:keys [value]}]]
+   {:dispatch [:chat.ui/suggestion-selected value]}))
+
 (defn operation->fn [k]
   (case k
     :plus   +
@@ -206,16 +211,18 @@
                 'link               {:value link :properties {:uri :string}}
                 ;'list               {:value list :properties {:data :vector :item-view :view}}
                 'checkbox           {:value checkbox :properties {:on-change :event :checked :boolean}}
-                'nft-token-viewer   {:value transactions/nft-token :properties {:token :string}}
-                'transaction-status {:value transactions/transaction-status :properties {:outgoing :string :tx-hash :string}}
-                'asset-selector     {:value transactions/choose-nft-asset-suggestion}
-                'token-selector     {:value transactions/choose-nft-token-suggestion}}
+                'asset-selector     {:value #()}
+                'token-selector     {:value #()}}
    :queries    {'identity            {:value :extensions/identity :arguments {:value :map}}
                 'store/get           {:value :store/get :arguments {:key :string}}
                 'wallet/collectibles {:value :get-collectible-token :arguments {:token :string :symbol :string}}}
    :events     {'alert
                 {:permissions [:read]
                  :value       :alert
+                 :arguments   {:value :string}}
+                'select-suggestion
+                {:permissions [:read]
+                 :value       :extensions/select-suggestion
                  :arguments   {:value :string}}
                 'log
                 {:permissions [:read]
