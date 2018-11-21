@@ -22,6 +22,13 @@ if [ $# -eq 0 ]
     PLATFORM_FOLDER="${PLATFORM}_files"
 fi
 
+if [[ $PLATFORM == 'mobile' ]]; then
+  _localPropertiesPath=./android/local.properties
+  if ! grep -Fq "ndk.dir" $_localPropertiesPath; then
+    echo -e "${GREEN}NDK directory not configured, please run 'make setup' or add the line to ${_localPropertiesPath}!${NC}"
+    exit 1
+  fi
+fi
 
 echo "Creating link: package.json -> ${PLATFORM_FOLDER}/package.json "
 ln -sf  ${PLATFORM_FOLDER}/package.json package.json
