@@ -126,3 +126,35 @@ class TestPublicChatSingleDevice(SingleDeviceTestCase):
         if not public_chat.chat_element_by_text(message).is_element_displayed():
             self.errors.append('Message with korean characters is not shown')
         self.verify_no_errors()
+
+    @marks.testrail_id(5336)
+    @marks.high
+    def test_user_can_interact_with_public_chat(self):
+        signin = SignInView(self.driver)
+        home_view = signin.create_user()
+        chat = home_view.join_public_chat('status')
+
+        # just to generate random text to be sent
+        text = chat.get_public_chat_name()
+        chat.send_message(text)
+
+        if not chat.chat_element_by_text(text).is_element_displayed():
+            self.errors.append('It seems some messages are not shown.')
+
+        if chat.empty_public_chat_message.is_element_displayed():
+            self.driver.fail('Empty chat: history is not fetched!')
+
+        if not chat.chat_item.is_element_displayed():
+            self.errors.append('It seems some messages are not shown.')
+
+        chat.move_to_messages_by_time_marker('Today')
+
+        if not chat.chat_item.is_element_displayed():
+            self.errors.append('It seems some messages are not shown.')
+
+        chat.move_to_messages_by_time_marker('Yesterday')
+
+        if not chat.chat_item.is_element_displayed():
+            self.errors.append('It seems some messages are not shown.')
+
+        self.verify_no_errors()
